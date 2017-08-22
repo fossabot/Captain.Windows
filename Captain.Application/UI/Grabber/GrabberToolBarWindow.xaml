@@ -1,0 +1,55 @@
+﻿<Window x:Class="Captain.Application.GrabberToolBarWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Captain.Application"
+        AllowsTransparency="true"
+        Height="72"
+        Topmost="True"
+        WindowStyle="None"
+        Background="{x:Null}"
+        SizeToContent="Width"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize">
+  <Window.Resources>
+    <ResourceDictionary Source="/Content/Grabber/GrabberToolBarWindow.xaml" />
+  </Window.Resources>
+
+  <Border Background="#F2FFFFFF" CornerRadius="24" Margin="10" Padding="8">
+    <Border.Effect>
+      <DropShadowEffect BlurRadius="8" Direction="270" ShadowDepth="4" Opacity="0.15" />
+    </Border.Effect>
+
+    <StackPanel Orientation="Horizontal">
+      <Button Name="RecordToggleButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Record}" Style="{DynamicResource ToolBarButtonStyle}" Click="RecordToggleButton_Click">
+        <Image Name="RecordToggleButtonImage" Source="/Content/record.png" />
+      </Button>
+
+      <Button Name="OkButton" ToolTip="{x:Static local:Resources.GrabberUI_Capture}" Style="{DynamicResource ToolBarButtonStyle}" Click="OkButton_OnClick">
+        <Image Source="/Content/capture.png" />
+      </Button>
+
+      <Button ToolTip="{x:Static local:Resources.GrabberUI_LineTool}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/line.png" />
+      </Button>
+      <Button ToolTip="{x:Static local:Resources.GrabberUI_EllipseTool}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/circle.png" />
+      </Button>
+      <Button ToolTip="{x:Static local:Resources.GrabberUI_TriangleTool}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/triangle.png" />
+      </Button>
+      <Button ToolTip="{x:Static local:Resources.GrabberUI_RectangleTool}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/rectangle.png" />
+      </Button>
+      <Button ToolTip="{x:Static local:Resources.GrabberUI_TypeTool}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/type.png" />
+      </Button>
+      <Button Visibility="Collapsed" Name="UndoButton" ToolTip="{x:Static local:Resources.GrabberUI_Undo}" Style="{DynamicResource ToolBarButtonStyle}">
+        <Image Source="/Content/undo.png" />
+      </Button>
+      <Button Name="CancelButton" ToolTip="{x:Static local:Resources.GrabberUI_Cancel}" Style="{DynamicResource ToolBarButtonStyle}" Click="CancelButton_Click">
+        <Image Source="/Content/cancel.png" />
+      </Button>
+    </StackPanel>
+  </Border>
+</Window>
