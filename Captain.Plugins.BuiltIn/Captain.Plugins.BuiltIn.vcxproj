@@ -139,10 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="OutputStreams\ClipboardOutputStream.h" />
     <ClInclude Include="Encoders\PNGCaptureEncoder.h" />
     <ClInclude Include="OutputStreams\FileOutputStream.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="OutputStreams\ClipboardOutputStream.cpp" />
     <ClCompile Include="Encoders\PNGCaptureEncoder.cpp" />
     <ClCompile Include="OutputStreams\FileOutputStream.cpp" />
   </ItemGroup>

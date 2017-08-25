@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
 using Captain.Common;
+using static Captain.Application.Application;
 
 namespace Captain.Application {
   /// <summary>
@@ -52,6 +53,7 @@ namespace Captain.Application {
       this.window.LocationChanged += UpdateToolBarPosition;
 
       this.toolBar.OnCaptureActionInitiated += OnCaptureActionInitiated;
+      this.toolBar.OnGrabberIntentReceived += OnGrabberIntentReceived;
 
       this.window.Closed += (_, __) => Dispose();
       this.toolBar.Closed += (_, __) => Dispose();
@@ -113,5 +115,24 @@ namespace Captain.Application {
       OnIntentReceived?.Invoke(this, new CaptureIntent(type) {
         VirtualArea = this.window.Area
       });
+
+    /// <summary>
+    ///   Handles internal grabber intents
+    /// </summary>
+    /// <param name="intentType">Intent type</param>
+    /// <param name="userData">Optional user data</param>
+    private void OnGrabberIntentReceived(GrabberIntentType intentType, object userData) {
+      Log.WriteLine(LogLevel.Verbose, $"grabber intent received: {intentType}");
+
+      switch (intentType) {
+        case GrabberIntentType.AttachToWindow:
+          this.window.Helper.AttachToNearestWindow();
+          break;
+
+        case GrabberIntentType.DetachFromWindow:
+          this.window.Helper.DetachFromWindow();
+          break;
+      }
+    }
   }
 }

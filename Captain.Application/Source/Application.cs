@@ -1,19 +1,29 @@
-﻿using System;
+﻿using Captain.Application.NativeHelpers;
+using Captain.Common;
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
-using Windows.Data.Xml.Dom;
-using Windows.UI.Notifications;
-using Captain.Application.NativeHelpers;
-using Captain.Common;
-using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace Captain.Application {
   /// <summary>
   ///   Defines basic logic behind the application
   /// </summary>
   internal static class Application {
+    /// <summary>
+    ///   Single instance mutex name
+    /// </summary>
+    private static string SiMutexName => $"{VersionInfo.ProductName} Single Instance Mutex ({Guid})";
+
+    /// <summary>
+    ///   Single instance mutex
+    /// </summary>
+    private static Mutex SiMutex { get; set; }
+
     /// <summary>
     ///   Application-wide logger
     /// </summary>
@@ -55,14 +65,27 @@ namespace Captain.Application {
     internal static IToastProvider ToastProvider { get; private set; }
 
     /// <summary>
+    ///   Application's assembly GUID
+    /// </summary>
+    internal static string Guid => (Assembly.GetExecutingAssembly().GetCustomAttribute(typeof(GuidAttribute)) as
+                                    GuidAttribute)?.Value;
+
+
+    /// <summary>
     ///   Terminates the program gracefully
     /// </summary>
     /// <param name="exitCode">Optional exit code</param>
     internal static void Exit(int exitCode = 0) {
-      Log.WriteLine(LogLevel.Warning, "exiting with code {0}", exitCode);
-      TrayIcon?.Hide();
-      Options?.Save();
-      Environment.Exit(exitCode);
+      try {
+        Log.WriteLine(LogLevel.Warning, "exiting with code {0}", exitCode);
+
+        TrayIcon?.Hide();
+        Options?.Save();
+      } finally {
+        SiMutex?.ReleaseMutex();
+        Environment.Exit(exitCode);
+      }
+
     }
 
     /// <summary>
@@ -83,6 +106,14 @@ namespace Captain.Application {
 
       Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionInfo.ProductVersion}");
 
+      if (Mutex.TryOpenExisting(SiMutexName, out Mutex _)) {
+        Log.WriteLine(LogLevel.Warning, "another instance of the application is running - aborting");
+        Environment.Exit(1);
+      }
+
+      // create mutex to prevent multiple instances of the application to be ran
+      SiMutex = new Mutex(true, SiMutexName);
+
       FsManager = new FsManager();
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
@@ -92,50 +123,51 @@ namespace Captain.Application {
       try {
         ToastProvider = new ToastNotificationProvider();
 
-        var content = new ToastContent {
+        /*var content = new ToastContent {
           Duration = ToastDuration.Long,
           Audio = new ToastAudio { Silent = true },
           Actions = new ToastActionsCustom(),
           Visual = new ToastVisual {
             BindingGeneric = new ToastBindingGeneric {
               Children = {
+                new AdaptiveText { Text = VersionInfo.ProductName },
+                new AdaptiveText { Text = "Your capture is being processed.", HintStyle = AdaptiveTextStyle.Body },
                 new AdaptiveProgressBar {
                   Status = "Uploading to Imgur",
-                  Value = AdaptiveProgressBarValue.Indeterminate,
-                  Title = "Title"
+                  Value = 0.5
                 }
               }
             }
           }
         };
 
-
         var doc = new XmlDocument();
         doc.LoadXml(content.GetContent());
 
         var notification = new ToastNotification(doc);
-        ToastNotificationManager.CreateToastNotifier(VersionInfo.ProductName).Show(notification);
+        ToastNotificationManager.CreateToastNotifier(VersionInfo.ProductName).Show(notification);*/
       } catch {
         ToastProvider = new LegacyNotificationProvider();
       }
 
+      bool MyLittleCallback(bool exclusive, int monitor) {
+        Action action = ActionManager.CreateDefault();
+
+        if (exclusive) {
+          action.Start(new CaptureIntent(ActionType.Screenshot) {
+            Monitor = monitor
+          });
+        } else {
+          action.BindGrabberUI(new Grabber(action.ActionTypes));
+        }
+
+        return true;
+      }
+
       HotkeyManager = new HotkeyManager();
-      HotkeyManager.Register((int)(Keys.LControlKey | Keys.RMenu | Keys.Return),
-                             (exclusive, monitor) => {
-                               Action action = ActionManager.CreateDefault();
+      HotkeyManager.Register((int)(Keys.LControlKey | Keys.RMenu | Keys.Return), MyLittleCallback);
 
-                               if (exclusive) {
-                                 action.Start(new CaptureIntent(ActionType.Screenshot) {
-                                   Monitor = monitor
-                                 });
-                               } else {
-                                 var grabber = new Grabber(action.ActionTypes);
-                                 grabber.OnIntentReceived += (_, intent) => action.Start(intent);
-                                 grabber.Show();
-                               }
-
-                               return true;
-                             });
+      TrayIcon.NotifyIcon.Click += (_, __) => MyLittleCallback(false, -1);
 
       new System.Windows.Application {
         ShutdownMode = ShutdownMode.OnExplicitShutdown

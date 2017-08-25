@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using Captain.Common;
 using static Captain.Application.Application;
@@ -14,6 +15,22 @@ namespace Captain.Application {
     ///   Square size of each indicator icon
     /// </summary>
     private const uint IndicatorIconSquare = 16;
+
+    /// <summary>
+    ///   Maximum TTL, in milliseconds, for the warning badge
+    ///   Yes I'm being serious on this one
+    /// </summary>
+    internal const int WarningBadgeTtl = 10_000;
+
+    /// <summary>
+    ///   When true, a looping animation is being played
+    /// </summary>
+    private bool isLoopingAnimationPlaying;
+
+    /// <summary>
+    ///   Animation thread
+    /// </summary>
+    private Thread loopingAnimationThread;
 
     /// <summary>
     ///   Tray icon context menu
@@ -168,6 +185,46 @@ namespace Captain.Application {
     internal void Hide() => NotifyIcon.Visible = false;
 
     /// <summary>
+    ///   Plays a looping animation with the specified icon class
+    /// </summary>
+    /// <param name="iconClass">Animation icon class</param>
+    internal void PlayLoopingIconAnimation(TrayIconClass iconClass = TrayIconClass.IndeterminateProgress) {
+      if (this.loopingAnimationThread != null && this.isLoopingAnimationPlaying) {
+        Log.WriteLine(LogLevel.Warning, "you are supposed to call StopLoopingIconAnimation() - do your job!");
+        StopLoopingIconAnimation(iconClass);
+
+        this.isLoopingAnimationPlaying = false;  // we want to stop the inner thread loop
+        this.loopingAnimationThread.Join();      // wait for the previous thread to end
+      }
+
+      this.isLoopingAnimationPlaying = true;
+      this.loopingAnimationThread = new Thread(() => {
+        uint progressValue = 0;
+
+        while (this.isLoopingAnimationPlaying) {
+          SetIcon(iconClass, progressValue = (progressValue + 5) % 100);
+          Thread.Sleep(30);
+        }
+      });
+      this.loopingAnimationThread.Start();
+    }
+
+    /// <summary>
+    ///   Stops a previously started looping animation
+    /// </summary>
+    /// <param name="newIconClass">New icon class to be set after the animation stops</param>
+    internal void StopLoopingIconAnimation(TrayIconClass newIconClass = TrayIconClass.Application) {
+      if (!this.isLoopingAnimationPlaying) {
+        Log.WriteLine(LogLevel.Warning, "tried to stop looping animation when a static indicator is set");
+        return;
+      }
+
+      this.isLoopingAnimationPlaying = false;  // stop animation
+      this.loopingAnimationThread.Join();      // wait for the thread to terminate
+      SetIcon(newIconClass);                   // bang!
+    }
+
+    /// <summary>
     ///   Sets the current icon
     /// </summary>
     /// <param name="iconClass">Tray icon kind</param>
@@ -182,7 +239,7 @@ namespace Captain.Application {
           break;
 
         case TrayIconClass.DeterminateProgress:
-          // XXX: progressValue MUST be non-null when iconClass == TrayIconClass.DeterminateProgress!
+          // XXX: progressValue MUST be non-null when iconClass == TrayIconClass.DeterminateProgress
           // 0.10 = 11 - 1 progress icons / 100 (maximum progressValue) on modern icon variant
           // 0.07 = 8 - 1 progress icons / 100 (maximum progressValue) on the rest of variants
           // ReSharper disable once PossibleInvalidOperationException
@@ -197,13 +254,12 @@ namespace Captain.Application {
           // 0.17 = 18 - 1 progress icons / 100 (maximum progressValue) on aero icon variants
           // 0.05 = 6 - 1 progress icons / 100 (maximum progressValue) on modern icon variant
           // ReSharper disable once PossibleInvalidOperationException
-          index = 2 + (uint)(this.iconVariant == TrayIconVariant.Modern
-                               ? 13
-                               : 10 + Math.Ceiling((this.iconVariant == TrayIconVariant.Modern
-                                                      ? 0.05
-                                                      : this.iconVariant == TrayIconVariant.Aero
-                                                        ? 0.17
-                                                        : 0.03) * (uint)progressValue));
+          index = 1 + (uint)((this.iconVariant == TrayIconVariant.Modern ? 13 : 9) +
+                             Math.Floor((this.iconVariant == TrayIconVariant.Modern
+                                           ? 0.05
+                                           : this.iconVariant == TrayIconVariant.Aero
+                                             ? 0.17
+                                             : 0.03) * (uint)progressValue));
           break;
       }
 

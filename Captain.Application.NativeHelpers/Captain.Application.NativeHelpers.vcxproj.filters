@@ -30,6 +30,15 @@
     <ClInclude Include="UI\HotkeyManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UI\UriExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Injector\CaptainInjector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Injector\CaptainInjectorResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ScreenCaptureProvider\GDIScreenCaptureProvider.cpp">
@@ -41,10 +50,18 @@
     <ClCompile Include="UI\HotkeyManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UI\UriExtensions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Injector\CaptainInjector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="README.md" />
     <None Include="LICENSE.md" />
+    <None Include=".gitattributes" />
+    <None Include=".editorconfig" />
   </ItemGroup>
 </Project>

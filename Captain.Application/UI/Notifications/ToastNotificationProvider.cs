@@ -39,7 +39,9 @@ namespace Captain.Application {
     /// <param name="previewImage">Preview image</param>
     /// <param name="actions">A dictionary of actions, from which the first one may be triggered upon balloon click</param>
     /// <param name="handler">Custom handler for toast activation</param>
-    public void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null, Action<object, object> handler = null) {
+    /// <param name="dismissionHandler">Custom handler for toast dismission</param>
+    public void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null,
+      Action<object, object> handler = null, Action<object, object> dismissionHandler = null) {
       string previewSource = previewUri?.ToString();
       bool isTemporaryPreviewSource = false;
 
@@ -55,6 +57,7 @@ namespace Captain.Application {
         Duration = ToastDuration.Long,
         Audio = new ToastAudio { Silent = true },
         Actions = new ToastActionsCustom(),
+        Launch = actions != null && actions.Any() ? actions.First().Value.ToString() : null,
         Visual = new ToastVisual {
           BindingGeneric = new ToastBindingGeneric {
             Children = {
@@ -102,13 +105,16 @@ namespace Captain.Application {
       var doc = new XmlDocument();
       doc.LoadXml(content.GetContent());
 
-      var notification = new ToastNotification(doc);
+      var notification = new ToastNotification(doc) {
+        Priority = ToastNotificationPriority.High,
+        SuppressPopup = false
+      };
 
       if (handler != null) {
         notification.Activated += (sender, eventArgs) => handler(sender, eventArgs);
       }
 
-      notification.Dismissed += (_, __) => {
+      notification.Dismissed += (sender, eventArgs) => {
         Log.WriteLine(LogLevel.Debug, "notification dismissed");
 
         // delete temporary preview, if any
@@ -120,6 +126,9 @@ namespace Captain.Application {
             Log.WriteLine(LogLevel.Warning, $"could not delete temporary preview image: {previewSource} - {exception}");
           }
         }
+
+        // call custom handler
+        dismissionHandler?.Invoke(sender, eventArgs);
       };
 
       this.toastNotifier.Show(notification);

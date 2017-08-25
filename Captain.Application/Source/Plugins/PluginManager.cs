@@ -53,7 +53,11 @@ namespace Captain.Application {
       // manually add built-in encoders/handlers. We could feed the assembly and let them be discovered, but this is cheaper and faster,
       // since we already know which types are exported
       StaticEncoders.Add(new PluginObject(typeof(PNGCaptureEncoder)));
-      OutputStreams.Add(new PluginObject(typeof(FileOutputStream)));
+      OutputStreams.AddRange(new[] {
+        new PluginObject(typeof(FileOutputStream)),
+        new PluginObject(typeof(ClipboardOutputStream))
+      });
+
 
       foreach (Assembly assembly in assemblies) {
         try {

@@ -19,6 +19,11 @@ namespace Captain.Application {
     private GrabberWindowHelper helper;
 
     /// <summary>
+    ///   Native window helper
+    /// </summary>
+    internal GrabberWindowHelper Helper => this.helper;
+
+    /// <summary>
     ///   Changes/gets whether the window can be resized
     /// </summary>
     internal bool CanBeResized {

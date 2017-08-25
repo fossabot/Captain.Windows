@@ -5,6 +5,11 @@
   /// </summary>
   public interface IOutputStream {
     /// <summary>
+    ///   Contains information about the encoded capture. It is set by Captain before calling the class constructor.
+    /// </summary>
+    EncoderInfo EncoderInfo { get; set; }
+
+    /// <summary>
     ///   Method called by the application after the last chunk of data has been written
     ///   to this output stream
     /// </summary>

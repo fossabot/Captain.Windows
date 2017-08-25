@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
 
 namespace Captain.Application {
   /// <summary>
@@ -21,9 +20,21 @@ namespace Captain.Application {
     internal delegate void CaptureActionInitiatedHandler(ActionType type);
 
     /// <summary>
+    ///   Handles grabber UI intents
+    /// </summary>
+    /// <param name="intentType">Intent type</param>
+    /// <param name="userData">Custom user data</param>
+    internal delegate void GrabberIntentHandler(GrabberIntentType intentType, object userData = null);
+
+    /// <summary>
     ///   Capture action init event
     /// </summary>
     internal event CaptureActionInitiatedHandler OnCaptureActionInitiated;
+
+    /// <summary>
+    ///   Grabber UI intent received event
+    /// </summary>
+    internal event GrabberIntentHandler OnGrabberIntentReceived;
 
     /// <summary>
     ///   Creates a new capture toolbar
@@ -32,11 +43,11 @@ namespace Captain.Application {
     internal GrabberToolBarWindow(ActionType acceptableActionTypes) {
       InitializeComponent();
 
-      this.OkButton.Visibility = acceptableActionTypes.HasFlag(ActionType.Screenshot)
+      this.ScreenshotButton.Visibility = acceptableActionTypes.HasFlag(ActionType.Screenshot)
                                    ? Visibility.Visible
                                    : Visibility.Collapsed;
 
-      this.RecordToggleButton.Visibility = acceptableActionTypes.HasFlag(ActionType.Record)
+      this.RecordingTools.Visibility = acceptableActionTypes.HasFlag(ActionType.Record)
                                              ? Visibility.Visible
                                              : Visibility.Collapsed;
     }
@@ -74,6 +85,48 @@ namespace Captain.Application {
       return IntPtr.Zero;
     }
 
+    /// <summary>
+    ///   Triggered when the "Take screenshot" button is clicked
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void ScreenshotButton_Click(object sender, RoutedEventArgs e) {
+      OnCaptureActionInitiated(ActionType.Screenshot);
+
+      if (!this.mayBeRecording && (Keyboard.Modifiers & ModifierKeys.Alt) == 0) {
+        // close the grabber UI if this was just a screenshot and the ALT modifier key is not pressed
+        Close();
+      }
+    }
+
+    /// <summary>
+    ///   Triggered when the "Cancel" button is clicked
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void CancelButton_Click(object sender, RoutedEventArgs e) {
+      Close();
+    }
+
+    /// <summary>
+    ///   Triggered when the "Attach to window" button is clicked
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void PinButton_Click(object sender, RoutedEventArgs e) {
+      OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
+    }
+
+    /// <summary>
+    ///   Triggered when the "Detach from window" button is clicked
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void UnpinButton_Click(object sender, RoutedEventArgs e) {
+      OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
+    }
+
+#if false
     /// <summary>
     ///   Triggered when the Cancel button is activated
     /// </summary>
@@ -114,5 +167,7 @@ namespace Captain.Application {
       this.mayBeRecording = !this.mayBeRecording;
       OnCaptureActionInitiated(ActionType.Record);
     }
+
+#endif
   }
 }

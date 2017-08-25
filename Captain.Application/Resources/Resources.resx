@@ -136,18 +136,6 @@
   <data name="AppMenu_Exit" xml:space="preserve">
     <value>&amp;Exit</value>
   </data>
-  <data name="ActionOptions" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>ActionOptions.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="AddInOptions" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>AddInOptions.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="BasicOptions" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>BasicOptions.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="UpdateOptions" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>UpdateOptions.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="CapturesFolderName" xml:space="preserve">
     <value>Captures</value>
   </data>
@@ -172,40 +160,10 @@
   <data name="GenericActionErrorDialog_ShowDetails" xml:space="preserve">
     <value>Show error &amp;details</value>
   </data>
-  <data name="GrabberUI_Cancel" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
-  <data name="GrabberUI_Capture" xml:space="preserve">
-    <value>Capture!</value>
-  </data>
-  <data name="GrabberUI_EllipseTool" xml:space="preserve">
-    <value>Ellipse</value>
-  </data>
-  <data name="GrabberUI_LineTool" xml:space="preserve">
-    <value>Line</value>
-  </data>
-  <data name="GrabberUI_RectangleTool" xml:space="preserve">
-    <value>Rectangle</value>
-  </data>
-  <data name="GrabberUI_TriangleTool" xml:space="preserve">
-    <value>Triangle</value>
-  </data>
-  <data name="GrabberUI_TypeTool" xml:space="preserve">
-    <value>Type</value>
-  </data>
-  <data name="GrabberUI_Undo" xml:space="preserve">
-    <value>Undo</value>
-  </data>
-  <data name="GrabberUI_Record" xml:space="preserve">
-    <value>Record</value>
-  </data>
-  <data name="GrabberUI_StopRecording" xml:space="preserve">
-    <value>Stop recording</value>
-  </data>
-  <data name="Toast_HandlerFailedCaption" xml:space="preserve">
+  <data name="Toast_OutputStreamFailedCaption" xml:space="preserve">
     <value>The capture could not be processed</value>
   </data>
-  <data name="Toast_HandlerFailedContent" xml:space="preserve">
+  <data name="Toast_OutputStreamFailedContent" xml:space="preserve">
     <value>An error occured while handling this capture</value>
   </data>
   <data name="Toast_CaptureFailedCaption" xml:space="preserve">
@@ -213,5 +171,68 @@
   </data>
   <data name="Toast_CaptureFailedContent" xml:space="preserve">
     <value>Either the capture failed or there was a media encoding problem.</value>
+  </data>
+  <data name="Toast_StaticDoneCaption" xml:space="preserve">
+    <value>Screenshot taken!</value>
+  </data>
+  <data name="Toast_StaticDonePartialSuccessContent" xml:space="preserve">
+    <value>Your capture has been processed.</value>
+  </data>
+  <data name="Toast_StaticDonePartialSuccessSubtext" xml:space="preserve">
+    <value>Some tasks failed. Tap for details.</value>
+  </data>
+  <data name="Toast_ViewResultsActionText" xml:space="preserve">
+    <value>View results…</value>
+  </data>
+  <data name="Toast_ViewErrorsActionText" xml:space="preserve">
+    <value>View errors…</value>
+  </data>
+  <data name="ActionErrorDialog_PartialFailureCaption" xml:space="preserve">
+    <value>Some tasks failed.</value>
+  </data>
+  <data name="ActionErrorDialog_PartialFailureContent" xml:space="preserve">
+    <value>Not all output streams could process your capture. Refer to the application log for technical information.</value>
+  </data>
+  <data name="Toast_StaticDoneContent" xml:space="preserve">
+    <value>All tasks were completed.</value>
+  </data>
+  <data name="Toast_StaticDoneDetailsSubtext" xml:space="preserve">
+    <value>Tap here to see details.</value>
+  </data>
+  <data name="GrabberUI_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="GrabberUI_MuteMicrophone" xml:space="preserve">
+    <value>Mute microphone</value>
+  </data>
+  <data name="GrabberUI_MuteSpeaker" xml:space="preserve">
+    <value>Mute speaker</value>
+  </data>
+  <data name="GrabberUI_Pause" xml:space="preserve">
+    <value>Pause recording</value>
+  </data>
+  <data name="GrabberUI_Pin" xml:space="preserve">
+    <value>Attach to window</value>
+  </data>
+  <data name="GrabberUI_Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="GrabberUI_Resume" xml:space="preserve">
+    <value>Resume recording</value>
+  </data>
+  <data name="GrabberUI_Screenshot" xml:space="preserve">
+    <value>Take screenshot!</value>
+  </data>
+  <data name="GrabberUI_Stop" xml:space="preserve">
+    <value>Stop recording</value>
+  </data>
+  <data name="GrabberUI_UnmuteMicrophone" xml:space="preserve">
+    <value>Unmute microphone</value>
+  </data>
+  <data name="GrabberUI_UnmuteSpeaker" xml:space="preserve">
+    <value>Unmute speaker</value>
+  </data>
+  <data name="GrabberUI_Unpin" xml:space="preserve">
+    <value>Detach from window</value>
   </data>
 </root>

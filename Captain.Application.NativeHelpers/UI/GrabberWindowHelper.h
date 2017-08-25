@@ -15,49 +15,47 @@ using namespace Captain::Common;
 namespace Captain {
   namespace Application {
     namespace NativeHelpers {
-      /**
-       * \brief Utility class for GrabberWindow UI
-       */
+      /// utility class for the grabber UI
       public ref class GrabberWindowHelper {
       protected:
-        // underlying grabber window handle
+        /// grabber area-selection window handle
         HWND hwnd;
 
-      public:
-        // logger instance
+        /// handle of the window the UI is attached ot
+        HWND hwndAttached;
+
+        /// logger instance
         Logger^ log;
 
-        // handle for the device change notify registration
+        /// handle for the device change notify registration
         HDEVNOTIFY hDevNotify;
 
-        // maximum "virtual desktop" bounds
+        /// original procedure for the attached window
+        WNDPROC attachedWndProc;
+
+        /// maximum "virtual desktop" bounds
         int minLeft = 0, minTop = 0, maxRight = 0, maxBottom = 0;
 
-        /**
-         * \brief Previous window procedure
-         */
-        WNDPROC prevWndProc;
-
-        /**
-         * Window procedure hook
-         */
-        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled);
-
-        /**
-        * \brief Creates an instance of this class
-        * \param handle GrabberWindow handle
-        * \param pHelper Instance pointer
-        */
+      public:
+        /// creates an instance of this class, given the grabber UI window handle
         GrabberWindowHelper(IntPtr handle);
 
-        /**
-         * Updates monitor geometry information
-         */
+        /// updates monitor geometry information and limits/positions the grabber UI accordingly
         void UpdateMonitorGeometryInfo();
 
-        /**
-         * Class destructor
-         */
+        /// attach the grabber UI to the nearest window
+        void AttachToNearestWindow();
+
+        /// detach the grabber UI from the previous window
+        void DetachFromWindow();
+
+        /// retrieve the attached window procedure
+        inline WNDPROC GetAttachedWndProc() { return this->attachedWndProc; }
+
+        /// window procedure hook
+        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled);
+
+        /// class destructor
         ~GrabberWindowHelper();
       };
     }

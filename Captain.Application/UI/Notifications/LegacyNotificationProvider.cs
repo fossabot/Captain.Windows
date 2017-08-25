@@ -26,17 +26,33 @@ namespace Captain.Application {
     /// <param name="icon">Balloon tip icon</param>
     /// <param name="uri">Optional URI to be open on click</param>
     /// <param name="handler">Custom handler callback</param>
-    internal static void PushMessage(string title, string text, ToolTipIcon icon, Uri uri = null, EventHandler handler = null) {
+    /// <param name="closeHandler">Custom closing handler callback</param>
+    internal static void PushMessage(string title, string text, ToolTipIcon icon, Uri uri = null, EventHandler handler = null, EventHandler closeHandler = null) {
       Log.WriteLine(LogLevel.Debug, $"pushing generic message as balloon notification ({icon} | {uri})");
       Application.TrayIcon.NotifyIcon.ShowBalloonTip(BalloonTipDuration, title, text, icon);
 
       if (uri != null || handler != null) {
+        EventHandler originalCloseHandler = closeHandler;
+
         Log.WriteLine(LogLevel.Debug, "non-null handler or action URI was provided");
-        Application.TrayIcon.NotifyIcon.BalloonTipClicked += handler ?? (handler = (sender, args) => Process.Start(uri.ToString()));
+        Application.TrayIcon.NotifyIcon.BalloonTipClicked += handler ?? (handler = (_, __) => Process.Start(uri.ToString()));
+        Application.TrayIcon.NotifyIcon.BalloonTipClosed += closeHandler = (sender, eventArgs) => {
+          // detach event handlers
+          Application.TrayIcon.NotifyIcon.BalloonTipClicked -= handler;
+
+          // ReSharper disable once AccessToModifiedClosure
+          // NOTE: there's no other way to detach event handlers, but it's 120% safe.
+          //       Or so I hope
+          Application.TrayIcon.NotifyIcon.BalloonTipClosed -= closeHandler;
+
+          // invoke original close handler, if any
+          originalCloseHandler?.Invoke(sender, eventArgs);
+        };
 
         new Thread(() => {
           Thread.Sleep(BalloonTipDuration);
           Application.TrayIcon.NotifyIcon.BalloonTipClicked -= handler;
+          Application.TrayIcon.NotifyIcon.BalloonTipClosed -= closeHandler;
         }).Start();
       }
     }
@@ -59,7 +75,12 @@ namespace Captain.Application {
     /// <param name="previewImage">Ignored</param>
     /// <param name="actions">A dictionary of actions, from which the first one may be triggered upon balloon click</param>
     /// <param name="handler">Handles activation events</param>
-    public void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null, Action<object, object> handler = null) =>
-      PushMessage(caption, (body + Environment.NewLine + (subtext ?? "")).Trim(), ToolTipIcon.None, actions?.FirstOrDefault().Value, (sender, args) => handler?.Invoke(sender, args));
+    public void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null,
+      Action<object, object> handler = null, Action<object, object> dismissionHandler = null) =>
+      PushMessage(caption, (body + Environment.NewLine + (subtext ?? "")).Trim(), ToolTipIcon.None, actions?.FirstOrDefault().Value,
+                  (sender, args) => {
+                    handler?.Invoke(sender, args);
+                    dismissionHandler?.Invoke(sender, args);
+                  });
   }
 }

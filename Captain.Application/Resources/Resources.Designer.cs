@@ -19,7 +19,7 @@ namespace Captain.Application {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -61,22 +61,20 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to Some tasks failed..
         /// </summary>
-        public static System.Drawing.Bitmap ActionOptions {
+        public static string ActionErrorDialog_PartialFailureCaption {
             get {
-                object obj = ResourceManager.GetObject("ActionOptions", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("ActionErrorDialog_PartialFailureCaption", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to Not all output streams could process your capture. Refer to the application log for technical information..
         /// </summary>
-        public static System.Drawing.Bitmap AddInOptions {
+        public static string ActionErrorDialog_PartialFailureContent {
             get {
-                object obj = ResourceManager.GetObject("AddInOptions", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("ActionErrorDialog_PartialFailureContent", resourceCulture);
             }
         }
         
@@ -127,16 +125,6 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        public static System.Drawing.Bitmap BasicOptions {
-            get {
-                object obj = ResourceManager.GetObject("BasicOptions", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Captures.
         /// </summary>
         public static string CapturesFolderName {
@@ -173,29 +161,38 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Capture!.
+        ///   Looks up a localized string similar to Mute microphone.
         /// </summary>
-        public static string GrabberUI_Capture {
+        public static string GrabberUI_MuteMicrophone {
             get {
-                return ResourceManager.GetString("GrabberUI_Capture", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_MuteMicrophone", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ellipse.
+        ///   Looks up a localized string similar to Mute speaker.
         /// </summary>
-        public static string GrabberUI_EllipseTool {
+        public static string GrabberUI_MuteSpeaker {
             get {
-                return ResourceManager.GetString("GrabberUI_EllipseTool", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_MuteSpeaker", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Line.
+        ///   Looks up a localized string similar to Pause recording.
         /// </summary>
-        public static string GrabberUI_LineTool {
+        public static string GrabberUI_Pause {
             get {
-                return ResourceManager.GetString("GrabberUI_LineTool", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_Pause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attach to window.
+        /// </summary>
+        public static string GrabberUI_Pin {
+            get {
+                return ResourceManager.GetString("GrabberUI_Pin", resourceCulture);
             }
         }
         
@@ -209,47 +206,56 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rectangle.
+        ///   Looks up a localized string similar to Resume recording.
         /// </summary>
-        public static string GrabberUI_RectangleTool {
+        public static string GrabberUI_Resume {
             get {
-                return ResourceManager.GetString("GrabberUI_RectangleTool", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_Resume", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take screenshot!.
+        /// </summary>
+        public static string GrabberUI_Screenshot {
+            get {
+                return ResourceManager.GetString("GrabberUI_Screenshot", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Stop recording.
         /// </summary>
-        public static string GrabberUI_StopRecording {
+        public static string GrabberUI_Stop {
             get {
-                return ResourceManager.GetString("GrabberUI_StopRecording", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_Stop", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Triangle.
+        ///   Looks up a localized string similar to Unmute microphone.
         /// </summary>
-        public static string GrabberUI_TriangleTool {
+        public static string GrabberUI_UnmuteMicrophone {
             get {
-                return ResourceManager.GetString("GrabberUI_TriangleTool", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_UnmuteMicrophone", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type.
+        ///   Looks up a localized string similar to Unmute speaker.
         /// </summary>
-        public static string GrabberUI_TypeTool {
+        public static string GrabberUI_UnmuteSpeaker {
             get {
-                return ResourceManager.GetString("GrabberUI_TypeTool", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_UnmuteSpeaker", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Undo.
+        ///   Looks up a localized string similar to Detach from window.
         /// </summary>
-        public static string GrabberUI_Undo {
+        public static string GrabberUI_Unpin {
             get {
-                return ResourceManager.GetString("GrabberUI_Undo", resourceCulture);
+                return ResourceManager.GetString("GrabberUI_Unpin", resourceCulture);
             }
         }
         
@@ -268,24 +274,6 @@ namespace Captain.Application {
         public static string Toast_CaptureFailedContent {
             get {
                 return ResourceManager.GetString("Toast_CaptureFailedContent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The capture could not be processed.
-        /// </summary>
-        public static string Toast_HandlerFailedCaption {
-            get {
-                return ResourceManager.GetString("Toast_HandlerFailedCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An error occured while handling this capture.
-        /// </summary>
-        public static string Toast_HandlerFailedContent {
-            get {
-                return ResourceManager.GetString("Toast_HandlerFailedContent", resourceCulture);
             }
         }
         
@@ -326,6 +314,78 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The capture could not be processed.
+        /// </summary>
+        public static string Toast_OutputStreamFailedCaption {
+            get {
+                return ResourceManager.GetString("Toast_OutputStreamFailedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occured while handling this capture.
+        /// </summary>
+        public static string Toast_OutputStreamFailedContent {
+            get {
+                return ResourceManager.GetString("Toast_OutputStreamFailedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Screenshot taken!.
+        /// </summary>
+        public static string Toast_StaticDoneCaption {
+            get {
+                return ResourceManager.GetString("Toast_StaticDoneCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All tasks were completed..
+        /// </summary>
+        public static string Toast_StaticDoneContent {
+            get {
+                return ResourceManager.GetString("Toast_StaticDoneContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tap here to see details..
+        /// </summary>
+        public static string Toast_StaticDoneDetailsSubtext {
+            get {
+                return ResourceManager.GetString("Toast_StaticDoneDetailsSubtext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your capture has been processed..
+        /// </summary>
+        public static string Toast_StaticDonePartialSuccessContent {
+            get {
+                return ResourceManager.GetString("Toast_StaticDonePartialSuccessContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Some tasks failed. Tap for details..
+        /// </summary>
+        public static string Toast_StaticDonePartialSuccessSubtext {
+            get {
+                return ResourceManager.GetString("Toast_StaticDonePartialSuccessSubtext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View errors….
+        /// </summary>
+        public static string Toast_ViewErrorsActionText {
+            get {
+                return ResourceManager.GetString("Toast_ViewErrorsActionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to View in folder.
         /// </summary>
         public static string Toast_ViewInFolder {
@@ -335,21 +395,20 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to View results….
         /// </summary>
-        public static System.Drawing.Bitmap TrayIconStrip {
+        public static string Toast_ViewResultsActionText {
             get {
-                object obj = ResourceManager.GetObject("TrayIconStrip", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("Toast_ViewResultsActionText", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap UpdateOptions {
+        public static System.Drawing.Bitmap TrayIconStrip {
             get {
-                object obj = ResourceManager.GetObject("UpdateOptions", resourceCulture);
+                object obj = ResourceManager.GetObject("TrayIconStrip", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

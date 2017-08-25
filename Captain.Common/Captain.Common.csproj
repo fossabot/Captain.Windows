@@ -79,12 +79,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Source\Attributes\DisplayName.cs" />
+    <Compile Include="Source\Capture\Encoder\EncoderInfo.cs" />
     <Compile Include="Source\Capture\Encoder\IEncoderBase.cs" />
     <Compile Include="Source\Capture\Encoder\IStaticEncoder.cs" />
     <Compile Include="Source\Capture\Encoder\IVideoEncoder.cs" />
     <Compile Include="Source\Capture\CaptureResult.cs" />
     <Compile Include="Source\Capture\CompatHelpers.cs" />
     <Compile Include="Source\Capture\Streams\IOutputStream.cs" />
+    <Compile Include="Source\Capture\Streams\UnsupportedMediaException.cs" />
     <Compile Include="Source\Logging\Logger.cs" />
     <Compile Include="Source\Logging\LogLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

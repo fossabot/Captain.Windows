@@ -4,21 +4,22 @@
 #include <Ntddvdeo.h>
 
 #include "GrabberWindowHelper.h"
+#include "../Injector/CaptainInjector.h"
+
+using namespace System::ComponentModel;
 
 namespace Captain {
   namespace Application {
     namespace NativeHelpers {
-      /**
-      * \brief Creates an instance of this class
-      * \param handle GrabberWindow handle
-      * \param pHelper Instance pointer
-      */
+      static gcroot<GrabberWindowHelper^> *pHelper = nullptr;
+
+      /// creates an instance of this class, given the grabber UI window handle
       GrabberWindowHelper::GrabberWindowHelper(IntPtr handle) {
+        // HACK: viva le dangerous code!
+        pHelper = new gcroot<GrabberWindowHelper^>(this);
+
         this->hwnd = reinterpret_cast<HWND>(handle.ToPointer());
         this->log = Logger::GetDefault();
-
-        // save original window procedure
-        this->prevWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(this->hwnd, GWLP_WNDPROC));
 
         // remove maximize/minimize capabilities from the grabber window
         SetWindowLong(this->hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
@@ -36,32 +37,7 @@ namespace Captain {
         this->UpdateMonitorGeometryInfo();
       }
 
-      /**
-       * Window procedure hook
-       */
-      IntPtr GrabberWindowHelper::WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled) {
-        if (msg == WM_DEVICECHANGE) {
-          if (wParam.ToInt32() == DBT_DEVNODES_CHANGED) {
-            // a video adapter device has been removed/added
-            this->UpdateMonitorGeometryInfo();
-          }
-        }
-        else if (msg == WM_WINDOWPOSCHANGING) {
-          WINDOWPOS *pos = reinterpret_cast<WINDOWPOS*>(lParam.ToPointer());
-
-          // prevent the window from going off-screen
-          if (pos->x < this->minLeft) { pos->x = this->minLeft; }
-          if (pos->y < this->minTop) { pos->y = this->minTop; }
-          if (pos->x + pos->cx > this->maxRight) { pos->x = this->maxRight - pos->cx; }
-          if (pos->y + pos->cy > this->maxBottom) { pos->y = this->maxBottom - pos->cy; }
-        }
-
-        return IntPtr::Zero;
-      }
-
-      /**
-       * Updates monitor geometry information
-       */
+      /// updates monitor geometry information and limits/positions the grabber UI accordingly
       void GrabberWindowHelper::UpdateMonitorGeometryInfo() {
         HRESULT hr;
 
@@ -160,13 +136,113 @@ namespace Captain {
         }
       }
 
-      /**
-       * Class destructor
-       */
+      /// attach the grabber UI to the nearest window
+      void GrabberWindowHelper::AttachToNearestWindow() {
+        RECT rcBounds = { 0 };
+        GetWindowRect(this->hwnd, &rcBounds);
+
+        // get the center point of the window
+        POINT pCenter = { 0 };
+        pCenter.x = (rcBounds.left + rcBounds.right) / 2;
+        pCenter.y = (rcBounds.top + rcBounds.bottom) / 2;
+
+        /* find any window on this point - easy right? */
+        // WindowFromPoint() does not include hidden or disabled windows - we gotta hide ourselves so we don't hook our own WndProc!
+        ShowWindow(this->hwnd, SW_HIDE);
+        HWND hWnd = WindowFromPoint(pCenter);
+        ShowWindow(this->hwnd, SW_SHOW);
+        if (!hWnd) {
+          log->WriteLine(LogLevel::Error, "WindowFromPoint() failed - no window was found at ({0}, {1})", pCenter.x, pCenter.y);
+          throw gcnew NullReferenceException("No suitable window found.");
+        }
+
+        CHAR szOutputWndClsName[32] = { 0 };
+        GetClassNameA(hWnd, szOutputWndClsName, sizeof(szOutputWndClsName));
+        log->WriteLine(LogLevel::Verbose, "selected {0}", gcnew String(szOutputWndClsName));
+
+        // got it - move ourselves right here if we can I guess
+        GetWindowRect(hWnd, &rcBounds);
+
+        // make sure it does not overflow the capturable bounds
+        if (rcBounds.left < this->minLeft || rcBounds.right > this->maxRight ||
+          rcBounds.top < this->minTop || rcBounds.bottom > this->maxBottom) {
+          // we fucked
+          log->WriteLine(LogLevel::Error, "the selected window is beyond the capturable screen region");
+          throw gcnew OverflowException("The window extends beyond the acceptable screen region.");
+        }
+
+        DWORD dwProcessId = NULL;
+        DWORD dwThreadId = GetWindowThreadProcessId(hWnd, &dwProcessId);
+
+        if (!dwProcessId) {
+          log->WriteLine(LogLevel::Error, "GetWindowThreadProcessId() failed; LE=0x{0:8x}", GetLastError());
+          throw gcnew Win32Exception(GetLastError());
+        }
+
+        // here we go
+        CAPTAININJECTORRESULT ciRes = { 0 };
+        if (CaptainInjector::InjectThreadLibrary(dwProcessId, "D:\\Projects\\Apps\\Captain\\x64\\Debug\\CIWindowHelper.dll", &ciRes)) {
+          CaptainInjector::CleanInjectedThreadProc(&ciRes);
+        }
+
+        // sounds fine to me - let's hook that WndProc! (dangerous but who cares) 
+        /*if (!(this->attachedWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(hWnd, GWLP_WNDPROC)))) {
+          log->WriteLine(LogLevel::Error, "GetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
+          throw gcnew Win32Exception(GetLastError());
+        }
+
+        this->hwndAttached = hWnd;
+        if (!SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(AttachedWndProcHook))) {
+          log->WriteLine(LogLevel::Error, "SetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
+          throw gcnew Win32Exception(GetLastError());
+        }*/
+      }
+
+      /// detach the grabber UI from the previous window
+      void GrabberWindowHelper::DetachFromWindow() {
+        if (this->attachedWndProc && this->hwndAttached) {
+          // restore original window procedure
+          if (!SetWindowLongPtr(this->hwndAttached, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(this->attachedWndProc))) {
+            log->WriteLine(LogLevel::Error, "SetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
+            throw gcnew Win32Exception(GetLastError());
+          }
+
+          this->hwndAttached = nullptr;
+          this->attachedWndProc = nullptr;
+          log->WriteLine(LogLevel::Verbose, "window procedure restored - detached from window");
+        }
+        else {
+          log->WriteLine(LogLevel::Error, "no window is currently attached");
+          throw gcnew NullReferenceException("No window is currently attached.");
+        }
+      }
+
+      /// window procedure hook
+      IntPtr GrabberWindowHelper::WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled) {
+        if (msg == WM_DEVICECHANGE) {
+          if (wParam.ToInt32() == DBT_DEVNODES_CHANGED) {
+            // a video adapter device has been removed/added
+            this->UpdateMonitorGeometryInfo();
+          }
+        }
+        else if (msg == WM_WINDOWPOSCHANGING) {
+          WINDOWPOS *pos = reinterpret_cast<WINDOWPOS*>(lParam.ToPointer());
+
+          // prevent the window from going off-screen
+          if (pos->x < this->minLeft) { pos->x = this->minLeft; }
+          if (pos->y < this->minTop) { pos->y = this->minTop; }
+          if (pos->x + pos->cx > this->maxRight) { pos->x = this->maxRight - pos->cx; }
+          if (pos->y + pos->cy > this->maxBottom) { pos->y = this->maxBottom - pos->cy; }
+        }
+
+        return IntPtr::Zero;
+      }
+
+
+      /// class destructor
       GrabberWindowHelper::~GrabberWindowHelper() {
         log->WriteLine(LogLevel::Debug, "releasing resources");
         UnregisterDeviceNotification(this->hDevNotify);
-        SetWindowLongPtr(this->hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(this->prevWndProc));
         SetWindowLongPtr(this->hwnd, GWLP_USERDATA, NULL);
       }
     }

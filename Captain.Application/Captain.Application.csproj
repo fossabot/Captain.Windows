@@ -28,6 +28,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -37,6 +38,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Captain.Application.Application</StartupObject>
@@ -62,6 +64,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -72,6 +75,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +86,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -92,6 +97,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -104,26 +110,23 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
-    <Resource Include="Content\cancel.png" />
-    <Resource Include="Content\circle.png" />
-    <Resource Include="Content\line.png" />
-    <Resource Include="Content\ok.png" />
-    <Resource Include="Content\rectangle.png" />
-    <Resource Include="Content\triangle.png" />
-    <Resource Include="Content\type.png" />
-    <Resource Include="Content\undo.png" />
+    <Resource Include="Content\Grabber\Icons\Cancel.png" />
     <None Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </None>
-    <Resource Include="Content\record.png" />
-    <Resource Include="Content\capture.png" />
-    <Resource Include="Content\stop.png" />
-    <Content Include="Resources\ActionOptions.png" />
-    <Content Include="Resources\AddInOptions.png" />
+    <Resource Include="Content\Grabber\Icons\Pin.png" />
+    <Resource Include="Content\Grabber\Icons\Unpin.png" />
+    <Resource Include="Content\Grabber\Icons\Screenshot.png" />
+    <Content Include="Content\Grabber\Icons\UnmutedSpeaker.png" />
+    <Content Include="Content\Grabber\Icons\UnmutedMicrophone.png" />
+    <Content Include="Content\Grabber\Icons\MutedMicrophone.png" />
+    <Content Include="Content\Grabber\Icons\MutedSpeaker.png" />
+    <Content Include="Content\Grabber\Icons\Pause.png" />
+    <Content Include="Content\Grabber\Icons\Record.png" />
+    <Content Include="Content\Grabber\Icons\Resume.png" />
+    <Content Include="Content\Grabber\Icons\Stop.png" />
     <Content Include="Resources\AppIcon.ico" />
-    <Content Include="Resources\BasicOptions.png" />
     <Content Include="Resources\TrayIconStrip.png" />
-    <Content Include="Resources\UpdateOptions.png" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -137,6 +140,7 @@
     <Compile Include="Source\Actions\ActionManager.cs" />
     <Compile Include="Source\Actions\ActionType.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
+    <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
@@ -147,6 +151,7 @@
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="UI\Grabber\Grabber.cs" />
+    <Compile Include="UI\Grabber\GrabberIntentType.cs" />
     <Compile Include="UI\Grabber\GrabberToolBarWindow.xaml.cs">
       <DependentUpon>GrabberToolBarWindow.xaml</DependentUpon>
     </Compile>

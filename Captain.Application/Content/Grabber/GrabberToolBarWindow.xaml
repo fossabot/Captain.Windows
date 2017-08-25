@@ -6,26 +6,26 @@
         <!-- focus style for tool bar buttons -->
         <ControlTemplate TargetType="{x:Type Control}">
           <Border Name="Border"
-                            BorderBrush="Transparent"
-                            MinHeight="24"
-                            BorderThickness="1"
-                            MinWidth="24"
-                            Background="Transparent"
-                            CornerRadius="24"
-                            Padding="4" 
-                            Margin="4,0,4,0">
+                  BorderBrush="Transparent"
+                  MinHeight="24"
+                  BorderThickness="1"
+                  MinWidth="24"
+                  Background="Transparent"
+                  CornerRadius="24"
+                  Padding="4" 
+                  Margin="4,0,4,0">
             <Border.Triggers>
               <EventTrigger RoutedEvent="Ellipse.Loaded">
                 <!-- "fade" continuously between blue-indigo tones -->
                 <BeginStoryboard>
                   <Storyboard>
                     <ColorAnimation From="#806FB1FF"
-                                                        To="#FF756FFF"
-                                                        Duration="0:0:1"
-                                                        RepeatBehavior="Forever"
-                                                        AutoReverse="True"
-                                                        Storyboard.TargetName="Border"
-                                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" />
+                                    To="#FF756FFF"
+                                    Duration="0:0:1"
+                                    RepeatBehavior="Forever"
+                                    AutoReverse="True"
+                                    Storyboard.TargetName="Border"
+                                    Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" />
                   </Storyboard>
                 </BeginStoryboard>
               </EventTrigger>
@@ -47,17 +47,17 @@
         <!-- template and style for tool bar buttons -->
         <ControlTemplate TargetType="{x:Type Button}">
           <Border MinHeight="24"
-                            MinWidth="24"
-                            Background="Transparent"
-                            CornerRadius="24"
-                            Padding="8"
-                            Margin="4,0,4,0">
+                  MinWidth="24"
+                  Background="Transparent"
+                  CornerRadius="24"
+                  Padding="8"
+                  Margin="4,0,4,0">
             <!-- display button content -->
             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          RecognizesAccessKey="True"
-                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
-                                          Opacity="0.5" />
+                              RecognizesAccessKey="True"
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
+                              Opacity="0.5" />
 
             <!-- event triggers -->
             <Border.Triggers>
@@ -66,8 +66,8 @@
                 <BeginStoryboard>
                   <Storyboard>
                     <ColorAnimation To="#10000000"
-                                                        Duration="0:0:0.15"
-                                                        Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
+                                    Duration="0:0:0.15"
+                                    Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
                   </Storyboard>
                 </BeginStoryboard>
               </EventTrigger>
@@ -77,11 +77,33 @@
                 <BeginStoryboard>
                   <Storyboard>
                     <ColorAnimation To="Transparent"
-                                                        Duration="0:0:0.15"
-                                                        Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
+                                    Duration="0:0:0.15"
+                                    Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
                   </Storyboard>
                 </BeginStoryboard>
               </EventTrigger>
+
+              <EventTrigger RoutedEvent="MouseLeftButtonDown" >
+                <BeginStoryboard>
+                  <Storyboard>
+                    <ColorAnimation To="#20000000"
+                                    Duration="0:0:0.075"
+                                    Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger>
+
+              <EventTrigger RoutedEvent="MouseLeftButtonDown">
+                <BeginStoryboard>
+                  <Storyboard>
+                    <ColorAnimation To="Transparent"
+                                    Duration="0:0:0.075"
+                                    Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger>
+
+
             </Border.Triggers>
           </Border>
         </ControlTemplate>

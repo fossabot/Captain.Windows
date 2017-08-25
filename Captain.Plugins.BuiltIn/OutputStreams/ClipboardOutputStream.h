@@ -11,21 +11,12 @@ namespace Captain {
       ///
       ///  the FileOutputStream simply saves captures to disk
       ///
-      [DisplayName("Save to disk")]
-      [DisplayName("es", "Guardar en disco")]
-      public ref class FileOutputStream : public IOutputStream, public FileStream {
+      [DisplayName("Copy to clipboard")]
+      [DisplayName("es", "Copiar al portapapeles")]
+      public ref class ClipboardOutputStream : public IOutputStream, public MemoryStream {
       private:
         /// encoder information
         Common::EncoderInfo encoderInfo;
-
-        /// actual file name
-        String ^fileName;
-
-        /// returns a file name for this capture
-        static String ^GetFileName(String ^extension);
-
-        /// actual initializer for this class
-        FileOutputStream(String ^fileName);
 
       public:
         virtual property Common::EncoderInfo EncoderInfo {
@@ -34,7 +25,7 @@ namespace Captain {
         };
 
         /// zero-argument constructor as required by Captain
-        FileOutputStream() : FileOutputStream(GetFileName(this->EncoderInfo.Extension)) {}
+        ClipboardOutputStream();
 
         /// commits changes to filesystem
         virtual CaptureResult ^Commit();
