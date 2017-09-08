@@ -71,7 +71,7 @@
         <Image Source="/Content/Grabber/Icons/Pin.png" />
       </Button>
 
-      <Button Name="UnpinButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Pin}" Style="{DynamicResource ToolBarButtonStyle}" Click="UnpinButton_Click">
+      <Button Name="UnpinButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Unpin}" Style="{DynamicResource ToolBarButtonStyle}" Click="UnpinButton_Click">
         <Image Source="/Content/Grabber/Icons/Unpin.png" />
       </Button>
 

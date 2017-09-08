@@ -17,6 +17,8 @@ This app depends upon awesome open-source software without which it could not be
 - [aybe/Windows-API-Code-Pack-1.1](https://github.com/aybe/Windows-API-Code-Pack-1.1), as a [NuGet package dependency](https://www.nuget.org/packages/WindowsAPICodePack-Shell/).
 - [Microsoft/UWPCommunityToolkit](https://github.com/Microsoft/UWPCommunityToolkit), as a [NuGet package dependency](https://www.nuget.org/packages/Microsoft.Toolkit.Uwp/).  
 Copyright (c) .NET Foundation and Contributors
+- [EasyHook/EasyHook](https://github.com/EasyHook/EasyHook/), as a [NuGet package dependency](https://www.nuget.org/packages/EasyHookNativePackage/).  
+Copyright (c) 2009 Christoph Husse & Copyright (c) 2012 Justin Stenning
 
 ## Asset credits
 - `Resources/ActionOptions.png`, `Resources/AddInOptions.png`, `Resources/BasicOptions.png` and `Resources/UpdateOptions.png` are taken from the [*Office* set](https://icons8.com/icon/set/office) made by [Icons8](https://icons8.com).

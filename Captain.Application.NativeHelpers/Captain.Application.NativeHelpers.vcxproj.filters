@@ -33,10 +33,7 @@
     <ClInclude Include="UI\UriExtensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Injector\CaptainInjector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Injector\CaptainInjectorResult.h">
+    <ClInclude Include="UI\WindowAttachInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,9 +50,6 @@
     <ClCompile Include="UI\UriExtensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Injector\CaptainInjector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -63,5 +57,6 @@
     <None Include="LICENSE.md" />
     <None Include=".gitattributes" />
     <None Include=".editorconfig" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

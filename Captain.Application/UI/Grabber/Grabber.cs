@@ -127,10 +127,14 @@ namespace Captain.Application {
       switch (intentType) {
         case GrabberIntentType.AttachToWindow:
           this.window.Helper.AttachToNearestWindow();
+          this.window.CanBeResized = false;
           break;
 
         case GrabberIntentType.DetachFromWindow:
           this.window.Helper.DetachFromWindow();
+
+          // XXX: TODO: if this is a recording CanBeResized must be set to false!
+          this.window.CanBeResized = true;
           break;
       }
     }

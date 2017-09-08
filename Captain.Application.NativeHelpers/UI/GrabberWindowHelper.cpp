@@ -2,9 +2,11 @@
 #include <dbt.h>
 #include <initguid.h>
 #include <Ntddvdeo.h>
+#include <easyhook.h>
+#include <psapi.h>
 
 #include "GrabberWindowHelper.h"
-#include "../Injector/CaptainInjector.h"
+#include "WindowAttachInfo.h"
 
 using namespace System::ComponentModel;
 
@@ -23,6 +25,7 @@ namespace Captain {
 
         // remove maximize/minimize capabilities from the grabber window
         SetWindowLong(this->hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
+        SetWindowText(this->hwnd, "CaptainGrabberWindow");
 
         // register notifications for changes on display devices
         DEV_BROADCAST_DEVICEINTERFACE devBroadcastFilter = { 0 };
@@ -151,6 +154,10 @@ namespace Captain {
         ShowWindow(this->hwnd, SW_HIDE);
         HWND hWnd = WindowFromPoint(pCenter);
         ShowWindow(this->hwnd, SW_SHOW);
+
+        // get the root ancestor for this window, if any
+        hWnd = GetAncestor(hWnd, GA_ROOT);
+
         if (!hWnd) {
           log->WriteLine(LogLevel::Error, "WindowFromPoint() failed - no window was found at ({0}, {1})", pCenter.x, pCenter.y);
           throw gcnew NullReferenceException("No suitable window found.");
@@ -175,41 +182,105 @@ namespace Captain {
         DWORD dwThreadId = GetWindowThreadProcessId(hWnd, &dwProcessId);
 
         if (!dwProcessId) {
-          log->WriteLine(LogLevel::Error, "GetWindowThreadProcessId() failed; LE=0x{0:8x}", GetLastError());
+          log->WriteLine(LogLevel::Error, "GetWindowThreadProcessId() failed; LE=0x{0:x8}", GetLastError());
           throw gcnew Win32Exception(GetLastError());
         }
 
-        // here we go
-        CAPTAININJECTORRESULT ciRes = { 0 };
-        if (CaptainInjector::InjectThreadLibrary(dwProcessId, "D:\\Projects\\Apps\\Captain\\x64\\Debug\\CIWindowHelper.dll", &ciRes)) {
-          CaptainInjector::CleanInjectedThreadProc(&ciRes);
-        }
+        // user data passed to the injected DLL
+        WINATTACHINFO winAttachInfo;
+        winAttachInfo.hGrabberWnd = this->hwnd;
+        winAttachInfo.hTargetWnd = hWnd;
+        winAttachInfo.rcOrgTargetBounds = rcBounds;
+        winAttachInfo.rcAcceptableBounds = { this->minLeft, this->minTop, this->maxRight, this->maxBottom };
 
-        // sounds fine to me - let's hook that WndProc! (dangerous but who cares) 
-        /*if (!(this->attachedWndProc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(hWnd, GWLP_WNDPROC)))) {
-          log->WriteLine(LogLevel::Error, "GetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
+        // look for the library on the remote process - it may be already injected!
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
+        if (!hProcess) {
+          log->WriteLine(LogLevel::Error, "OpenProcess() failed; LE=0x{0:x8}", GetLastError());
           throw gcnew Win32Exception(GetLastError());
         }
 
+        BOOL bInjectionNeeded = TRUE;
+        HMODULE hModules[1024];
+        DWORD cbNeeded, dwIdx;
+        WCHAR szModuleName[sizeof(WCHAR) * MAX_PATH];
+        LPCWSTR szHelper32 = L"D:\\Projects\\Apps\\Captain\\Debug\\CIWindowHelper.dll";
+        LPCWSTR szHelper64 = L"D:\\Projects\\Apps\\Captain\\x64\\Debug\\CIWindowHelper.dll";
+
+        if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded)) {
+          for (dwIdx = 0; dwIdx < cbNeeded / sizeof(HMODULE); dwIdx++) {
+            if (GetModuleFileNameExW(hProcess, hModules[dwIdx], szModuleName, sizeof(szModuleName))) {
+              // if it's our DLL, don't inject it and send a reactivation WM
+              if (!wcscmp(szHelper32, szModuleName) || !wcscmp(szHelper64, szModuleName)) {
+                log->WriteLine(LogLevel::Warning, "DLL already injected - sending re-attachment message");
+
+                // copy WINATTACHINFO struct to remote process thread using WM_COPYDATA
+                COPYDATASTRUCT copydata = { 0 };
+                copydata.cbData = sizeof(WINATTACHINFO);
+                copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
+                copydata.lpData = &winAttachInfo;
+
+                // this will set g_winAttachInfo on CIWindowHelper and trigger the window re-attachment
+                SendMessage(hWnd, WM_COPYDATA, reinterpret_cast<WPARAM>(this->hwnd), reinterpret_cast<LPARAM>(&copydata));
+
+                // no hacks required
+                bInjectionNeeded = FALSE;
+              }
+            }
+          }
+        }
+        else {
+          log->WriteLine(LogLevel::Error, "EnumProcessModules() failed; LE=0x{0:x8}", GetLastError());
+          CloseHandle(hProcess);
+          throw gcnew Win32Exception(GetLastError());
+        }
+
+        CloseHandle(hProcess);
+
+        if (bInjectionNeeded) {
+          // inject DLL
+          ULONG ulInjectionOptions = EASYHOOK_INJECT_DEFAULT;
+          log->WriteLine(LogLevel::Debug, "injecting library");
+
+        inject:
+          NTSTATUS status = RhInjectLibrary(dwProcessId, ulInjectionOptions == EASYHOOK_INJECT_DEFAULT ? dwThreadId : 0, ulInjectionOptions, (PWCHAR)szHelper32, (PWCHAR)szHelper64, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO));
+
+          if (status != ERROR_SUCCESS) {
+            log->WriteLine(LogLevel::Error, "RhInjectLibrary() failed with error 0x{0:x8}: {1}", status, gcnew String(RtlGetLastErrorString()));
+
+            if (ulInjectionOptions == EASYHOOK_INJECT_STEALTH) {
+              log->WriteLine(LogLevel::Warning, "retrying in default injection mode");
+              ulInjectionOptions = EASYHOOK_INJECT_DEFAULT;
+              goto inject;
+            }
+
+            throw gcnew Win32Exception(status);
+          }
+
+          log->WriteLine(LogLevel::Informational, "library injection succeeded; dwProcessId={0}, dwThreadId={1}", dwProcessId, dwThreadId);
+        }
+        else {
+          log->WriteLine(LogLevel::Debug, "library injection not needed");
+        }
+
+        // injection was successful
         this->hwndAttached = hWnd;
-        if (!SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(AttachedWndProcHook))) {
-          log->WriteLine(LogLevel::Error, "SetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
-          throw gcnew Win32Exception(GetLastError());
-        }*/
+
+        // hide ourselves! We don't really need the area grabber UI, just the lil' toolbar
+        // but first adjust our size so that it matches the window's and the toolbar lies at the correct position!
+        this->prcOrgBounds = new RECT;
+        GetWindowRect(this->hwnd, this->prcOrgBounds);  // save current bounds
+        SetWindowPos(this->hwnd, nullptr, rcBounds.left, rcBounds.top, rcBounds.right - rcBounds.left, rcBounds.bottom - rcBounds.top, 0);
+        ShowWindow(this->hwnd, SW_HIDE);
       }
 
       /// detach the grabber UI from the previous window
       void GrabberWindowHelper::DetachFromWindow() {
-        if (this->attachedWndProc && this->hwndAttached) {
-          // restore original window procedure
-          if (!SetWindowLongPtr(this->hwndAttached, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(this->attachedWndProc))) {
-            log->WriteLine(LogLevel::Error, "SetWindowLongPtr() failed; LE=0x{0:8x}", GetLastError());
-            throw gcnew Win32Exception(GetLastError());
-          }
-
-          this->hwndAttached = nullptr;
-          this->attachedWndProc = nullptr;
-          log->WriteLine(LogLevel::Verbose, "window procedure restored - detached from window");
+        if (this->hwndAttached) {
+          // send detach message
+          SendMessage(this->hwndAttached, WM_CAPTAINDETACHWINDOW, NULL, NULL);
+          SetWindowPos(this->hwnd, nullptr, this->prcOrgBounds->left, this->prcOrgBounds->top, this->prcOrgBounds->right - this->prcOrgBounds->left, this->prcOrgBounds->bottom - this->prcOrgBounds->top, 0);
+          ShowWindow(this->hwnd, SW_SHOW);
         }
         else {
           log->WriteLine(LogLevel::Error, "no window is currently attached");
@@ -219,13 +290,16 @@ namespace Captain {
 
       /// window procedure hook
       IntPtr GrabberWindowHelper::WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled) {
-        if (msg == WM_DEVICECHANGE) {
+        switch (msg) {
+        case WM_DEVICECHANGE:
           if (wParam.ToInt32() == DBT_DEVNODES_CHANGED) {
             // a video adapter device has been removed/added
             this->UpdateMonitorGeometryInfo();
           }
-        }
-        else if (msg == WM_WINDOWPOSCHANGING) {
+
+          break;
+
+        case WM_WINDOWPOSCHANGING: {
           WINDOWPOS *pos = reinterpret_cast<WINDOWPOS*>(lParam.ToPointer());
 
           // prevent the window from going off-screen
@@ -233,17 +307,26 @@ namespace Captain {
           if (pos->y < this->minTop) { pos->y = this->minTop; }
           if (pos->x + pos->cx > this->maxRight) { pos->x = this->maxRight - pos->cx; }
           if (pos->y + pos->cy > this->maxBottom) { pos->y = this->maxBottom - pos->cy; }
+
+          break;
+        }
+
+        case WM_CLOSE:
+        case WM_QUIT:
+          delete this;
+          break;
         }
 
         return IntPtr::Zero;
       }
 
-
       /// class destructor
       GrabberWindowHelper::~GrabberWindowHelper() {
         log->WriteLine(LogLevel::Debug, "releasing resources");
         UnregisterDeviceNotification(this->hDevNotify);
-        SetWindowLongPtr(this->hwnd, GWLP_USERDATA, NULL);
+
+        if (this->hwndAttached) { this->DetachFromWindow(); }
+        if (this->prcOrgBounds) { delete this->prcOrgBounds; }
       }
     }
   }

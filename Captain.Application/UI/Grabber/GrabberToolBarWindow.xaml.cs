@@ -115,6 +115,8 @@ namespace Captain.Application {
     /// <param name="e"></param>
     private void PinButton_Click(object sender, RoutedEventArgs e) {
       OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
+      this.PinButton.Visibility = Visibility.Collapsed;
+      this.UnpinButton.Visibility = Visibility.Visible;
     }
 
     /// <summary>
@@ -124,6 +126,8 @@ namespace Captain.Application {
     /// <param name="e"></param>
     private void UnpinButton_Click(object sender, RoutedEventArgs e) {
       OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
+      this.PinButton.Visibility = Visibility.Visible;
+      this.UnpinButton.Visibility = Visibility.Collapsed;
     }
 
 #if false

@@ -24,14 +24,17 @@ namespace Captain {
         /// handle of the window the UI is attached ot
         HWND hwndAttached;
 
+        /// original grabber window bounds (before attaching to window)
+        PRECT prcOrgBounds = nullptr;
+
         /// logger instance
         Logger^ log;
 
         /// handle for the device change notify registration
         HDEVNOTIFY hDevNotify;
 
-        /// original procedure for the attached window
-        WNDPROC attachedWndProc;
+        /// remote AttachWindow() procedure
+        FARPROC fpAttachWindowRemote = nullptr;
 
         /// maximum "virtual desktop" bounds
         int minLeft = 0, minTop = 0, maxRight = 0, maxBottom = 0;
@@ -48,9 +51,6 @@ namespace Captain {
 
         /// detach the grabber UI from the previous window
         void DetachFromWindow();
-
-        /// retrieve the attached window procedure
-        inline WNDPROC GetAttachedWndProc() { return this->attachedWndProc; }
 
         /// window procedure hook
         IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, bool% handled);
