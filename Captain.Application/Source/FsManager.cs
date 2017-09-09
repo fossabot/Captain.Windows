@@ -19,6 +19,11 @@ namespace Captain.Application {
     internal const string TemporaryPath = "Temporary";
 
     /// <summary>
+    ///   Path for binary files
+    /// </summary>
+    internal const string BinaryPath = "Bin";
+
+    /// <summary>
     ///   Root application data directory
     /// </summary>
     private string RootDirectoryPath { get; }

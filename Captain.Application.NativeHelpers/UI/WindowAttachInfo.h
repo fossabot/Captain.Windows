@@ -10,15 +10,9 @@
 #define CAPTAIN_COPYDATA_SIGNATURE 0xDECADE21
 
 typedef struct {
-  /// grabber window handle
-  HWND hGrabberWnd;
+  UINT32 hGrabberWndLong;
+  UINT32 hTargetWndLong;
 
-  /// target window handle
-  HWND hTargetWnd;
-
-  /// acceptable limits for target window position
   RECT rcAcceptableBounds;
-
-  /// original target window bounds
   RECT rcOrgTargetBounds;
-} WINATTACHINFO, *PWINATTACHINFO;
+} WINATTACHINFO32, *PWINATTACHINFO32;

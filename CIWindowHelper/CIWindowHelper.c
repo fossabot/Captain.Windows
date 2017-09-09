@@ -7,11 +7,11 @@
 /// internal CIWindowHelper data structure
 typedef struct {
   WNDPROC lpfnOrgWndProc;  /// original WndProc function
-  LONG lWindowStyle;
+  LONG lWindowStyle;       /// original window style attributes
 } CIWNDPROCDATA, *PCIWNDPROCDATA;
 
 static CIWNDPROCDATA g_data = { 0 };
-static WINATTACHINFO g_winAttachInfo = { 0 };
+static WINATTACHINFO32 g_winAttachInfo = { 0 };
 static BOOL g_bAttached = FALSE;
 
 static void PerformWindowAttachment(void);
@@ -42,7 +42,7 @@ static LRESULT CALLBACK WndProcHook(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM
       if (pos->y + pos->cy > g_winAttachInfo.rcAcceptableBounds.bottom) { pos->y = g_winAttachInfo.rcAcceptableBounds.bottom - pos->cy; }
 
       // if we change the grabber window position, the toolbar position will be adjusted accordingly, too
-      SetWindowPos(g_winAttachInfo.hGrabberWnd, NULL, pos->x, pos->y - 8, pos->cx, pos->cy + 8, SWP_NOACTIVATE);
+      SetWindowPos(LongToPtr(g_winAttachInfo.hGrabberWndLong), NULL, pos->x, pos->y - 8, pos->cx, pos->cy + 8, SWP_NOACTIVATE);
       break;
     }
     }
@@ -53,7 +53,7 @@ static LRESULT CALLBACK WndProcHook(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM
     // make sure these are the droids we're looking for
     if (pCopydata->dwData == CAPTAIN_COPYDATA_SIGNATURE) {
       // copy the window attachment information
-      memcpy(&g_winAttachInfo, pCopydata->lpData, sizeof(WINATTACHINFO));
+      memcpy(&g_winAttachInfo, pCopydata->lpData, sizeof(WINATTACHINFO32));
       PerformWindowAttachment();
     }
   }
@@ -62,31 +62,30 @@ static LRESULT CALLBACK WndProcHook(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM
   return CallWindowProc(g_data.lpfnOrgWndProc, hWnd, uiMsg, wParam, lParam);
 }
 
+/// adjusts the window to perform attachment
 static void PerformWindowAttachment(void) {
-  // remove maximize/minimize and resize capabilities from the target window
-  SetWindowLong(g_winAttachInfo.hTargetWnd, GWL_STYLE, (g_data.lWindowStyle = GetWindowLong(g_winAttachInfo.hTargetWnd, GWL_STYLE)) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX));
+  if (!g_data.lpfnOrgWndProc) {
+    // save original window procedure
+    g_data.lpfnOrgWndProc = (WNDPROC)GetWindowLongPtr(LongToPtr(g_winAttachInfo.hTargetWndLong), GWLP_WNDPROC);
 
+    // hook window procedure
+    if (!SetWindowLongPtr(LongToPtr(g_winAttachInfo.hTargetWndLong), GWLP_WNDPROC, WndProcHook)) {
+      MessageBox(LongToPtr(g_winAttachInfo.hTargetWndLong), TEXT("Could not hook window procedure!"), TEXT("Captain Window Helper"), MB_OK | MB_ICONERROR);
+      fprintf(stderr, "SetWindowLongPtr() failed: 0x%08x\n", GetLastError());
+    }
+  }
+
+  // remove maximize/minimize and resize capabilities from the target window
+  SetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE, (g_data.lWindowStyle = GetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE)) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX));
   g_bAttached = TRUE;
 }
 
 /// actual entry point
 __declspec(dllexport) void WINAPI NativeInjectionEntryPoint(REMOTE_ENTRY_INFO *inRemoteInfo) {
-  if (!inRemoteInfo->UserData || inRemoteInfo->UserDataSize != sizeof(WINATTACHINFO)) {
-    MessageBox(NULL, TEXT("Invalid data passed to injection entry point!"), TEXT("Captain Window Helper"), MB_OK | MB_ICONERROR);
-    return;  // invalid data!
+  if (inRemoteInfo && inRemoteInfo->UserData && inRemoteInfo->UserDataSize == sizeof(WINATTACHINFO32)) {
+    g_winAttachInfo = *(PWINATTACHINFO32)inRemoteInfo->UserData;
+    PerformWindowAttachment();
   }
-
-  g_winAttachInfo = *(PWINATTACHINFO)inRemoteInfo->UserData;
-
-  // save original window procedure
-  g_data.lpfnOrgWndProc = (WNDPROC)GetWindowLongPtr(g_winAttachInfo.hTargetWnd, GWLP_WNDPROC);
-
-  // hook window procedure
-  if (!SetWindowLongPtr(g_winAttachInfo.hTargetWnd, GWLP_WNDPROC, WndProcHook)) {
-    MessageBox(g_winAttachInfo.hTargetWnd, TEXT("Could not hook window procedure!"), TEXT("Captain Window Helper"), MB_OK | MB_ICONERROR);
-  }
-
-  PerformWindowAttachment();
 }
 
 /// DLL entry point

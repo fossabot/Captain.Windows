@@ -7,8 +7,11 @@
 
 #include "GrabberWindowHelper.h"
 #include "WindowAttachInfo.h"
+#include "../Utils/ntstatus.h"
 
+using namespace System;
 using namespace System::ComponentModel;
+using namespace System::Diagnostics;
 
 namespace Captain {
   namespace Application {
@@ -187,11 +190,13 @@ namespace Captain {
         }
 
         // user data passed to the injected DLL
-        WINATTACHINFO winAttachInfo;
-        winAttachInfo.hGrabberWnd = this->hwnd;
-        winAttachInfo.hTargetWnd = hWnd;
+        WINATTACHINFO32 winAttachInfo;
+        winAttachInfo.hGrabberWndLong = PtrToLong(this->hwnd);
+        winAttachInfo.hTargetWndLong = PtrToLong(hWnd);
         winAttachInfo.rcOrgTargetBounds = rcBounds;
         winAttachInfo.rcAcceptableBounds = { this->minLeft, this->minTop, this->maxRight, this->maxBottom };
+
+        log->WriteLine(LogLevel::Debug, "hGrabberWndLong=0x{0:x8}; hTargetWndLong=0x{1:x8}", PtrToLong(this->hwnd), PtrToLong(hWnd));
 
         // look for the library on the remote process - it may be already injected!
         HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
@@ -204,8 +209,19 @@ namespace Captain {
         HMODULE hModules[1024];
         DWORD cbNeeded, dwIdx;
         WCHAR szModuleName[sizeof(WCHAR) * MAX_PATH];
-        LPCWSTR szHelper32 = L"D:\\Projects\\Apps\\Captain\\Debug\\CIWindowHelper.dll";
-        LPCWSTR szHelper64 = L"D:\\Projects\\Apps\\Captain\\x64\\Debug\\CIWindowHelper.dll";
+
+        // TODO: ABSOLUTELY don't hardcode this!
+        WCHAR szHelper32[sizeof(WCHAR) * MAX_PATH];
+        WCHAR szHelper64[sizeof(WCHAR) * MAX_PATH];
+        WCHAR szWoW64Helper[sizeof(CHAR) * MAX_PATH];
+
+        GetEnvironmentVariableW(L"LOCALAPPDATA", szHelper32, sizeof(szHelper32));
+        GetEnvironmentVariableW(L"LOCALAPPDATA", szHelper64, sizeof(szHelper64));
+        GetEnvironmentVariableW(L"LOCALAPPDATA", szWoW64Helper, sizeof(szWoW64Helper));
+
+        wcscat_s(szHelper32, L"\\Captain\\Bin\\CIWindowHelper32.dll");
+        wcscat_s(szHelper64, L"\\Captain\\Bin\\CIWindowHelper64.dll");
+        wcscat_s(szWoW64Helper, L"\\Captain\\Bin\\CIWoW64Helper.exe");
 
         if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded)) {
           for (dwIdx = 0; dwIdx < cbNeeded / sizeof(HMODULE); dwIdx++) {
@@ -216,7 +232,7 @@ namespace Captain {
 
                 // copy WINATTACHINFO struct to remote process thread using WM_COPYDATA
                 COPYDATASTRUCT copydata = { 0 };
-                copydata.cbData = sizeof(WINATTACHINFO);
+                copydata.cbData = sizeof(WINATTACHINFO32);
                 copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
                 copydata.lpData = &winAttachInfo;
 
@@ -239,13 +255,136 @@ namespace Captain {
 
         if (bInjectionNeeded) {
           // inject DLL
-          ULONG ulInjectionOptions = EASYHOOK_INJECT_DEFAULT;
+          ULONG ulInjectionOptions = EASYHOOK_INJECT_STEALTH;
           log->WriteLine(LogLevel::Debug, "injecting library");
 
-        inject:
-          NTSTATUS status = RhInjectLibrary(dwProcessId, ulInjectionOptions == EASYHOOK_INJECT_DEFAULT ? dwThreadId : 0, ulInjectionOptions, (PWCHAR)szHelper32, (PWCHAR)szHelper64, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO));
+          BYTE bAttempts = 3;
 
-          if (status != ERROR_SUCCESS) {
+        inject:
+          NTSTATUS status = RhInjectLibrary(dwProcessId, ulInjectionOptions == EASYHOOK_INJECT_DEFAULT ? dwThreadId : 0, ulInjectionOptions, (PWCHAR)szHelper32, (PWCHAR)szHelper64, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO32));
+
+          if ((status == STATUS_ACCESS_DENIED || status == STATUS_INTERNAL_ERROR) && bAttempts) {
+            // HACK: one more time?
+            bAttempts--;
+            goto inject;
+          }
+          else if (status == STATUS_WOW_ASSERTION) {
+            log->WriteLine(LogLevel::Warning, "RhInjectLibrary() can't hook through WoW64 barrier - invoking injection helper");
+
+            ProcessStartInfo ^startInfo = gcnew ProcessStartInfo();
+            startInfo->FileName = gcnew String(szWoW64Helper);
+            startInfo->Arguments = String::Format("{0} {1} {2} \"{3}\"", dwProcessId, dwThreadId, "default", gcnew String(szHelper32));
+            startInfo->CreateNoWindow = true;
+            startInfo->UseShellExecute = false;
+            startInfo->RedirectStandardInput = true;
+
+            Process ^process = gcnew Process();
+            process->StartInfo = startInfo;
+            process->Start();
+
+            cli::array<wchar_t> ^data = gcnew cli::array<wchar_t>(sizeof(WINATTACHINFO32));
+            cli::pin_ptr<wchar_t> data_start = &data[0];
+
+            memcpy(data_start, reinterpret_cast<LPVOID>(&winAttachInfo), sizeof(WINATTACHINFO32));
+
+            process->StartInfo = startInfo;
+            process->StandardInput->BaseStream->Write(reinterpret_cast<cli::array<unsigned char>^>(data), 0, sizeof(WINATTACHINFO32));
+            process->StandardInput->BaseStream->Flush();
+            log->WriteLine(LogLevel::Debug, "wrote {0} bytes to process standard input", sizeof(WINATTACHINFO32));
+
+            process->WaitForExit();
+
+            log->WriteLine(LogLevel::Informational, "WoW64 helper process exited with code 0x{0:x8}", process->ExitCode);
+
+#if 0
+            log->WriteLine(LogLevel::Warning, "RhInjectLibrary() can't pass through WoW64 barrier - invoking injection helper");
+
+            WCHAR szCmdLine[1024];
+            wsprintfW(szCmdLine, L"%u %u %s \"%ls\"", dwProcessId, dwThreadId, L"default", szHelper32);
+
+            PROCESS_INFORMATION pi = { 0 };
+            STARTUPINFOW si = { 0 };
+
+            /* write WINATTACHINFO to process stdin */
+            HANDLE hInPipe = nullptr;
+            HANDLE hOutPipe = nullptr;
+
+            SECURITY_ATTRIBUTES sa = { 0 };
+            sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+            sa.bInheritHandle = true;
+
+            // create pipes
+            if (!CreatePipe(&hOutPipe, &hInPipe, &sa, 0)) {
+              log->WriteLine(LogLevel::Error, "CreatePipe() failed with error 0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+
+            if (!CreatePipe(&hInPipe, &hInPipe, &sa, sizeof(WINATTACHINFO))) {
+              log->WriteLine(LogLevel::Error, "CreatePipe() failed with error 0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+
+            // ensure handles are not inherited
+            if (!SetHandleInformation(hOutPipe, HANDLE_FLAG_INHERIT, 0)) {
+              log->WriteLine(LogLevel::Error, "SetHandleInformation() failed with error 0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+
+            if (!SetHandleInformation(hInPipe, HANDLE_FLAG_INHERIT, 0)) {
+              log->WriteLine(LogLevel::Error, "SetHandleInformation() failed with error 0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+
+            si.cb = sizeof(STARTUPINFOW);
+            si.hStdInput = hInPipe;
+            si.hStdOutput = hOutPipe;
+            si.dwFlags |= STARTF_USESTDHANDLES;
+
+            if (!CreateProcessW(szWoW64Helper, szCmdLine, nullptr, nullptr, true, 0, nullptr, nullptr, &si, &pi)) {
+              log->WriteLine(LogLevel::Error, "CreateProcessW() failed; LE=0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+
+            DWORD cbBytesWritten = 0;
+            if (!WriteFile(hInPipe, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO), &cbBytesWritten, nullptr)) {
+              log->WriteLine(LogLevel::Warning, "WriteFile() failed with error 0x{0:x8}", GetLastError());
+              throw gcnew Win32Exception(GetLastError());
+            }
+            else if (cbBytesWritten != sizeof(WINATTACHINFO)) {
+              log->WriteLine(LogLevel::Warning, "window attachment information was only partially copied!");
+            }
+
+            log->WriteLine(LogLevel::Debug, "wrote {0} bytes to WoW64 helper process", cbBytesWritten);
+
+            // close input pipe
+            CloseHandle(hInPipe);
+
+            // wait for the helper to exit
+            DWORD dwExitCode;
+            WaitForSingleObject(pi.hProcess, INFINITE);
+            GetExitCodeProcess(pi.hProcess, &dwExitCode);
+
+            // close process and thread handles
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+
+            log->WriteLine(LogLevel::Informational, "CIWoW64Helper exited with code 0x{0:x8}", dwExitCode);
+
+            /*Sleep(1000);
+
+            log->WriteLine(LogLevel::Warning, "trying to send attachment message");
+
+            // copy WINATTACHINFO struct to remote process thread using WM_COPYDATA
+            COPYDATASTRUCT copydata = { 0 };
+            copydata.cbData = sizeof(WINATTACHINFO);
+            copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
+            copydata.lpData = &winAttachInfo;
+
+            // this will set g_winAttachInfo on CIWindowHelper and trigger the window re-attachment
+            SendMessage(hWnd, WM_COPYDATA, reinterpret_cast<WPARAM>(this->hwnd), reinterpret_cast<LPARAM>(&copydata));*/
+#endif
+          }
+          else if (status != ERROR_SUCCESS) {
             log->WriteLine(LogLevel::Error, "RhInjectLibrary() failed with error 0x{0:x8}: {1}", status, gcnew String(RtlGetLastErrorString()));
 
             if (ulInjectionOptions == EASYHOOK_INJECT_STEALTH) {
