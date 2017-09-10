@@ -19,7 +19,7 @@
 
   <Window.Resources>
     <!-- specify the location where the GrabberWindow resources are -->
-    <ResourceDictionary Source="/Content/Grabber/GrabberWindow.xaml"/>
+    <ResourceDictionary Source="/Content/Grabber/GrabberWindow.xaml" />
   </Window.Resources>
 
   <Grid Cursor="SizeAll" MouseDown="OnMouseDown">

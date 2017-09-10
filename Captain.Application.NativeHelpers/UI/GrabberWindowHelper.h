@@ -4,8 +4,9 @@
 #include <msclr/gcroot.h>
 #include <d3d9.h>
 #include <dxgi.h>
-
 #include <vector>
+
+#include "WindowAttachInfo.h"
 
 using namespace std;
 using namespace msclr;
@@ -23,6 +24,9 @@ namespace Captain {
 
         /// handle of the window the UI is attached ot
         HWND hwndAttached;
+
+        /// pointer to a structure containing information about the currently attached window
+        PWINATTACHINFO32 pwaiAttached = nullptr;
 
         /// original grabber window bounds (before attaching to window)
         PRECT prcOrgBounds = nullptr;

@@ -30,6 +30,7 @@ namespace Captain {
 
         GDIScreenCaptureProvider(int monitor);
         GDIScreenCaptureProvider(int x, int y, int cx, int cy);
+        GDIScreenCaptureProvider(IntPtr handle);
         ~GDIScreenCaptureProvider();
       };
     }

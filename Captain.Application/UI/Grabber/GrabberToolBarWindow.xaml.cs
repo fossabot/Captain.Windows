@@ -53,6 +53,31 @@ namespace Captain.Application {
     }
 
     /// <summary>
+    ///   Updates window attachment status
+    /// </summary>
+    /// <param name="attached">Whether there's a window attached</param>
+    /// <param name="enabled">Whether the attachment button is enabled</param>
+    internal void SetWindowAttachmentStatus(bool attached, bool enabled = true) {
+      if (!enabled) {
+        this.PinButton.Visibility = Visibility.Visible;
+        this.UnpinButton.Visibility = Visibility.Collapsed;
+        this.PinButton.IsEnabled = false;
+        this.UnpinButton.IsEnabled = false;
+      } else {
+        this.PinButton.IsEnabled = true;
+        this.UnpinButton.IsEnabled = true;
+
+        if (attached) {
+          this.PinButton.Visibility = Visibility.Collapsed;
+          this.UnpinButton.Visibility = Visibility.Visible;
+        } else {
+          this.PinButton.Visibility = Visibility.Visible;
+          this.UnpinButton.Visibility = Visibility.Collapsed;
+        }
+      }
+    }
+
+    /// <summary>
     ///   AddHook Handle WndProc messages in WPF
     ///   This cannot be done in a Window's constructor as a handle window handle won't at that point, so there won't be a HwndSource.
     /// </summary>
@@ -113,22 +138,14 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void PinButton_Click(object sender, RoutedEventArgs e) {
-      OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
-      this.PinButton.Visibility = Visibility.Collapsed;
-      this.UnpinButton.Visibility = Visibility.Visible;
-    }
+    private void PinButton_Click(object sender, RoutedEventArgs e) => OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
 
     /// <summary>
     ///   Triggered when the "Detach from window" button is clicked
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void UnpinButton_Click(object sender, RoutedEventArgs e) {
-      OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
-      this.PinButton.Visibility = Visibility.Visible;
-      this.UnpinButton.Visibility = Visibility.Collapsed;
-    }
+    private void UnpinButton_Click(object sender, RoutedEventArgs e) => OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
 
 #if false
     /// <summary>

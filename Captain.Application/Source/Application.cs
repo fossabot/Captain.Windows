@@ -2,8 +2,6 @@
 using Captain.Common;
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -116,31 +114,6 @@ namespace Captain.Application {
       SiMutex = new Mutex(true, SiMutexName);
 
       FsManager = new FsManager();
-
-      // extract required embedded resources
-      // TODO: abstract this if really necessary, and move to another file
-      string binPath = FsManager.GetSafePath(FsManager.BinaryPath);
-      string[] binaryWhitelist = { "CIWindowHelper32.dll", "CIWindowHelper64.dll", "CIWoW64Helper.exe", "costura32.easyhook32.dll", "costura64.easyhook32.dll" };
-      string[] resources = Assembly.GetExecutingAssembly().GetManifestResourceNames().Where(res => binaryWhitelist.Contains(res)).ToArray();
-
-      foreach (string resourceName in resources) {
-        using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)) {
-          try {
-            using (var fs = new FileStream(Path.Combine(binPath, resourceName.Replace("costura32.", "").Replace("costura64.", "")),
-                                           FileMode.OpenOrCreate,
-                                           FileAccess.Write)) {
-              // extract binary
-              stream?.CopyTo(fs);
-            }
-          } catch (IOException) {
-            Log.WriteLine(LogLevel.Verbose, $"found binary: {resourceName}");
-            // TODO: verify integrity asynchronously
-          } catch (Exception exception) {
-            Log.WriteLine(LogLevel.Warning, $"could not extract resource: {resourceName} - {exception}");
-          }
-        }
-      }
-
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
       TrayIcon = new TrayIcon();

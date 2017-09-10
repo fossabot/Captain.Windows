@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using Captain.Common;
@@ -126,15 +127,24 @@ namespace Captain.Application {
 
       switch (intentType) {
         case GrabberIntentType.AttachToWindow:
-          this.window.Helper.AttachToNearestWindow();
-          this.window.CanBeResized = false;
+          new Thread(() => {
+            this.toolBar.Dispatcher.Invoke(() => this.toolBar.SetWindowAttachmentStatus(false, false));
+            this.window.Helper.AttachToNearestWindow();
+            this.toolBar.Dispatcher.Invoke(() => this.toolBar.SetWindowAttachmentStatus(true));
+            this.window.Dispatcher.Invoke(() => this.window.CanBeResized = false);
+          }).Start();
+
           break;
 
         case GrabberIntentType.DetachFromWindow:
-          this.window.Helper.DetachFromWindow();
+          new Thread(() => {
+            this.toolBar.Dispatcher.Invoke(() => this.toolBar.SetWindowAttachmentStatus(false, false));
+            this.window.Helper.DetachFromWindow();
+            this.toolBar.Dispatcher.Invoke(() => this.toolBar.SetWindowAttachmentStatus(false));
 
-          // XXX: TODO: if this is a recording CanBeResized must be set to false!
-          this.window.CanBeResized = true;
+            // XXX: TODO: if this is a recording CanBeResized must be set to false!
+            this.window.Dispatcher.Invoke(() => this.window.CanBeResized = true);
+          }).Start();
           break;
       }
     }

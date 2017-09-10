@@ -8,6 +8,7 @@
 typedef struct {
   WNDPROC lpfnOrgWndProc;  /// original WndProc function
   LONG lWindowStyle;       /// original window style attributes
+  LONG lExWindowStyle;     /// original extended window style
 } CIWNDPROCDATA, *PCIWNDPROCDATA;
 
 static CIWNDPROCDATA g_data = { 0 };
@@ -22,6 +23,7 @@ static LRESULT CALLBACK WndProcHook(HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM
     switch (uiMsg) {
     case WM_CAPTAINDETACHWINDOW:
       SetWindowLong(hWnd, GWL_STYLE, g_data.lWindowStyle);
+      SetWindowLong(hWnd, GWL_EXSTYLE, g_data.lExWindowStyle);
       g_bAttached = FALSE;
       break;
 
@@ -76,7 +78,12 @@ static void PerformWindowAttachment(void) {
   }
 
   // remove maximize/minimize and resize capabilities from the target window
-  SetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE, (g_data.lWindowStyle = GetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE)) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX));
+  SetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE,
+    (g_data.lWindowStyle = GetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_STYLE)) & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX));
+
+  // ensure the window is more or less at the same level than the toolbar window and does not get overlapped by other windows during capture
+  /*SetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_EXSTYLE,
+    (g_data.lExWindowStyle = GetWindowLong(LongToPtr(g_winAttachInfo.hTargetWndLong), GWL_EXSTYLE)) | WS_EX_TOPMOST);*/
   g_bAttached = TRUE;
 }
 

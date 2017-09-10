@@ -12,7 +12,7 @@ namespace Captain {
       public ref class ScreenCaptureProvider abstract : public IDisposable {
       protected:
         int monitor = -1;
-        int x, y, cx, cy;
+        int x = 0, y = 0, cx = 0, cy = 0;
 
       public:
         virtual LPVOID CaptureData() = 0;

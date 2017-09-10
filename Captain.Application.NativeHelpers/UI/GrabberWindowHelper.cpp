@@ -137,7 +137,40 @@ namespace Captain {
             if (outputWindowRect.bottom > this->maxBottom) { outputWindowRect.bottom = this->maxBottom; }
 
             SetWindowPos(this->hwnd, nullptr, outputWindowRect.left, outputWindowRect.top,
-              outputWindowRect.right - outputWindowRect.left, outputWindowRect.bottom - outputWindowRect.top, 0);
+              outputWindowRect.right - outputWindowRect.left, outputWindowRect.bottom - outputWindowRect.top, SWP_NOACTIVATE | SWP_NOZORDER);
+
+            if (this->pwaiAttached) {
+              // there's an attached window - detach the window so some flags get reset and copy the new attachment information
+              SendMessage(this->hwndAttached, WM_CAPTAINDETACHWINDOW, NULL, NULL);
+
+              // update acceptable bounds
+              this->pwaiAttached->rcAcceptableBounds.left = this->minLeft;
+              this->pwaiAttached->rcAcceptableBounds.top = this->minTop;
+              this->pwaiAttached->rcAcceptableBounds.right = this->maxRight;
+              this->pwaiAttached->rcAcceptableBounds.bottom = this->maxBottom;
+
+              // get attached window geometry
+              GetWindowRect(this->hwndAttached, &outputWindowRect);
+
+              // force window to reposition in case it is outside the acceptable bounds
+              if (outputWindowRect.left < this->minLeft) { outputWindowRect.left = this->minLeft; }
+              if (outputWindowRect.top < this->minTop) { outputWindowRect.top = this->minTop; }
+              if (outputWindowRect.right > this->maxRight) { outputWindowRect.right = this->maxRight; }
+              if (outputWindowRect.bottom > this->maxBottom) { outputWindowRect.bottom = this->maxBottom; }
+
+              // move the attached window
+              SetWindowPos(this->hwndAttached, nullptr, outputWindowRect.left, outputWindowRect.top,
+                outputWindowRect.right - outputWindowRect.left, outputWindowRect.bottom - outputWindowRect.top, SWP_NOACTIVATE | SWP_NOZORDER);
+
+              // copy WINATTACHINFO struct to remote process thread using WM_COPYDATA
+              COPYDATASTRUCT copydata = { 0 };
+              copydata.cbData = sizeof(WINATTACHINFO32);
+              copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
+              copydata.lpData = this->pwaiAttached;
+
+              // this will set g_winAttachInfo on CIWindowHelper and trigger the window re-attachment
+              SendMessage(this->hwndAttached, WM_COPYDATA, reinterpret_cast<WPARAM>(this->hwnd), reinterpret_cast<LPARAM>(&copydata));
+            }
           }
         }
       }
@@ -190,11 +223,11 @@ namespace Captain {
         }
 
         // user data passed to the injected DLL
-        WINATTACHINFO32 winAttachInfo;
-        winAttachInfo.hGrabberWndLong = PtrToLong(this->hwnd);
-        winAttachInfo.hTargetWndLong = PtrToLong(hWnd);
-        winAttachInfo.rcOrgTargetBounds = rcBounds;
-        winAttachInfo.rcAcceptableBounds = { this->minLeft, this->minTop, this->maxRight, this->maxBottom };
+        this->pwaiAttached = new WINATTACHINFO32;
+        this->pwaiAttached->hGrabberWndLong = PtrToLong(this->hwnd);
+        this->pwaiAttached->hTargetWndLong = PtrToLong(hWnd);
+        this->pwaiAttached->rcOrgTargetBounds = rcBounds;
+        this->pwaiAttached->rcAcceptableBounds = { this->minLeft, this->minTop, this->maxRight, this->maxBottom };
 
         log->WriteLine(LogLevel::Debug, "hGrabberWndLong=0x{0:x8}; hTargetWndLong=0x{1:x8}", PtrToLong(this->hwnd), PtrToLong(hWnd));
 
@@ -208,25 +241,18 @@ namespace Captain {
         BOOL bInjectionNeeded = TRUE;
         HMODULE hModules[1024];
         DWORD cbNeeded, dwIdx;
-        WCHAR szModuleName[sizeof(WCHAR) * MAX_PATH];
+        WCHAR szModuleName[MAX_PATH + 1];
 
-        // TODO: ABSOLUTELY don't hardcode this!
-        WCHAR szHelper32[sizeof(WCHAR) * MAX_PATH];
-        WCHAR szHelper64[sizeof(WCHAR) * MAX_PATH];
-        WCHAR szWoW64Helper[sizeof(CHAR) * MAX_PATH];
-
-        GetEnvironmentVariableW(L"LOCALAPPDATA", szHelper32, sizeof(szHelper32));
-        GetEnvironmentVariableW(L"LOCALAPPDATA", szHelper64, sizeof(szHelper64));
-        GetEnvironmentVariableW(L"LOCALAPPDATA", szWoW64Helper, sizeof(szWoW64Helper));
-
-        wcscat_s(szHelper32, L"\\Captain\\Bin\\CIWindowHelper32.dll");
-        wcscat_s(szHelper64, L"\\Captain\\Bin\\CIWindowHelper64.dll");
-        wcscat_s(szWoW64Helper, L"\\Captain\\Bin\\CIWoW64Helper.exe");
+        // assume these are on pwd
+        LPCWSTR szHelper32 = L"CIWindowHelper32.dll";
+        LPCWSTR szHelper64 = L"CIWindowHelper64.dll";
+        LPCWSTR szWoW64Helper = L"CIWoW64Helper.exe";
 
         if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded)) {
           for (dwIdx = 0; dwIdx < cbNeeded / sizeof(HMODULE); dwIdx++) {
-            if (GetModuleFileNameExW(hProcess, hModules[dwIdx], szModuleName, sizeof(szModuleName))) {
+            if (GetModuleBaseNameW(hProcess, hModules[dwIdx], szModuleName, _countof(szModuleName))) {
               // if it's our DLL, don't inject it and send a reactivation WM
+              log->WriteLine(LogLevel::Debug, "module: {0}", gcnew String(szModuleName));
               if (!wcscmp(szHelper32, szModuleName) || !wcscmp(szHelper64, szModuleName)) {
                 log->WriteLine(LogLevel::Warning, "DLL already injected - sending re-attachment message");
 
@@ -234,7 +260,7 @@ namespace Captain {
                 COPYDATASTRUCT copydata = { 0 };
                 copydata.cbData = sizeof(WINATTACHINFO32);
                 copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
-                copydata.lpData = &winAttachInfo;
+                copydata.lpData = this->pwaiAttached;
 
                 // this will set g_winAttachInfo on CIWindowHelper and trigger the window re-attachment
                 SendMessage(hWnd, WM_COPYDATA, reinterpret_cast<WPARAM>(this->hwnd), reinterpret_cast<LPARAM>(&copydata));
@@ -261,14 +287,10 @@ namespace Captain {
           BYTE bAttempts = 3;
 
         inject:
-          NTSTATUS status = RhInjectLibrary(dwProcessId, ulInjectionOptions == EASYHOOK_INJECT_DEFAULT ? dwThreadId : 0, ulInjectionOptions, (PWCHAR)szHelper32, (PWCHAR)szHelper64, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO32));
+          NTSTATUS status = RhInjectLibrary(dwProcessId, ulInjectionOptions == EASYHOOK_INJECT_DEFAULT ? dwThreadId : 0, ulInjectionOptions,
+            (PWCHAR)szHelper32, (PWCHAR)szHelper64, (LPVOID)pwaiAttached, sizeof(WINATTACHINFO32));
 
-          if ((status == STATUS_ACCESS_DENIED || status == STATUS_INTERNAL_ERROR) && bAttempts) {
-            // HACK: one more time?
-            bAttempts--;
-            goto inject;
-          }
-          else if (status == STATUS_WOW_ASSERTION) {
+          if (status == STATUS_WOW_ASSERTION) {
             log->WriteLine(LogLevel::Warning, "RhInjectLibrary() can't hook through WoW64 barrier - invoking injection helper");
 
             ProcessStartInfo ^startInfo = gcnew ProcessStartInfo();
@@ -285,7 +307,7 @@ namespace Captain {
             cli::array<wchar_t> ^data = gcnew cli::array<wchar_t>(sizeof(WINATTACHINFO32));
             cli::pin_ptr<wchar_t> data_start = &data[0];
 
-            memcpy(data_start, reinterpret_cast<LPVOID>(&winAttachInfo), sizeof(WINATTACHINFO32));
+            memcpy(data_start, reinterpret_cast<LPVOID>(pwaiAttached), sizeof(WINATTACHINFO32));
 
             process->StartInfo = startInfo;
             process->StandardInput->BaseStream->Write(reinterpret_cast<cli::array<unsigned char>^>(data), 0, sizeof(WINATTACHINFO32));
@@ -293,98 +315,16 @@ namespace Captain {
             log->WriteLine(LogLevel::Debug, "wrote {0} bytes to process standard input", sizeof(WINATTACHINFO32));
 
             process->WaitForExit();
-
             log->WriteLine(LogLevel::Informational, "WoW64 helper process exited with code 0x{0:x8}", process->ExitCode);
 
-#if 0
-            log->WriteLine(LogLevel::Warning, "RhInjectLibrary() can't pass through WoW64 barrier - invoking injection helper");
-
-            WCHAR szCmdLine[1024];
-            wsprintfW(szCmdLine, L"%u %u %s \"%ls\"", dwProcessId, dwThreadId, L"default", szHelper32);
-
-            PROCESS_INFORMATION pi = { 0 };
-            STARTUPINFOW si = { 0 };
-
-            /* write WINATTACHINFO to process stdin */
-            HANDLE hInPipe = nullptr;
-            HANDLE hOutPipe = nullptr;
-
-            SECURITY_ATTRIBUTES sa = { 0 };
-            sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-            sa.bInheritHandle = true;
-
-            // create pipes
-            if (!CreatePipe(&hOutPipe, &hInPipe, &sa, 0)) {
-              log->WriteLine(LogLevel::Error, "CreatePipe() failed with error 0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
+            if (process->ExitCode != EXIT_SUCCESS) {
+              throw gcnew Win32Exception(process->ExitCode, gcnew String("Can't hook through WoW64 barrier"));
             }
-
-            if (!CreatePipe(&hInPipe, &hInPipe, &sa, sizeof(WINATTACHINFO))) {
-              log->WriteLine(LogLevel::Error, "CreatePipe() failed with error 0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
-            }
-
-            // ensure handles are not inherited
-            if (!SetHandleInformation(hOutPipe, HANDLE_FLAG_INHERIT, 0)) {
-              log->WriteLine(LogLevel::Error, "SetHandleInformation() failed with error 0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
-            }
-
-            if (!SetHandleInformation(hInPipe, HANDLE_FLAG_INHERIT, 0)) {
-              log->WriteLine(LogLevel::Error, "SetHandleInformation() failed with error 0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
-            }
-
-            si.cb = sizeof(STARTUPINFOW);
-            si.hStdInput = hInPipe;
-            si.hStdOutput = hOutPipe;
-            si.dwFlags |= STARTF_USESTDHANDLES;
-
-            if (!CreateProcessW(szWoW64Helper, szCmdLine, nullptr, nullptr, true, 0, nullptr, nullptr, &si, &pi)) {
-              log->WriteLine(LogLevel::Error, "CreateProcessW() failed; LE=0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
-            }
-
-            DWORD cbBytesWritten = 0;
-            if (!WriteFile(hInPipe, (LPVOID)&winAttachInfo, sizeof(WINATTACHINFO), &cbBytesWritten, nullptr)) {
-              log->WriteLine(LogLevel::Warning, "WriteFile() failed with error 0x{0:x8}", GetLastError());
-              throw gcnew Win32Exception(GetLastError());
-            }
-            else if (cbBytesWritten != sizeof(WINATTACHINFO)) {
-              log->WriteLine(LogLevel::Warning, "window attachment information was only partially copied!");
-            }
-
-            log->WriteLine(LogLevel::Debug, "wrote {0} bytes to WoW64 helper process", cbBytesWritten);
-
-            // close input pipe
-            CloseHandle(hInPipe);
-
-            // wait for the helper to exit
-            DWORD dwExitCode;
-            WaitForSingleObject(pi.hProcess, INFINITE);
-            GetExitCodeProcess(pi.hProcess, &dwExitCode);
-
-            // close process and thread handles
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-
-            log->WriteLine(LogLevel::Informational, "CIWoW64Helper exited with code 0x{0:x8}", dwExitCode);
-
-            /*Sleep(1000);
-
-            log->WriteLine(LogLevel::Warning, "trying to send attachment message");
-
-            // copy WINATTACHINFO struct to remote process thread using WM_COPYDATA
-            COPYDATASTRUCT copydata = { 0 };
-            copydata.cbData = sizeof(WINATTACHINFO);
-            copydata.dwData = CAPTAIN_COPYDATA_SIGNATURE;
-            copydata.lpData = &winAttachInfo;
-
-            // this will set g_winAttachInfo on CIWindowHelper and trigger the window re-attachment
-            SendMessage(hWnd, WM_COPYDATA, reinterpret_cast<WPARAM>(this->hwnd), reinterpret_cast<LPARAM>(&copydata));*/
-#endif
           }
           else if (status != ERROR_SUCCESS) {
+            goto inject;
+
+            // we did our best
             log->WriteLine(LogLevel::Error, "RhInjectLibrary() failed with error 0x{0:x8}: {1}", status, gcnew String(RtlGetLastErrorString()));
 
             if (ulInjectionOptions == EASYHOOK_INJECT_STEALTH) {
@@ -420,6 +360,8 @@ namespace Captain {
           SendMessage(this->hwndAttached, WM_CAPTAINDETACHWINDOW, NULL, NULL);
           SetWindowPos(this->hwnd, nullptr, this->prcOrgBounds->left, this->prcOrgBounds->top, this->prcOrgBounds->right - this->prcOrgBounds->left, this->prcOrgBounds->bottom - this->prcOrgBounds->top, 0);
           ShowWindow(this->hwnd, SW_SHOW);
+
+          delete this->pwaiAttached;
         }
         else {
           log->WriteLine(LogLevel::Error, "no window is currently attached");

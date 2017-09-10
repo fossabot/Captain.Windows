@@ -67,6 +67,23 @@ namespace Captain {
         this->hBmpWnd = CreateCompatibleBitmap(this->hdcWnd, cx, cy);
       }
 
+      GDIScreenCaptureProvider::GDIScreenCaptureProvider(IntPtr handle) : GDIScreenCaptureProvider::GDIScreenCaptureProvider() {
+        this->log->WriteLine(LogLevel::Debug, "capturing window (0x{0:x8})", handle);
+
+        RECT rcWnd;
+        if (!GetWindowRect(reinterpret_cast<HWND>(handle.ToPointer()), &rcWnd)) {
+          this->log->WriteLine(LogLevel::Error, "could not obtain window bounds");
+          throw gcnew Win32Exception(GetLastError());
+        }
+
+        this->x = rcWnd.left;
+        this->y = rcWnd.top;
+        this->cx = rcWnd.right - rcWnd.left;
+        this->cy = rcWnd.bottom - rcWnd.top;
+
+        this->hBmpWnd = CreateCompatibleBitmap(this->hdcWnd, rcWnd.right - rcWnd.left, rcWnd.bottom - rcWnd.top);
+      }
+
       GDIScreenCaptureProvider::~GDIScreenCaptureProvider() {
         this->log->WriteLine(LogLevel::Debug, "releasing resources");
 

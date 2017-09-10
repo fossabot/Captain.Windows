@@ -121,11 +121,15 @@ namespace Captain.Application {
 
         if (intent.Monitor != -1) {
           captureProvider = new GDIScreenCaptureProvider(intent.Monitor);
-        } else {
+          this.boundGrabber.Hide();
+        } else if (intent.WindowHandle == IntPtr.Zero) {
           captureProvider = new GDIScreenCaptureProvider(intent.VirtualArea.X,
                                                          intent.VirtualArea.Y,
                                                          intent.VirtualArea.Width,
                                                          intent.VirtualArea.Height);
+          this.boundGrabber.Hide();
+        } else {
+          captureProvider = new GDIScreenCaptureProvider(intent.WindowHandle);
         }
 
         try {
@@ -133,9 +137,7 @@ namespace Captain.Application {
             Application.TrayIcon.PlayLoopingIconAnimation();
 
             // perform screen capture
-            this.boundGrabber.Hide();
             Bitmap bmp = captureProvider.CaptureBitmap();
-            this.boundGrabber.Show();
 
             // encode static image and obtain task results
             var results = (List<CaptureResult>)await EncodeStatic(bmp, encoder);

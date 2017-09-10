@@ -2,6 +2,8 @@
 #include <easyhook.h>
 #include <stdio.h>
 
+#pragma comment(lib, "mincore_downlevel.lib")   // Support OS older than SDK
+
 /// program entry point
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int nCmdShow) {
   int nArgCount = 0;
