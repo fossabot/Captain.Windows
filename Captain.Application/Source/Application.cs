@@ -1,12 +1,10 @@
-﻿using Captain.Application.NativeHelpers;
-using Captain.Common;
+﻿using Captain.Common;
 using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
-using System.Windows.Forms;
 
 namespace Captain.Application {
   /// <summary>
@@ -46,7 +44,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Handles hotkeys
     /// </summary>
-    internal static HotkeyManager HotkeyManager { get; private set; }
+    //internal static HotkeyManager HotkeyManager { get; private set; }
 
     /// <summary>
     ///   Handles tray icon
@@ -92,17 +90,10 @@ namespace Captain.Application {
     /// </summary>
     [STAThread]
     private static void Main() {
+      VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+
       Log = new Logger();
       Log.SetDefault();
-
-      // try to retrieve version information
-      if (Assembly.GetExecutingAssembly().Location is string fileName) {
-        VersionInfo = FileVersionInfo.GetVersionInfo(fileName);
-      } else {
-        Log.WriteLine(LogLevel.Error, "can't retrieve version info - has the assembly been loaded from a file?");
-        Environment.Exit(1);
-      }
-
       Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionInfo.ProductVersion}");
 
       if (Mutex.TryOpenExisting(SiMutexName, out Mutex _)) {
@@ -150,7 +141,7 @@ namespace Captain.Application {
         ToastProvider = new LegacyNotificationProvider();
       }
 
-      bool MyLittleCallback(bool exclusive, int monitor) {
+      void MyLittleCallback(bool exclusive, int monitor) {
         Action action = ActionManager.CreateDefault();
 
         if (exclusive) {
@@ -160,12 +151,10 @@ namespace Captain.Application {
         } else {
           action.BindGrabberUI(new Grabber(action.ActionTypes));
         }
-
-        return true;
       }
 
-      HotkeyManager = new HotkeyManager();
-      HotkeyManager.Register((int)(Keys.LControlKey | Keys.RMenu | Keys.Return), MyLittleCallback);
+      /*HotkeyManager = new HotkeyManager();
+      HotkeyManager.Register((int)(Keys.LControlKey | Keys.RMenu | Keys.Return), MyLittleCallback);*/
 
       TrayIcon.NotifyIcon.Click += (_, __) => MyLittleCallback(false, -1);
 

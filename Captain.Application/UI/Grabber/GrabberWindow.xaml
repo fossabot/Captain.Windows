@@ -8,7 +8,8 @@
         Topmost="True"
         ResizeMode="CanResize"
         Style="{DynamicResource WindowStyle}"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        IsTabStop="False">
   <!--
     "Six by nine. Forty two."
     "That's it. That's all there is."

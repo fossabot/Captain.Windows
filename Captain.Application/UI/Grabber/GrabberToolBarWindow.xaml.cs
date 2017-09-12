@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using Captain.Application.Native;
 
 namespace Captain.Application {
   /// <summary>
@@ -12,6 +13,11 @@ namespace Captain.Application {
     ///   True when the screen may be being recorded
     /// </summary>
     private bool mayBeRecording;
+
+    /// <summary>
+    ///   Internal window handle
+    /// </summary>
+    internal IntPtr Handle { get; private set; }
 
     /// <summary>
     ///   Handles capture button events
@@ -70,31 +76,50 @@ namespace Captain.Application {
         if (attached) {
           this.PinButton.Visibility = Visibility.Collapsed;
           this.UnpinButton.Visibility = Visibility.Visible;
+          Topmost = false;
         } else {
           this.PinButton.Visibility = Visibility.Visible;
           this.UnpinButton.Visibility = Visibility.Collapsed;
+          Topmost = true;
         }
       }
     }
 
     /// <summary>
     ///   AddHook Handle WndProc messages in WPF
-    ///   This cannot be done in a Window's constructor as a handle window handle won't at that point, so there won't be a HwndSource.
+    ///   This cannot be done in a Window's constructor as a handle window handle won't at that point, so there won't
+    ///   be a HwndSource.
     /// </summary>
     /// <param name="e"></param>
     protected override void OnSourceInitialized(EventArgs e) {
       base.OnSourceInitialized(e);
 
-      var hwndSource = (HwndSource)PresentationSource.FromVisual(this);
-      hwndSource?.AddHook(WndProc);
+      if (PresentationSource.FromVisual(this) is HwndSource source) {
+        Handle = source.Handle;
+
+        long windowStyle = User32.GetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_STYLE).ToInt64();
+        long windowExStyle = User32.GetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_EXSTYLE).ToInt64();
+
+        // remove maximize/minimize capabilities
+        User32.SetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_STYLE,
+          new IntPtr(windowStyle & ~(long)(User32.WindowStyles.WS_MINIMIZEBOX | User32.WindowStyles.WS_MAXIMIZEBOX)));
+
+        // hide from window switcher
+        User32.SetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_EXSTYLE,
+          new IntPtr(windowExStyle | (long)User32.WindowStylesEx.WS_EX_TOOLWINDOW));
+        source.AddHook(WndProc);
+      }
     }
 
     /// <summary>
-    ///   WndProc matches the HwndSourceHook delegate signature so it can be passed to AddHook() as a callback. This is the same as overriding a Windows.Form's WncProc method.
+    ///   WndProc matches the HwndSourceHook delegate signature so it can be passed to AddHook() as a callback. This is
+    ///   is the same as overriding a Windows.Form's WncProc method.
     /// </summary>
     /// <param name="hwnd">The window handle</param>
     /// <param name="msg">The message ID</param>
-    /// <param name="wParam">The message's wParam value, historically used in the win32 api for handles and integers</param>
+    /// <param name="wParam">
+    ///   The message's wParam value, historically used in the win32 api for handles and integers
+    /// </param>
     /// <param name="lParam">The message's lParam value, historically used in the win32 api to pass pointers</param>
     /// <param name="handled">A value that indicates whether the message was handled</param>
     /// <returns>IntPtr.Zero</returns>
@@ -129,23 +154,24 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void CancelButton_Click(object sender, RoutedEventArgs e) {
-      Close();
-    }
+    private void CancelButton_Click(object sender, RoutedEventArgs e) =>
+      OnGrabberIntentReceived(GrabberIntentType.Close);
 
     /// <summary>
     ///   Triggered when the "Attach to window" button is clicked
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void PinButton_Click(object sender, RoutedEventArgs e) => OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
+    private void PinButton_Click(object sender, RoutedEventArgs e) =>
+      OnGrabberIntentReceived(GrabberIntentType.AttachToWindow);
 
     /// <summary>
     ///   Triggered when the "Detach from window" button is clicked
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    private void UnpinButton_Click(object sender, RoutedEventArgs e) => OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
+    private void UnpinButton_Click(object sender, RoutedEventArgs e) =>
+      OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
 
 #if false
     /// <summary>

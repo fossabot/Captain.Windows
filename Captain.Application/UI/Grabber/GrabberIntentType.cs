@@ -4,6 +4,11 @@
   /// </summary>
   internal enum GrabberIntentType {
     /// <summary>
+    ///   Close the grabber UI
+    /// </summary>
+    Close,
+
+    /// <summary>
     ///   Attach the grabber UI to a window
     /// </summary>
     AttachToWindow,

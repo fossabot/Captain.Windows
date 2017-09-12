@@ -52,7 +52,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WIN32</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -62,7 +62,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;WIN32</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -74,7 +74,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;WIN64</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
@@ -84,7 +84,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;WIN64</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -100,6 +100,7 @@
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="README.md" />
+    <None Include="Source\Native\README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitattributes" />
@@ -142,6 +143,18 @@
     <Compile Include="Source\Actions\ActionType.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
+    <Compile Include="Source\InjectionHelper.cs" />
+    <Compile Include="Source\Native\Cyanogen\Display.cs" />
+    <Compile Include="Source\Native\Cyanogen\Process.cs" />
+    <Compile Include="Source\Native\Cyanogen\Shell.cs" />
+    <Compile Include="Source\Native\Cyanogen\WINATTACHINFO.cs" />
+    <Compile Include="Source\Native\Cyanogen\WindowMessages.cs" />
+    <Compile Include="Source\Native\Windows.Core\COPYDATASTRUCT.cs" />
+    <Compile Include="Source\Native\Windows.Core\Dbt.cs" />
+    <Compile Include="Source\Native\Windows.Core\POINT.cs" />
+    <Compile Include="Source\Native\Windows.Core\RECT.cs" />
+    <Compile Include="Source\Native\Windows.Core\User32.cs" />
+    <Compile Include="Source\Native\Windows.Core\WINDOWPOS.cs" />
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
@@ -220,17 +233,12 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Captain.Application.NativeHelpers\Captain.Application.NativeHelpers.vcxproj">
-      <Project>{f9646d96-a901-4d56-97a4-c823c68fa08b}</Project>
-      <Name>Captain.Application.NativeHelpers</Name>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Captain.Common\Captain.Common.csproj">
       <Project>{5cbd5d35-99d1-4ae3-919d-7b9099ed6dc3}</Project>
       <Name>Captain.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Captain.Plugins.BuiltIn\Captain.Plugins.BuiltIn.vcxproj">
-      <Project>{c1b14d2b-dfd8-4b02-955c-682b3c776b3f}</Project>
+    <ProjectReference Include="..\Captain.Plugins.BuiltIn\Captain.Plugins.BuiltIn.csproj">
+      <Project>{9b667c69-0f53-4663-a74e-73c384caff75}</Project>
       <Name>Captain.Plugins.BuiltIn</Name>
     </ProjectReference>
   </ItemGroup>
@@ -243,8 +251,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>"$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:CIWoW64Helper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
-"$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:CIWindowHelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName);TargetFileName="CIWindowHelper32.dll" /nologo
-"$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:CIWindowHelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x64;Configuration=$(ConfigurationName);TargetFileName="CIWindowHelper64.dll" /nologo</PreBuildEvent>
+    <PreBuildEvent>
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2wowbr /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2helper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=$(Platform);Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x64;Configuration=$(ConfigurationName) /nologo
+</PreBuildEvent>
   </PropertyGroup>
 </Project>

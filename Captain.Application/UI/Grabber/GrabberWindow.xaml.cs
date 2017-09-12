@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Captain.Application.NativeHelpers;
 using Color = System.Windows.Media.Color;
+using static Captain.Application.Application;
+using Captain.Application.Native;
+using Captain.Common;
+using System.Runtime.InteropServices;
 
 namespace Captain.Application {
   /// <summary>
@@ -14,14 +16,25 @@ namespace Captain.Application {
   /// </summary>
   internal partial class GrabberWindow {
     /// <summary>
-    ///   Native window helper
+    ///   Acceptable capture region
     /// </summary>
-    private GrabberWindowHelper helper;
+    private RECT acceptableBounds;
 
     /// <summary>
-    ///   Native window helper
+    ///   Device notification filter handle
     /// </summary>
-    internal GrabberWindowHelper Helper => this.helper;
+    private IntPtr devNotify;
+
+    /// <summary>
+    ///   HACK: When true, the window will return HTTRANSPARENT for the WM_NCHITTEST message so, for instance, it
+    ///   remains invisible to WindowFromPoint() calls from the current thread
+    /// </summary>
+    internal bool PassThrough { get; set; } = false;
+
+    /// <summary>
+    ///   Internal window handle
+    /// </summary>
+    internal IntPtr Handle { get; private set; }
 
     /// <summary>
     ///   Changes/gets whether the window can be resized
@@ -63,16 +76,91 @@ namespace Captain.Application {
     internal GrabberWindow() => InitializeComponent();
 
     /// <summary>
-    ///   Removes maximize/minimize capabilities from the native window
+    ///   Class destructor
+    /// </summary>
+    ~GrabberWindow() => Display.UnregisterChangeNotifications(this.devNotify);
+
+    /// <summary>
+    ///   Adjusts window properties and sets hooks
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnSourceInitialized(EventArgs eventArgs) {
       base.OnSourceInitialized(eventArgs);
+      UpdateWindowGeometry();
 
       if (PresentationSource.FromVisual(this) is HwndSource source) {
-        this.helper = new GrabberWindowHelper(source.Handle);
-        source.AddHook(this.helper.WndProc);
+        Handle = source.Handle;
+
+        long windowStyle = User32.GetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_STYLE).ToInt64();
+        long windowExStyle = User32.GetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_EXSTYLE).ToInt64();
+
+        // remove maximize/minimize capabilities
+        User32.SetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_STYLE,
+          new IntPtr(windowStyle & ~(long)(User32.WindowStyles.WS_MINIMIZEBOX | User32.WindowStyles.WS_MAXIMIZEBOX)));
+
+        // hide from window switcher
+        User32.SetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_EXSTYLE,
+          new IntPtr(windowExStyle | (long)User32.WindowStylesEx.WS_EX_TOOLWINDOW));
+
+        Display.RegisterChangeNotifications(Handle, out this.devNotify);
+        source.AddHook(WndProc);
       }
+    }
+
+    /// <summary>
+    ///   Updates the window geometry according to the acceptable capture bounds
+    /// </summary>
+    private void UpdateWindowGeometry() {
+      if (!Display.GetAcceptableBounds(out this.acceptableBounds)) {
+        Log.WriteLine(LogLevel.Warning, "could not get acceptable capture bounds");
+        return;
+      }
+
+      // force window to reposition in case it is outside the acceptable bounds
+      if (Left < this.acceptableBounds.left) { Left = this.acceptableBounds.left; }
+      if (Top < this.acceptableBounds.top) { Top = this.acceptableBounds.top; }
+      if (Left + Width > this.acceptableBounds.right) { Left = this.acceptableBounds.right - Width; }
+      if (Top + Height > this.acceptableBounds.bottom) { Top = this.acceptableBounds.bottom - Height; }
+
+      // TODO: reposition attached window
+    }
+
+    /// <summary>
+    ///   Window procedure hook
+    /// </summary>
+    /// <param name="hwnd">Window handle</param>
+    /// <param name="msg">Window message</param>
+    /// <param name="wParam">Reserved</param>
+    /// <param name="lParam">Reserved</param>
+    /// <param name="handled">Whether the message was handled or not</param>
+    /// <returns></returns>
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) {
+      switch (msg) {
+        case (int)User32.WindowMessage.WM_NCHITTEST:
+          handled = PassThrough;
+          return new IntPtr((int)User32.HitTestValues.HTTRANSPARENT);
+
+        case (int)User32.WindowMessage.WM_DEVICECHANGE:
+          if (wParam.ToInt32() != Dbt.DBT_DEVNODES_CHANGED) { break; }
+
+          // a video adapter device has been removed/added
+          UpdateWindowGeometry();
+          break;
+
+        case (int)User32.WindowMessage.WM_WINDOWPOSCHANGING:
+          var pos = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS));
+
+          // prevent the window from going off-screen
+          if (pos.x < this.acceptableBounds.left) { pos.x = this.acceptableBounds.left; }
+          if (pos.y < this.acceptableBounds.top) { pos.y = this.acceptableBounds.top; }
+          if (pos.x + pos.cx > this.acceptableBounds.right) { pos.x = this.acceptableBounds.right - pos.cx; }
+          if (pos.y + pos.cy > this.acceptableBounds.bottom) { pos.y = this.acceptableBounds.bottom - pos.cy; }
+
+          Marshal.StructureToPtr(pos, lParam, false);
+          break;
+      }
+
+      return IntPtr.Zero;
     }
 
     /// <summary>

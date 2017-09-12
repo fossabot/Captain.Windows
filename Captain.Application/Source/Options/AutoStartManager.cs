@@ -9,6 +9,10 @@ namespace Captain.Application {
   ///   Handles the autostart feature by reading from/writing to the OS registry
   /// </summary>
   internal class AutoStartManager {
+    private const string StartupRegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+    private const string ApprovedStartupRegistryKeyPath =
+      @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
+
     private RegistryKey startupRegistryKey;
     private RegistryKey approvedStartupRegistryKey;
 
@@ -49,7 +53,8 @@ namespace Captain.Application {
     internal bool ToggleAutoStart() {
 
 
-      // the application is on the approved startup key - we'll enable/disable the entry instead of deleting and creating it every time
+      // the application is on the approved startup key - we'll enable/disable the entry instead of deleting and
+      // creating it every time
       if (this.approvedStartupRegistryKey != null &&
           this.approvedStartupRegistryKey.GetValue(VersionInfo.ProductName) is byte[] data) {
 
@@ -68,7 +73,8 @@ namespace Captain.Application {
           this.startupRegistryKey.DeleteValue(VersionInfo.ProductName);
         } else {
           // ReSharper disable once AssignNullToNotNullAttribute
-          this.startupRegistryKey.SetValue(VersionInfo.ProductName, Assembly.GetExecutingAssembly().Location, RegistryValueKind.String);
+          this.startupRegistryKey.SetValue(VersionInfo.ProductName, Assembly.GetExecutingAssembly().Location,
+                                           RegistryValueKind.String);
         }
 
         return !onStartupKey;
@@ -83,9 +89,9 @@ namespace Captain.Application {
     /// <returns>Whether or not the operation completed successfully</returns>
     private bool OpenStartupRegistryKey() {
       try {
-        this.startupRegistryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+        this.startupRegistryKey = Registry.CurrentUser.OpenSubKey(StartupRegistryKeyPath,
                                                                   RegistryKeyPermissionCheck.ReadWriteSubTree);
-        this.approvedStartupRegistryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run",
+        this.approvedStartupRegistryKey = Registry.CurrentUser.OpenSubKey(ApprovedStartupRegistryKeyPath,
                                                                           RegistryKeyPermissionCheck.ReadWriteSubTree);
         Log.WriteLine(LogLevel.Informational, "operation completed successfully");
         return true;

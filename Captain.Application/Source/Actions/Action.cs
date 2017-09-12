@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using Captain.Application.NativeHelpers;
 using Captain.Common;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using static Captain.Application.Application;
@@ -15,6 +13,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
+using Captain.Application.Native;
 
 namespace Captain.Application {
   /// <summary>
@@ -116,8 +115,9 @@ namespace Captain.Application {
         throw new InvalidOperationException("No streams were set for this action.");
       }
 
+#if false
       if (intent.ActionType == ActionType.Screenshot) {
-        ScreenCaptureProvider captureProvider;
+        IScreenCaptureProvider captureProvider;
 
         if (intent.Monitor != -1) {
           captureProvider = new GDIScreenCaptureProvider(intent.Monitor);
@@ -181,9 +181,9 @@ namespace Captain.Application {
                                        actions: actions,
                                        handler: (sender, data) => {
                                          if (data is ToastActivatedEventArgs eventArgs) {
-                                           new Uri(eventArgs.Arguments).Open();
+                                           Shell.RevealInFileExplorer(eventArgs.Arguments);
                                          } else {
-                                           results.First().ToastUri.Open();
+                                           Shell.RevealInFileExplorer(results.First().ToastUri.ToString());
                                          }
                                        });
             } else if (results.Count > 0 && results.Count == failedCount) {
@@ -214,7 +214,7 @@ namespace Captain.Application {
 
                                        handler: (sender, data) => {
                                          if (data as ToastActivatedEventArgs is null) {
-                                           return;  // go fuck thyself
+                                           return; // go fuck thyself
                                          }
 
                                          var eventArgs = data as ToastActivatedEventArgs;
@@ -250,28 +250,33 @@ namespace Captain.Application {
 
                             exception.Data.Contains("results")
                               // unsuccessful capture results' exceptions
-                              // NOTE: under normal conditions, `results` is an IEnumerable<UnsuccessfulCaptureResult>, but just for the sake of safety, let's take
-                              //       make sure we take actual unsuccessful results from it
+                              // NOTE: under normal conditions, `results` is an IEnumerable<UnsuccessfulCaptureResult>,
+                              // but just for the sake of safety, let's take make sure we take actual unsuccessful
+                              // results from it
                               ? ((List<CaptureResult>)exception.Data["results"])
                               .Where(r => r is UnsuccessfulCaptureResult)
                               .Select(r => ((UnsuccessfulCaptureResult)r).Exception)
 
                               // single exception
-                              : new[] { exception });
+                              : new[] {
+                                exception
+                              });
         } finally {
           captureProvider.Dispose();
         }
       } else if (intent.ActionType == ActionType.Record) {
         throw new NotImplementedException();
       }
+#endif
     }
 
     /// <summary>
-    ///   Selects or creates a <see cref="Stream"/> for the encoder to write its output and wraps the rest under an enumerable type.
+    ///   Selects or creates a <see cref="Stream"/> for the encoder to write its output and wraps the rest under an
+    ///   enumerable type.
     /// </summary>
     /// <returns>
-    ///   A tuple containing the "master" stream as first value and the rest on the second value. A third value containing the streams
-    ///   that failed to be initialized is also included
+    ///   A tuple containing the "master" stream as first value and the rest on the second value. A third value
+    ///   containing the streams that failed to be initialized is also included
     /// </returns>
     private (Stream MasterStream, IEnumerable<Stream> OutputStreams,
       IEnumerable<(PluginObject OutputStream, Exception Exception)> Failed)
@@ -283,7 +288,8 @@ namespace Captain.Application {
       try {
         PluginObject preferred = streams.OrderBy(os => os.Type.GetNestedType("MemoryStream") is null).First();
 
-        // select the first output stream to act as a "master", preferring MemoryStream-based ones as they are usually faster [Citation needed]
+        // select the first output stream to act as a "master", preferring MemoryStream-based ones as they are usually
+        // faster [Citation needed]
         masterStream = FormatterServices.GetUninitializedObject(preferred.Type) as Stream;
 
         // set encoder info
@@ -302,7 +308,8 @@ namespace Captain.Application {
         // we don't want a duplicate stream
         streams.Remove(preferred);
       } catch (TargetInvocationException targetInvocationException) {
-        Log.WriteLine(LogLevel.Warning, "could not create master stream due to a initializer exception - throwing underlying exception");
+        Log.WriteLine(LogLevel.Warning,
+                      "could not create master stream due to a initializer exception - throwing underlying exception");
 
         if (targetInvocationException.InnerException != null) {
           // throw inner exception so we handle it down after this method call
@@ -337,7 +344,9 @@ namespace Captain.Application {
           failed.Add((o, targetInvocationException.InnerException));
           return null;
         }
-      }).Where(s => s != null).ToList();
+      })
+                                   .Where(s => s != null)
+                                   .ToList();
 
       // hold on! were we fucked?
       if (!isMasterReadable) {
@@ -362,7 +371,8 @@ namespace Captain.Application {
       encoderInfo.PreviewBitmap = bmp;
 
       // arrange output streams so we get the fastest master
-      (Stream MasterStream, IEnumerable<Stream> OutputStreams, IEnumerable<(PluginObject OutputStream, Exception Exception)> Failed) streams = ArrangeOutputStreams(encoderInfo);
+      (Stream MasterStream, IEnumerable<Stream> OutputStreams, IEnumerable<(PluginObject OutputStream,
+        Exception Exception)> Failed) streams = ArrangeOutputStreams(encoderInfo);
       var results = new List<CaptureResult>();
 
       // ArrangeOutputStrams() may have omitted one or more streams due to initialization exceptions.
@@ -384,8 +394,8 @@ namespace Captain.Application {
           // ReSharper disable AccessToDisposedClosure
           // although MasterStream is disposed below, it is guaranteed to never be disposed at this point,
           // for we block the calling thread while waiting for all threads to end
-          streams.MasterStream.Position = 0;  // we need to reset position on the master stream
-          streams.MasterStream.CopyTo(s);     // Stream.CopyTo() reads the source stream to end
+          streams.MasterStream.Position = 0; // we need to reset position on the master stream
+          streams.MasterStream.CopyTo(s); // Stream.CopyTo() reads the source stream to end
         } catch (Exception exception) {
           Log.WriteLine(LogLevel.Error,
                         $"error copying to stream of type {s.GetType()}: {exception}");
@@ -399,13 +409,16 @@ namespace Captain.Application {
         }
 
         s.Dispose();
-      })).ToList();
+      }))
+                           .ToList();
 
       // start all the threads at the same time
       threads.ForEach(t => {
-        // HACK: OK let's be honest on this one. Core Captain functionality requires this because I'm using some Windows Forms Clipboard functions on the built-in plugin
-        //       (see /Captain.Plugins.BuiltIn/OutputStreams/ClipboardOutputStream.cpp). Ideally we'd look for an STA thread attribute on the output stream class or the
-        //       implementation could create a new STA thread for doing whatever they have to. But this Just Works (TM)
+        // HACK: OK let's be honest on this one. Core Captain functionality requires this because I'm using some
+        //       Windows Forms Clipboard functions on the built-in plugin 
+        //       (see /Captain.Plugins.BuiltIn/OutputStreams/ClipboardOutputStream.cpp). Ideally we'd look for an STA 
+        //       thread attribute on the output stream class or the implementation could create a new STA thread for
+        //       doing whatever they have to. But this Just Works (TM)
         t.TrySetApartmentState(ApartmentState.STA);
         t.Start();
       });
@@ -422,7 +435,8 @@ namespace Captain.Application {
           results.Add(masterResult);
         }
       } catch (Exception exception) {
-        Log.WriteLine(LogLevel.Error, $"error committing to master stream of type {streams.MasterStream.GetType()}: {exception}");
+        Log.WriteLine(LogLevel.Error,
+                      $"error committing to master stream of type {streams.MasterStream.GetType()}: {exception}");
         results.Add(new UnsuccessfulCaptureResult(exception));
       }
 
@@ -495,7 +509,9 @@ namespace Captain.Application {
         Application.TrayIcon.SetIcon();
       }).Start();
 
-      LegacyNotificationProvider.PushMessage(caption, body, ToolTipIcon.Warning,
+      LegacyNotificationProvider.PushMessage(caption,
+                                             body,
+                                             ToolTipIcon.Warning,
                                              handler: (_, __) => DisplayErrorDialog(caption, body, exceptions),
                                              closeHandler: (_, __) => Application.TrayIcon.SetIcon());
     }
@@ -504,8 +520,6 @@ namespace Captain.Application {
     ///   Displays a dialog containing all the result information for each output stream
     /// </summary>
     /// <param name="results"></param>
-    private void DisplayResultsDialog(List<CaptureResult> results) {
-
-    }
+    private void DisplayResultsDialog(List<CaptureResult> results) => throw new NotImplementedException();
   }
 }
