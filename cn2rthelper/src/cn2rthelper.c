@@ -8,6 +8,6 @@
 __declspec(dllexport) void WINAPI NativeInjectionEntryPoint(REMOTE_ENTRY_INFO *inRemoteInfo) {
   if (inRemoteInfo && inRemoteInfo->UserData && inRemoteInfo->UserDataSize == sizeof(WINATTACHINFO)) {
     // attach window with the given information
-    CN2AttachWindow((PWINATTACHINFO)inRemoteInfo->UserData);
+    RtAttachWindow((PWINATTACHINFO)inRemoteInfo->UserData);
   }
 }

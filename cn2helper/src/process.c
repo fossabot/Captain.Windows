@@ -1,12 +1,14 @@
-﻿#include <cn2helper/process.h>
+﻿#define PSAPI_VERSION 1  // link to psapi.lib for compatibility with Windows < 7
+
+#include <cn2helper/process.h>
 #include <Psapi.h>
 #include <TlHelp32.h>
 
 /// looks for a specific module in a remote process
 BOOL CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, dwProcessId);
+  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
   if (!hProcess) {
-    OutputDebugStringW(L"OpenProcess() failed");
+    OutputDebugStringW(L"OpenProcess() failed\n");
     return FALSE;
   }
 
@@ -26,6 +28,9 @@ BOOL CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
       }
     }
   }
+  else {
+    OutputDebugStringW(L"EnumProcessModules() failed\n");
+  }
 
   CloseHandle(hProcess);
   return FALSE;
@@ -35,7 +40,7 @@ BOOL CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
 DWORD CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
   HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, dwProcessId);
   if (hSnapshot == INVALID_HANDLE_VALUE) {
-    OutputDebugStringW(L"CreateToolHelp32Snapshot() failed");
+    OutputDebugStringW(L"CreateToolHelp32Snapshot() failed\n");
     return 0;
   }
 
@@ -43,7 +48,7 @@ DWORD CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
   entry.dwSize = sizeof(PROCESSENTRY32);
 
   if (!Process32First(hSnapshot, &entry)) {
-    OutputDebugStringW(L"Process32First() failed");
+    OutputDebugStringW(L"Process32First() failed\n");
     CloseHandle(hSnapshot);
     return 0;
   }

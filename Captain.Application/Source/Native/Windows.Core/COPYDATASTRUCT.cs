@@ -12,16 +12,17 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   The data to be passed to the receiving application.
     /// </summary>
-    internal uint dwData;
+    internal IntPtr dwData;
 
     /// <summary>
     ///   The size, in bytes, of the data pointed to by the lpData member.
     /// </summary>
-    internal uint cbData;
+    internal IntPtr cbData;
 
     /// <summary>
     ///   The data to be passed to the receiving application. This member can be NULL.
     /// </summary>
+    //[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.R8)]
     internal IntPtr lpData;
   }
 }

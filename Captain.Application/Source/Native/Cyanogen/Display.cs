@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Captain.Application.Native {
   /// <summary>
-  ///   Declares imported functions from cn2helper/shell.c
+  ///   Declares imported functions from cn2helper/display.c
   /// </summary>
   internal static class Display {
     /// <summary>

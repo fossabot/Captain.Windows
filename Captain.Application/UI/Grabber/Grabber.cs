@@ -2,11 +2,13 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms;
 using Captain.Common;
 using Captain.Application.Native;
+using EasyHook;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -244,7 +246,6 @@ namespace Captain.Application {
 
           Marshal.FreeHGlobal(classNamePtr);
 
-
           // create attachment information struct
           var attachInfo = new WINATTACHINFO();
           Display.GetAcceptableBounds(out attachInfo.rcAcceptableBounds);
@@ -253,26 +254,36 @@ namespace Captain.Application {
           attachInfo.uiToolbarHandle = (uint)this.toolBar.Handle;
           attachInfo.uiTargetHandle = (uint)rootHandle;
 
-          // make sure the helper library has not been already injected
+          // allocate and copy attachInfo
+          IntPtr attachInfoPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(WINATTACHINFO)));
+          Marshal.StructureToPtr(attachInfo, attachInfoPtr, true);
+
+          // make sure the helper library has not been already injected so we can save some memory! Yay!
           if (Process.FindModule(pid, helperLibraryName)) {
             // hell yeah - send re-attachment message
-            var copydata = new COPYDATASTRUCT {
-              dwData = WindowMessages.WM_COPYDATA_CAPNSIG,
-              cbData = (uint)Marshal.SizeOf(attachInfo)
-            };
+            Log.WriteLine(LogLevel.Debug, "no need to inject library");
 
-            Marshal.StructureToPtr(attachInfo, copydata.lpData, false);
+            try {
+              var copydata = new COPYDATASTRUCT {
+                dwData = new IntPtr(WindowMessages.WM_COPYDATA_CAPNSIG),
+                cbData = new IntPtr(Marshal.SizeOf(attachInfo)),
+                lpData = attachInfoPtr
+              };
+
+              // send the window message
+              User32.SendMessage(rootHandle, (uint)User32.WindowMessage.WM_COPYDATA, this.window.Handle, ref copydata);
+            } finally {
+              // free resources
+              Marshal.FreeHGlobal(attachInfoPtr);
+            }
           } else {
             // fuck no
-            IntPtr data = Marshal.AllocHGlobal(Marshal.SizeOf(attachInfo));
-            Marshal.StructureToPtr(attachInfo, data, false);
-
             try {
               // try to inject library
               InjectionHelper.InjectLibrary(pid,
                                             GetHelperLibraryPath(),
                                             GetHelperLibraryPath(true),
-                                            data,
+                                            attachInfoPtr,
                                             Marshal.SizeOf(attachInfo));
               Log.WriteLine(LogLevel.Debug, $"injected remote helper library to process {pid}");
             } catch (Win32Exception) {
@@ -280,7 +291,7 @@ namespace Captain.Application {
               break;
             } finally {
               Log.WriteLine(LogLevel.Debug, "releasing resources");
-              Marshal.FreeHGlobal(data);
+              Marshal.FreeHGlobal(attachInfoPtr);
             }
           }
 

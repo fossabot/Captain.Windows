@@ -11,7 +11,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Provides diverse utilities for performing code injection in remote processes
   /// </summary>
-  internal class InjectionHelper {
+  internal static class InjectionHelper {
     /// <summary>
     ///   Injects a dynamic library onto the specified remote process
     /// </summary>
@@ -49,12 +49,12 @@ namespace Captain.Application {
         var process = new Process { StartInfo = startInfo };
         process.Start();
 
-        for (var i = 0; i < dataLength; i++) {
-          // copy data to stdin stream, byte by byte
-          // TODO: find out a faster, cleaner way to accomplish this
-          process.StandardInput.BaseStream.WriteByte(Marshal.ReadByte(data, i));
-        }
+        // get raw data bytes
+        var rawData = new byte[256];
+        Marshal.Copy(data, rawData, 0, dataLength);
 
+        // copy data to stdin
+        process.StandardInput.BaseStream.Write(rawData, 0, dataLength);
         process.StandardInput.BaseStream.Flush();
         process.WaitForExit();
 

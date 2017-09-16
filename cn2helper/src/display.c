@@ -5,7 +5,7 @@
 #include <dbt.h>
 
 /// gets the acceptable capture region
-__declspec(dllexport) BOOL CN2DisplayGetAcceptableBounds(_Out_ PRECT prcDest) {
+BOOL CN2DisplayGetAcceptableBounds(_Out_ PRECT prcDest) {
   // initialize destination rectangle
   ZeroMemory(prcDest, sizeof(RECT));
   HRESULT hr;
