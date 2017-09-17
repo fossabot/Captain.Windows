@@ -23,8 +23,8 @@ namespace Captain.Application {
     /// </summary>
     internal PluginManager() {
       // get all Plugin assemblies
-      List<string> assemblyLocations = Directory.EnumerateFiles(Application.FsManager.GetSafePath(FsManager.PluginPath))
-                                                .ToList();
+      var assemblyLocations = Directory.EnumerateFiles(Application.FsManager.GetSafePath(FsManager.PluginPath))
+                                       .ToList();
 
       if (Assembly.GetExecutingAssembly().ExportedTypes.Any(type => type.Namespace == CommonAssemblyName)) {
         // the executing assembly was merged with the Captain.Common.dll assembly which contains shared types for

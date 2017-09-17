@@ -50,7 +50,7 @@ BOOL CN2DisplayGetAcceptableBounds(_Out_ PRECT prcDest) {
         // get window bounds
         if (GetWindowRect(outputHwnd, &outputWindowRect)) {
           // compare the window bounds to those of the output device area - if they match the window is on full-screen mode.
-          // If this is the case, we may not be able to capture that screen region
+          // If this is the case, weIDXGI may not be able to capture that screen region
           if (!memcmp(&outputWindowRect, &outputDesc.DesktopCoordinates, sizeof(RECT))) {
             if (GetWindowLong(outputHwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) {
               // now we are certain this window does not intend to be captured under normal methods!

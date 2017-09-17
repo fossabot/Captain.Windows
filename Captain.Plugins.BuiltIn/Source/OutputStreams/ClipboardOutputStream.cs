@@ -27,12 +27,14 @@ namespace Captain.Plugins.BuiltIn {
     /// </summary>
     /// <returns>A <see cref="CaptureResult"/> instance containing result information</returns>
     public CaptureResult Commit() {
+      Flush();
       Clipboard.SetImage(Image.FromStream(this));
 
-      var result = new CaptureResult();
-      result.ToastTitle = "Screenshot copied!";
-      result.ToastContent = "The screenshot has been copied to your clipboard.";
-      result.ToastPreview = EncoderInfo.PreviewBitmap;
+      var result = new CaptureResult {
+        ToastTitle = "Screenshot copied!",
+        ToastContent = "The screenshot has been copied to your clipboard.",
+        ToastPreview = EncoderInfo.PreviewBitmap
+      };
 
       return result;
     }

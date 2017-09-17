@@ -4,9 +4,9 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace Captain.Application.Native {
-  /// <content>
-  /// Contains the Windows Messages constants.
-  /// </content>
+  /// <summary>
+  ///   Exported functions from the user32.dll Windows library.
+  /// </summary>
   internal static class User32 {
     #region Window styles
 
@@ -41,6 +41,12 @@ namespace Captain.Application.Native {
 
     [Flags]
     internal enum WindowStylesEx : uint {
+      /// <summary>
+      ///   The window should be placed above all non-topmost windows and should stay above them, even when the window
+      ///   is deactivated. 
+      /// </summary>
+      WS_EX_TOPMOST = 0x00000008,
+
       /// <summary>
       ///   Specifies a window that is intended to be used as a floating toolbar. A tool window has a
       ///   title bar that is shorter than a normal title bar, and the window title is drawn using a
@@ -322,5 +328,47 @@ namespace Captain.Application.Native {
     /// </returns>
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern int GetClassName(IntPtr hWnd, IntPtr lpClassName, int nMaxCount);
+
+    /// <summary>
+    ///   The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect
+    ///   of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on
+    ///   class or private DCs.
+    /// </summary>
+    /// <param name="hWnd">A handle to the window whose DC is to be released.</param>
+    /// <param name="hDC">A handle to the DC to be released.</param>
+    /// <returns>
+    ///   The return value indicates whether the DC was released. If the DC was released, the return value is 1.
+    ///   If the DC was not released, the return value is zero.
+    /// </returns>
+    [DllImport(nameof(User32))]
+    internal static extern bool ReleaseDC([In] IntPtr hWnd, [In] IntPtr hDC);
+
+    /// <summary>
+    ///   The GetWindowDC function retrieves the device context (DC) for the entire window, including title bar, menus,
+    ///   and scroll bars. A window device context permits painting anywhere in a window, because the origin of the
+    ///   device context is the upper-left corner of the window instead of the client area.
+    ///   GetWindowDC assigns default attributes to the window device context each time it retrieves the device
+    ///   context. Previous attributes are lost.
+    /// </summary>
+    /// <param name="hWnd">
+    ///   A handle to the window with a device context that is to be retrieved. If this value is NULL, GetWindowDC
+    ///   retrieves the device context for the entire screen.
+    ///   If this parameter is NULL, GetWindowDC retrieves the device context for the primary display monitor. To get
+    ///   the device context for other display monitors, use the EnumDisplayMonitors and CreateDC functions.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is a handle to a device context for the specified window.
+    ///   If the function fails, the return value is NULL, indicating an error or an invalid hWnd parameter.
+    /// </returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr GetWindowDC([In] IntPtr hWnd);
+
+    /// <summary>
+    ///   Retrieves a handle to the desktop window. The desktop window covers the entire screen. The desktop window is
+    ///   the area on top of which other windows are painted.
+    /// </summary>
+    /// <returns>The return value is a handle to the desktop window.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr GetDesktopWindow();
   }
 }

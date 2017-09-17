@@ -188,20 +188,19 @@ namespace Captain.Application {
           User32.GetWindowRect(rootHandle, out rect);
 
           // make sure we're on the acceptable bounds
-          RECT acceptableBounds;
-          Display.GetAcceptableBounds(out acceptableBounds);
+          Rectangle acceptableBounds = DisplayHelper.GetAcceptableBounds();
 
-          if (rect.left < acceptableBounds.left ||
-              rect.right > acceptableBounds.right ||
-              rect.top < acceptableBounds.top ||
-              rect.bottom > acceptableBounds.bottom) {
+          if (rect.left < acceptableBounds.Left ||
+              rect.right > acceptableBounds.Right ||
+              rect.top < acceptableBounds.Top ||
+              rect.bottom > acceptableBounds.Bottom) {
             Log.WriteLine(LogLevel.Warning, "unacceptable target bounds");
             this.toolBar.SetWindowAttachmentStatus(false);
             return;
           }
 
           // make sure there's room for the toolbar window!
-          if (rect.bottom - rect.top >= acceptableBounds.bottom - acceptableBounds.top - this.toolBar.Height - 16) {
+          if (rect.bottom - rect.top >= acceptableBounds.Height - this.toolBar.Height - 16) {
             Log.WriteLine(LogLevel.Warning, "no more room in the hotseat!");
             this.toolBar.SetWindowAttachmentStatus(false);
             return;
@@ -248,7 +247,12 @@ namespace Captain.Application {
 
           // create attachment information struct
           var attachInfo = new WINATTACHINFO();
-          Display.GetAcceptableBounds(out attachInfo.rcAcceptableBounds);
+
+          attachInfo.rcAcceptableBounds.left = acceptableBounds.Left;
+          attachInfo.rcAcceptableBounds.top = acceptableBounds.Top;
+          attachInfo.rcAcceptableBounds.right = acceptableBounds.Right;
+          attachInfo.rcAcceptableBounds.bottom = acceptableBounds.Bottom;
+
           attachInfo.rcOrgTargetBounds = rect;
           attachInfo.uiGrabberHandle = (uint)this.window.Handle;
           attachInfo.uiToolbarHandle = (uint)this.toolBar.Handle;

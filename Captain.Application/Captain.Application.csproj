@@ -141,20 +141,28 @@
     <Compile Include="Source\Actions\Action.cs" />
     <Compile Include="Source\Actions\ActionManager.cs" />
     <Compile Include="Source\Actions\ActionType.cs" />
+    <Compile Include="Source\Capture\CaptureHelper.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
+    <Compile Include="Source\Capture\Sources\CaptureSource.cs" />
+    <Compile Include="Source\Capture\Sources\DesktopDuplicationSource.cs" />
+    <Compile Include="Source\Capture\Sources\GdiSource.cs" />
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
+    <Compile Include="Source\DisplayHelper.cs" />
     <Compile Include="Source\InjectionHelper.cs" />
+    <Compile Include="Source\Native\Cyanogen\Capture.cs" />
     <Compile Include="Source\Native\Cyanogen\Display.cs" />
     <Compile Include="Source\Native\Cyanogen\Process.cs" />
     <Compile Include="Source\Native\Cyanogen\Shell.cs" />
     <Compile Include="Source\Native\Cyanogen\WINATTACHINFO.cs" />
     <Compile Include="Source\Native\Cyanogen\WindowMessages.cs" />
-    <Compile Include="Source\Native\Windows.Core\COPYDATASTRUCT.cs" />
+    <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
+    <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
+    <Compile Include="Source\Native\User32\COPYDATASTRUCT.cs" />
     <Compile Include="Source\Native\Windows.Core\Dbt.cs" />
     <Compile Include="Source\Native\Windows.Core\POINT.cs" />
     <Compile Include="Source\Native\Windows.Core\RECT.cs" />
-    <Compile Include="Source\Native\Windows.Core\User32.cs" />
-    <Compile Include="Source\Native\Windows.Core\WINDOWPOS.cs" />
+    <Compile Include="Source\Native\User32\User32.cs" />
+    <Compile Include="Source\Native\User32\WINDOWPOS.cs" />
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
@@ -216,6 +224,15 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="SharpDX, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.4.0.1\lib\net45\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Direct3D11.4.0.1\lib\net45\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.DXGI.4.0.1\lib\net45\SharpDX.DXGI.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities.Presentation" />
     <Reference Include="System.Drawing" />

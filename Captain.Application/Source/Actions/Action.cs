@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Windows.Forms;
+﻿using Captain.Application.Native;
 using Captain.Common;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using static Captain.Application.Application;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
+using System.Threading;
+using System.Windows.Forms;
 using Windows.UI.Notifications;
-using Captain.Application.Native;
+using static Captain.Application.Application;
 
 namespace Captain.Application {
   /// <summary>
@@ -30,11 +29,15 @@ namespace Captain.Application {
     /// </summary>
     private static readonly Uri ToastViewErrorsUri = new Uri("captain://action/view/errors");
 
-
     /// <summary>
     ///   Grabber UI instance bound to this action
     /// </summary>
     private Grabber boundGrabber;
+
+    /// <summary>
+    ///   Capture helper instance
+    /// </summary>
+    private CaptureHelper captureHelper;
 
     /// <summary>
     ///   Available action types
@@ -75,7 +78,6 @@ namespace Captain.Application {
     /// </summary>
     internal bool ParallelEncoding { get; }
 
-
     /// <summary>
     ///   Creates a new action
     /// </summary>
@@ -95,7 +97,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="grabber">The <see cref="Grabber"/> instance</param>
     /// <exception cref="InvalidOperationException">Thrown when a grabber has already been bound</exception>
-    internal void BindGrabberUI(Grabber grabber) {
+    internal void BindGrabberUi(Grabber grabber) {
       if (this.boundGrabber != null) {
         throw new InvalidOperationException("A Grabber UI has already been bound to this Action instance.");
       }
@@ -110,37 +112,26 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="intent">Capture intent</param>
     /// <exception cref="InvalidOperationException">Thrown when called with no handlers set up</exception>
-    internal async void Start(CaptureIntent intent) {
+    internal void Start(CaptureIntent intent) {
       if (!OutputStreams.Any()) {
         throw new InvalidOperationException("No streams were set for this action.");
       }
 
-#if false
+      if (this.captureHelper is null) {
+        // instantiate capture helper shall it be required
+        this.captureHelper = new CaptureHelper();
+      }
+
       if (intent.ActionType == ActionType.Screenshot) {
-        IScreenCaptureProvider captureProvider;
-
-        if (intent.Monitor != -1) {
-          captureProvider = new GDIScreenCaptureProvider(intent.Monitor);
-          this.boundGrabber.Hide();
-        } else if (intent.WindowHandle == IntPtr.Zero) {
-          captureProvider = new GDIScreenCaptureProvider(intent.VirtualArea.X,
-                                                         intent.VirtualArea.Y,
-                                                         intent.VirtualArea.Width,
-                                                         intent.VirtualArea.Height);
-          this.boundGrabber.Hide();
-        } else {
-          captureProvider = new GDIScreenCaptureProvider(intent.WindowHandle);
-        }
-
         try {
           if (Activator.CreateInstance(StaticEncoder.Type) as IStaticEncoder is IStaticEncoder encoder) {
             Application.TrayIcon.PlayLoopingIconAnimation();
 
             // perform screen capture
-            Bitmap bmp = captureProvider.CaptureBitmap();
+            Bitmap bmp = this.captureHelper.CaptureFromScreen(intent.VirtualArea);
 
             // encode static image and obtain task results
-            var results = (List<CaptureResult>)await EncodeStatic(bmp, encoder);
+            var results = (List<CaptureResult>)EncodeStatic(bmp, encoder);
 
             // get number of failed tasks
             int failedCount = results.Count(r => r is UnsuccessfulCaptureResult);
@@ -261,13 +252,10 @@ namespace Captain.Application {
                               : new[] {
                                 exception
                               });
-        } finally {
-          captureProvider.Dispose();
         }
       } else if (intent.ActionType == ActionType.Record) {
         throw new NotImplementedException();
       }
-#endif
     }
 
     /// <summary>
@@ -365,7 +353,11 @@ namespace Captain.Application {
     /// <param name="bmp"><see cref="Bitmap"/> instance</param>
     /// <param name="encoder">An static encoder instance</param>
     /// <returns>A list containing the results for all output streams</returns>
-    private async Task<IEnumerable<CaptureResult>> EncodeStatic(Bitmap bmp, IStaticEncoder encoder) {
+    private IEnumerable<CaptureResult> EncodeStatic(Bitmap bmp, IStaticEncoder encoder) {
+      if (encoder == null) {
+        throw new ArgumentNullException(nameof(encoder));
+      }
+
       // create encoder information
       EncoderInfo encoderInfo = encoder.EncoderInfo;
       encoderInfo.PreviewBitmap = bmp;
@@ -498,8 +490,6 @@ namespace Captain.Application {
     private void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) {
       Application.TrayIcon.StopLoopingIconAnimation();
       Application.TrayIcon.SetIcon(TrayIconClass.Warning);
-
-      new List<object>().Skip(4).Take(4).ToList();
 
       new Thread(() => {
         // oh c'mon dude! are you really doing this?

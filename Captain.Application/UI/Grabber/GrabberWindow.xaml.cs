@@ -18,7 +18,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Acceptable capture region
     /// </summary>
-    private RECT acceptableBounds;
+    private Rectangle acceptableBounds;
 
     /// <summary>
     ///   Device notification filter handle
@@ -111,16 +111,13 @@ namespace Captain.Application {
     ///   Updates the window geometry according to the acceptable capture bounds
     /// </summary>
     private void UpdateWindowGeometry() {
-      if (!Display.GetAcceptableBounds(out this.acceptableBounds)) {
-        Log.WriteLine(LogLevel.Warning, "could not get acceptable capture bounds");
-        return;
-      }
+      this.acceptableBounds = DisplayHelper.GetAcceptableBounds();
 
       // force window to reposition in case it is outside the acceptable bounds
-      if (Left < this.acceptableBounds.left) { Left = this.acceptableBounds.left; }
-      if (Top < this.acceptableBounds.top) { Top = this.acceptableBounds.top; }
-      if (Left + Width > this.acceptableBounds.right) { Left = this.acceptableBounds.right - Width; }
-      if (Top + Height > this.acceptableBounds.bottom) { Top = this.acceptableBounds.bottom - Height; }
+      if (Left < this.acceptableBounds.Left) { Left = this.acceptableBounds.Left; }
+      if (Top < this.acceptableBounds.Top) { Top = this.acceptableBounds.Top; }
+      if (Left + Width > this.acceptableBounds.Right) { Left = this.acceptableBounds.Right - Width; }
+      if (Top + Height > this.acceptableBounds.Bottom) { Top = this.acceptableBounds.Bottom - Height; }
 
       // TODO: reposition attached window
     }
@@ -151,10 +148,10 @@ namespace Captain.Application {
           var pos = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS));
 
           // prevent the window from going off-screen
-          if (pos.x < this.acceptableBounds.left) { pos.x = this.acceptableBounds.left; }
-          if (pos.y < this.acceptableBounds.top) { pos.y = this.acceptableBounds.top; }
-          if (pos.x + pos.cx > this.acceptableBounds.right) { pos.x = this.acceptableBounds.right - pos.cx; }
-          if (pos.y + pos.cy > this.acceptableBounds.bottom) { pos.y = this.acceptableBounds.bottom - pos.cy; }
+          if (pos.x < this.acceptableBounds.Left) { pos.x = this.acceptableBounds.Left; }
+          if (pos.y < this.acceptableBounds.Top) { pos.y = this.acceptableBounds.Top; }
+          if (pos.x + pos.cx > this.acceptableBounds.Right) { pos.x = this.acceptableBounds.Right - pos.cx; }
+          if (pos.y + pos.cy > this.acceptableBounds.Bottom) { pos.y = this.acceptableBounds.Bottom - pos.cy; }
 
           Marshal.StructureToPtr(pos, lParam, false);
           break;

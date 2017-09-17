@@ -50,7 +50,7 @@ namespace Captain.Application {
         process.Start();
 
         // get raw data bytes
-        var rawData = new byte[256];
+        byte[] rawData = new byte[256];
         Marshal.Copy(data, rawData, 0, dataLength);
 
         // copy data to stdin
@@ -77,10 +77,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="processId">Target process ID</param>
     /// <returns>The conhost.exe PID on success; otherwise <paramref name="processId" /></returns>
-    internal static uint GetConsoleHostProcessId(uint processId) {
-      return (uint)Process.GetProcessesByName("conhost")
-                          .First(p => Native.Process.FindParentProcessId((uint)p.Id) == (int)processId)
-                          .Id;
-    }
+    internal static uint GetConsoleHostProcessId(uint processId) =>
+      (uint)Process.GetProcessesByName("conhost")
+                   .First(p => Native.Process.FindParentProcessId((uint)p.Id) == (int)processId)
+                   .Id;
   }
 }

@@ -149,7 +149,7 @@ namespace Captain.Application {
             Monitor = monitor
           });
         } else {
-          action.BindGrabberUI(new Grabber(action.ActionTypes));
+          action.BindGrabberUi(new Grabber(action.ActionTypes));
         }
       }
 

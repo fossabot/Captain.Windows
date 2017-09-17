@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using SharpDX.Mathematics.Interop;
 
 // ReSharper disable All
 namespace Captain.Application.Native {
@@ -32,5 +33,13 @@ namespace Captain.Application.Native {
     /// The y-coordinate of the lower-right corner of the rectangle.
     /// </summary>
     internal int bottom;
+
+    /// <summary>
+    ///   Tests for equality with a <see cref="RawRectangle" />
+    /// </summary>
+    /// <param name="rect">RawRectangle instance</param>
+    /// <returns>True on equality</returns>
+    internal bool Equals(RawRectangle rect) =>
+      this.left == rect.Left && this.top == rect.Top && this.right == rect.Right && this.bottom == rect.Bottom;
   }
 }

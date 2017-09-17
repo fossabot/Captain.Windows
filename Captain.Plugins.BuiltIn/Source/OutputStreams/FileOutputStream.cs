@@ -32,34 +32,37 @@ namespace Captain.Plugins.BuiltIn {
     /// </summary>
     /// <param name="extension">The file extension</param>
     /// <returns>A file name</returns>
-    private static string GetFileName(string extension) {
-      return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                          DateTime.Now.ToString("dd-MM-yyyy hh.mm.ss.") + extension);
-    }
+    private static string GetFileName(string extension) =>
+      Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                   DateTime.Now.ToString("dd-MM-yyyy hh.mm.ss.") + extension);
 
     /// <summary>
     ///   Dummy parameterless constructor
     ///   HACK
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
     public FileOutputStream() : this(GetFileName(encoderInfo.Extension)) { }
 
     /// <summary>
     ///   Actual class constructor
+    ///   NOTE: Always allow IOutputStreams to be read from if you want them to be selected as master streams
     /// </summary>
-    public FileOutputStream(string fileName) : base(fileName, FileMode.CreateNew, FileAccess.Write) => this.fileName = fileName;
+    private FileOutputStream(string fileName) : base(fileName, FileMode.CreateNew, FileAccess.ReadWrite) =>
+      this.fileName = fileName;
 
     /// <summary>
     ///   Called when the data has been successfully copied to this output stream
     /// </summary>
     /// <returns>A <see cref="CaptureResult"/> instance containing result information</returns>
     public CaptureResult Commit() {
-      Clipboard.SetImage(Image.FromStream(this));
+      Flush();
 
-      var result = new CaptureResult();
-      result.ToastTitle = "Capture saved!";
-      result.ToastContent = "The file has been saved to your Captures folder.";
-      result.ToastUri = new Uri(this.fileName);
-      result.ToastPreview = EncoderInfo.PreviewBitmap;
+      var result = new CaptureResult {
+        ToastTitle = "Capture saved!",
+        ToastContent = "The file has been saved to your Captures folder.",
+        ToastUri = new Uri(this.fileName),
+        ToastPreview = EncoderInfo.PreviewBitmap
+      };
 
       return result;
     }

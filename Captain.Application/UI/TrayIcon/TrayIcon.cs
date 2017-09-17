@@ -136,7 +136,7 @@ namespace Captain.Application {
     ///   Builds the "Capture" menu item by discovering the available capture providers
     /// </summary>
     private void InitializeCaptureMenu() {
-      var captureMenu = this.contextMenu.MenuItems[0];
+      MenuItem captureMenu = this.contextMenu.MenuItems[0];
       captureMenu.MenuItems.Clear();
 
       if (this.contextMenu.MenuItems[1].Text != @"-") {  // HACK

@@ -8,9 +8,11 @@ namespace Captain.Application.Native {
   internal static class Display {
     /// <summary>
     ///   Gets the acceptable capture region
+    ///   
     /// </summary>
     /// <param name="outRect">Output instance of a <see cref="RECT"/> struct which will receive the region</param>
     /// <returns>Whether the operation completed successfully</returns>
+    [Obsolete("Use DisplayHelper.GetAcceptableBounds() instead")]
     [DllImport("cn2helper.dll", EntryPoint = "CN2DisplayGetAcceptableBounds", SetLastError = true)]
     internal static extern bool GetAcceptableBounds([Out] out RECT outRect);
 

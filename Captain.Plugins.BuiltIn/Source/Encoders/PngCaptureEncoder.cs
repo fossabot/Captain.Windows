@@ -22,8 +22,6 @@ namespace Captain.Plugins.BuiltIn {
     /// </summary>
     /// <param name="bitmap">Capture</param>
     /// <param name="outputStream">Output stream</param>
-    public void Encode(Bitmap bitmap, Stream outputStream) {
-      bitmap.Save(outputStream, ImageFormat.Png);
-    }
+    public void Encode(Bitmap bitmap, Stream outputStream) => bitmap.Save(outputStream, ImageFormat.Png);
   }
 }
