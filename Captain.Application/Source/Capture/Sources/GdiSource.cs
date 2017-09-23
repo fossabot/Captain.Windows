@@ -48,7 +48,9 @@ namespace Captain.Application {
     /// <returns>The frame Bitmap</returns>
     internal override Bitmap AcquireVideoFrame() {
       Gdi32.SelectObject(this.destCtx, this.bitmapHandle);
-      Gdi32.BitBlt(this.destCtx, 0, 0, Area.Width, Area.Height, this.drawCtx, Area.X, Area.Y,
+      Gdi32.BitBlt(this.destCtx, 0, 0, Area.Width, Area.Height, this.drawCtx,
+        this.windowHandle == IntPtr.Zero ? Area.X : 7,  // HACK!!!???
+        this.windowHandle == IntPtr.Zero ? Area.Y : 0,
         (int)TernaryRasterOperations.SRCCOPY);
 
       Bitmap bmp = Image.FromHbitmap(this.bitmapHandle);

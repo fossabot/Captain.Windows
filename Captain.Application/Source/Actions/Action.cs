@@ -18,7 +18,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Represents an action, which is a set of capture provider, handler and encoder
   /// </summary>
-  internal class Action {
+  internal class Action : IDisposable {
     /// <summary>
     ///   URI for the "View results" action on toast notifications
     /// </summary>
@@ -87,6 +87,11 @@ namespace Captain.Application {
       (StaticEncoder, VideoEncoder) = (staticEncoder, videoEncoder);
 
     /// <summary>
+    ///   Class destructor
+    /// </summary>
+    ~Action() => Dispose();
+
+    /// <summary>
     ///   Adds an output stream to this action
     /// </summary>
     /// <param name="stream">Stream plugin object</param>
@@ -127,8 +132,14 @@ namespace Captain.Application {
           if (Activator.CreateInstance(StaticEncoder.Type) as IStaticEncoder is IStaticEncoder encoder) {
             Application.TrayIcon.PlayLoopingIconAnimation();
 
+            this.captureHelper.WindowHandle = intent.WindowHandle;
+            this.boundGrabber.Hide();
+
             // perform screen capture
             Bitmap bmp = this.captureHelper.CaptureFromScreen(intent.VirtualArea);
+
+            // TODO: remove this HACK!
+            this.captureHelper.Dispose();
 
             // encode static image and obtain task results
             var results = (List<CaptureResult>)EncodeStatic(bmp, encoder);
@@ -511,5 +522,13 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="results"></param>
     private void DisplayResultsDialog(List<CaptureResult> results) => throw new NotImplementedException();
+
+    /// <summary>
+    ///   Releases resources
+    /// </summary>
+    public void Dispose() {
+      this.boundGrabber?.Dispose();
+      this.captureHelper?.Dispose();
+    }
   }
 }

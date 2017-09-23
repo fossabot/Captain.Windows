@@ -12,9 +12,6 @@ typedef struct {
   /// target window handle (not using HWND for compatibility with 32-bit code)
   UINT32 uiTargetHandle;
 
-  /// capturable display bounds
-  RECT rcAcceptableBounds;
-
   /// original target window bounds
   RECT rcOrgTargetBounds;
 } WINATTACHINFO, *PWINATTACHINFO;

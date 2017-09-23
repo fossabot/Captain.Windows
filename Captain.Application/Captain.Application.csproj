@@ -143,8 +143,10 @@
     <Compile Include="Source\Actions\ActionType.cs" />
     <Compile Include="Source\Capture\CaptureHelper.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
+    <None Include="Source\Capture\Sources\CaptureHelper.old.cs" />
     <Compile Include="Source\Capture\Sources\CaptureSource.cs" />
-    <Compile Include="Source\Capture\Sources\DesktopDuplicationSource.cs" />
+    <Compile Include="Source\Capture\Sources\DesktopDuplicationSource.old.cs" />
+    <Compile Include="Source\Capture\Sources\DxgiSource.cs" />
     <Compile Include="Source\Capture\Sources\GdiSource.cs" />
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
     <Compile Include="Source\DisplayHelper.cs" />
@@ -230,8 +232,17 @@
     <Reference Include="SharpDX.Direct3D11, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.Direct3D11.4.0.1\lib\net45\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Direct3D9, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Direct3D9.4.0.1\lib\net45\SharpDX.Direct3D9.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.DXGI, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.DXGI.4.0.1\lib\net45\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Mathematics, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Mathematics.4.0.1\lib\net45\SharpDX.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.MediaFoundation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.MediaFoundation.4.0.1\lib\net45\SharpDX.MediaFoundation.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities.Presentation" />

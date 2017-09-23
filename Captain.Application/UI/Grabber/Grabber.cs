@@ -2,13 +2,11 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms;
 using Captain.Common;
 using Captain.Application.Native;
-using EasyHook;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -38,8 +36,10 @@ namespace Captain.Application {
 
     /// <summary>
     ///   Gets the area selected by the user
+    ///   HACK: think a better graber UI so the area selection is more precise
     /// </summary>
-    internal Rectangle Area => this.window.Area;
+    internal Rectangle Area => this.window.Area;/*new Rectangle(this.window.Area.X - 2, this.window.Area.Y - 9,
+      this.window.Area.Width + 4, this.window.Area.Height + 11);*/
 
     /// <summary>
     ///   Intent receiving delegate
@@ -134,7 +134,8 @@ namespace Captain.Application {
     private void OnCaptureActionInitiated(ActionType type) =>
       OnIntentReceived?.Invoke(this,
                                new CaptureIntent(type) {
-                                 VirtualArea = this.window.Area
+                                 VirtualArea = Area,
+                                 WindowHandle = attachedWindow
                                });
 
     /// <summary>
@@ -187,30 +188,10 @@ namespace Captain.Application {
           RECT rect;
           User32.GetWindowRect(rootHandle, out rect);
 
-          // make sure we're on the acceptable bounds
-          Rectangle acceptableBounds = DisplayHelper.GetAcceptableBounds();
-
-          if (rect.left < acceptableBounds.Left ||
-              rect.right > acceptableBounds.Right ||
-              rect.top < acceptableBounds.Top ||
-              rect.bottom > acceptableBounds.Bottom) {
-            Log.WriteLine(LogLevel.Warning, "unacceptable target bounds");
-            this.toolBar.SetWindowAttachmentStatus(false);
-            return;
-          }
-
-          // make sure there's room for the toolbar window!
-          if (rect.bottom - rect.top >= acceptableBounds.Height - this.toolBar.Height - 16) {
-            Log.WriteLine(LogLevel.Warning, "no more room in the hotseat!");
-            this.toolBar.SetWindowAttachmentStatus(false);
-            return;
-          }
-
           // save original bounds
           this.originalBounds = new Rectangle((int)this.window.Left,
                                               (int)this.window.Top,
                                               (int)this.window.Width,
-
                                               (int)this.window.Height);
 
           /* this is fine - now we want to perform the actual injection. Embrace thyselves */
@@ -218,40 +199,37 @@ namespace Captain.Application {
 
           string GetHelperLibraryPath(bool x64 = false) => Path.Combine(Directory.GetCurrentDirectory(),
                                                                         helperLibraryName +
-                                                                        (x64 ? "64" : "32") +
-                                                                        ".dll");
+                                                                        (x64 ? "64" : "32") + ".dll");
 
           uint pid;
           User32.GetWindowThreadProcessId(rootHandle, out pid);
 
-          // HACK: allow console windows to be captured - this is done by injecting into the conhost process for the
-          //       current process ID
-          const int classNameLength = 256;
-          IntPtr classNamePtr = Marshal.AllocHGlobal(classNameLength);
-          if (User32.GetClassName(rootHandle, classNamePtr, classNameLength) != 0) {
-            if (Marshal.PtrToStringAnsi(classNamePtr) == "ConsoleWindowClass") {
-              uint hostPid = InjectionHelper.GetConsoleHostProcessId(pid);
+          if (Environment.OSVersion.Version >= new Version(6, 1)) {
+            // allow console windows to be captured on Windows >= 7 by injecting the DLL into the console host process
+            // associated with the process ID. This is not supported in older platforms because csrss.exe is used
+            // instead of conhost.exe and it's a privileged system process
+            const int classNameLength = 256;
+            IntPtr classNamePtr = Marshal.AllocHGlobal(classNameLength);
+            if (User32.GetClassName(rootHandle, classNamePtr, classNameLength) != 0) {
+              if (Marshal.PtrToStringAnsi(classNamePtr) == "ConsoleWindowClass") {
+                uint hostPid = InjectionHelper.GetConsoleHostProcessId(pid);
 
-              if (hostPid != 0) {
-                pid = hostPid;
-                Log.WriteLine(LogLevel.Debug, $"attaching to console host process ({pid})");
-              } else {
-                Log.WriteLine(LogLevel.Warning, "could not find console host PID");
+                if (hostPid != 0) {
+                  pid = hostPid;
+                  Log.WriteLine(LogLevel.Debug, $"attaching to console host process ({pid})");
+                } else {
+                  Log.WriteLine(LogLevel.Warning, "could not find console host PID");
+                }
               }
+            } else {
+              Log.WriteLine(LogLevel.Warning, $"GetClassName() failed with error 0x{Marshal.GetLastWin32Error():x8}");
             }
-          } else {
-            Log.WriteLine(LogLevel.Warning, $"GetClassName() failed with error 0x{Marshal.GetLastWin32Error():x8}");
-          }
 
-          Marshal.FreeHGlobal(classNamePtr);
+            Marshal.FreeHGlobal(classNamePtr);
+          }
 
           // create attachment information struct
           var attachInfo = new WINATTACHINFO();
-
-          attachInfo.rcAcceptableBounds.left = acceptableBounds.Left;
-          attachInfo.rcAcceptableBounds.top = acceptableBounds.Top;
-          attachInfo.rcAcceptableBounds.right = acceptableBounds.Right;
-          attachInfo.rcAcceptableBounds.bottom = acceptableBounds.Bottom;
 
           attachInfo.rcOrgTargetBounds = rect;
           attachInfo.uiGrabberHandle = (uint)this.window.Handle;

@@ -23,11 +23,6 @@ namespace Captain.Application.Native {
     internal uint uiTargetHandle;
 
     /// <summary>
-    ///   Capturable display bounds
-    /// </summary>
-    internal RECT rcAcceptableBounds;
-
-    /// <summary>
     ///   Original target window bounds
     /// </summary>
     internal RECT rcOrgTargetBounds;

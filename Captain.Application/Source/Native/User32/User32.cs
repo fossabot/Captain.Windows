@@ -17,26 +17,33 @@ namespace Captain.Application.Native {
     [Flags]
     internal enum WindowStyles {
       /// <summary>
-      ///   The window is initially maximized.
-      /// </summary>
-      WS_MAXIMIZE = 0x1000000,
-
-      /// <summary>
       ///   The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style.
       ///   The WS_SYSMENU style must also be specified.
       /// </summary>
       WS_MAXIMIZEBOX = 0x10000,
 
-      /// <summary>
-      ///   The window is initially minimized.
-      /// </summary>
-      WS_MINIMIZE = 0x20000000,
 
       /// <summary>
       ///   The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style.
       ///   The WS_SYSMENU style must also be specified.
       /// </summary>
       WS_MINIMIZEBOX = 0x20000,
+
+      /// <summary>
+      ///   The window is initially maximized.
+      /// </summary>
+      WS_MAXIMIZE = 0x1000000,
+
+      /// <summary>
+      ///   Excludes the area occupied by child windows when drawing occurs within the parent window. This style is
+      ///   used when creating the parent window.
+      /// </summary>
+      WS_CLIPCHILDREN = 0x2000000,
+
+      /// <summary>
+      ///   The window is initially minimized.
+      /// </summary>
+      WS_MINIMIZE = 0x20000000
     }
 
     [Flags]
@@ -129,33 +136,11 @@ namespace Captain.Application.Native {
     /// </returns>
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern IntPtr SendMessage(IntPtr hWnd, uint uiMsg, IntPtr wParam, IntPtr lParam);
-
-
-    /// <summary>
-    ///   Sends the specified message to a window or windows. The SendMessage function calls the window procedure for
-    ///   the specified window and does not return until the window procedure has processed the message.
-    ///   To send a message and return immediately, use the SendMessageCallback or SendNotifyMessage function. To post
-    ///   a message to a thread's message queue and return immediately, use the PostMessage or PostThreadMessage
-    ///   function.
-    /// </summary>
-    /// <param name="hWnd">
-    ///   A handle to the window whose window procedure will receive the message. If this parameter is HWND_BROADCAST
-    ///   ((HWND)0xffff), the message is sent to all top-level windows in the system, including disabled or invisible
-    ///   unowned windows, overlapped windows, and pop-up windows; but the message is not sent to child windows.
-    ///   Message sending is subject to UIPI. The thread of a process can send messages only to message queues of
-    ///   threads in processes of lesser or equal integrity level.
-    /// </param>
-    /// <param name="uiMsg">The message to be sent.</param>
-    /// <param name="wParam">Additional message-specific information.</param>
-    /// <param name="lParam">Additional message-specific information.</param>
-    /// <returns>
-    ///   The return value specifies the result of the message processing; it depends on the message sent.
-    /// </returns>
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern IntPtr SendMessage(IntPtr hWnd,
-                                            uint uiMsg,
-                                            IntPtr wParam,
-                                            ref COPYDATASTRUCT lParam);
+                                              uint uiMsg,
+                                              IntPtr wParam,
+                                              ref COPYDATASTRUCT lParam);
 
     #region CallWindowProc
 
@@ -260,6 +245,25 @@ namespace Captain.Application.Native {
       ///   windows in the same thread until one of them returns a code that is not HTTRANSPARENT).
       /// </summary>
       HTTRANSPARENT = -1
+    }
+
+    [Flags]
+    internal enum SetWindowPosFlags {
+      /// <summary>
+      ///   Retains the current size (ignores the cx and cy parameters).
+      /// </summary>
+      SWP_NOSIZE = 0x0001,
+
+      /// <summary>
+      ///   Retains the current position (ignores X and Y parameters).
+      /// </summary>
+      SWP_NOMOVE = 0x0002,
+
+      /// <summary>
+      ///   Does not activate the window. If this flag is not set, the window is activated and moved to the top of
+      ///   either the topmost or non-topmost group (depending on the setting of the hwndInsertAfter member).
+      /// </summary>
+      SWP_NOACTIVATE = 0x0010
     }
 
     /// <summary>

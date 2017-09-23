@@ -145,7 +145,7 @@ namespace Captain.Application {
 
       if (!this.mayBeRecording && (Keyboard.Modifiers & ModifierKeys.Alt) == 0) {
         // close the grabber UI if this was just a screenshot and the ALT modifier key is not pressed
-        Close();
+        OnGrabberIntentReceived(GrabberIntentType.Close);
       }
     }
 

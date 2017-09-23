@@ -48,12 +48,12 @@ namespace Captain.Common {
     /// <param name="format">Message format, compatible with String.Format()</param>
     /// <param name="args">Arguments used to format the message</param>
     public void WriteLine(LogLevel level, object format, params object[] args) {
-#if !DEBUG
-      if (level == LogLevel.Debug) {
-        // do not print debug messages on non-debug configurations
-        return;
-      }
-#endif
+      /*#if !DEBUG
+            if (level == LogLevel.Debug) {
+              // do not print debug messages on non-debug configurations
+              return;
+            }
+      #endif*/
 
       // ticks to be compared for displaying time diff
       long ticks = DateTime.Now.Ticks;

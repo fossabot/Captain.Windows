@@ -11,22 +11,26 @@ namespace Captain.Application {
   ///   Contains diverse utility methods for working with displays and output devices
   /// </summary>
   internal static class DisplayHelper {
+#if false
     /// <summary>
     ///   Determines the display bounds that can be captured using normal methods
     /// </summary>
-    /// <returns>A <see cref="Rectangle"/> containing the acceptable bounds</returns>
-    internal static Rectangle GetAcceptableBounds() {
+    /// <returns>A <see cref="Region"/> containing the acceptable bounds</returns>
+    internal static Region GetAcceptableRegion() {
       var factory = new Factory1();
-      var rect = new Rectangle();
+      var region = new Region();
 
       // enumerate outputs
       foreach (Adapter1 adapter in factory.Adapters1) {
         foreach (Output output in adapter.Outputs) {
           Log.WriteLine(LogLevel.Debug,
                         $"found output device: {output.Description.DeviceName} (attached: " +
-                        output.Description.IsAttachedToDesktop + "): ({0}, {1}, {2}, {3})",
-                        output.Description.DesktopBounds.Left, output.Description.DesktopBounds.Top,
-                        output.Description.DesktopBounds.Right, output.Description.DesktopBounds.Bottom);
+                        output.Description.IsAttachedToDesktop +
+                        "): ({0}, {1}, {2}, {3})",
+                        output.Description.DesktopBounds.Left,
+                        output.Description.DesktopBounds.Top,
+                        output.Description.DesktopBounds.Right,
+                        output.Description.DesktopBounds.Bottom);
 
           if (!output.Description.IsAttachedToDesktop) {
             // not attached to desktop - exclude output device
@@ -57,22 +61,47 @@ namespace Captain.Application {
             }
           }
 
-          rect.X = Math.Min(rect.Left, output.Description.DesktopBounds.Left);
-          rect.Y = Math.Min(rect.Top, output.Description.DesktopBounds.Top);
-
-          rect.Width = Math.Max(rect.Width,
-                                output.Description.DesktopBounds.Right - output.Description.DesktopBounds.Left) -
-                       rect.X;
-
-          rect.Height = Math.Max(rect.Height,
-                                output.Description.DesktopBounds.Bottom - output.Description.DesktopBounds.Top) -
-                       rect.Y;
-
-          Log.WriteLine(LogLevel.Debug, "acceptable rect: {0}", rect);
+          region.Union(new Rectangle(output.Description.DesktopBounds.Left, output.Description.DesktopBounds.Top,
+            output.Description.DesktopBounds.Right - output.Description.DesktopBounds.Left,
+            output.Description.DesktopBounds.Bottom - output.Description.DesktopBounds.Left));
         }
       }
 
-      return rect;
+      return region;
+    }
+#endif
+
+    /// <summary>
+    ///   Gets adapter/output information
+    /// </summary>
+    /// <returns>
+    ///   A triplet containing the adapter and output indices alongside their bounds
+    /// </returns>
+    internal static (int AdapterIndex, int OutputIndex, Rectangle Bounds)[] GetOutputInfo() {
+      var factory = new Factory1();
+      var triples = new List<(int, int, Rectangle)>();
+      int adapterIndex = 0;
+
+      // enumerate outputs
+      foreach (Adapter1 adapter in factory.Adapters1) {
+        int outputIndex = 0;
+
+        foreach (Output output in adapter.Outputs) {
+          // convert to Rectangle
+          var outputRect = new Rectangle(output.Description.DesktopBounds.Left,
+                                         output.Description.DesktopBounds.Top,
+                                         output.Description.DesktopBounds.Right -
+                                         output.Description.DesktopBounds.Left,
+                                         output.Description.DesktopBounds.Bottom -
+                                         output.Description.DesktopBounds.Top);
+          triples.Add((adapterIndex, outputIndex, outputRect));
+          outputIndex++;
+        }
+
+        adapterIndex++;
+      }
+
+      return triples.ToArray();
     }
 
     /// <summary>
@@ -85,23 +114,26 @@ namespace Captain.Application {
     internal static (int AdapterIndex, int OutputIndex, Rectangle Bounds)[] GetOutputInfoFromRect(Rectangle rect) {
       var factory = new Factory1();
       var triples = new List<(int, int, Rectangle)>();
-      int adapterIndex = 0, outputIndex = 0;
+      int adapterIndex = 0;
 
       // enumerate outputs
       foreach (Adapter1 adapter in factory.Adapters1) {
+        int outputIndex = 0;
+
         foreach (Output output in adapter.Outputs) {
           // convert to Rectangle
           var outputRect = new Rectangle(output.Description.DesktopBounds.Left,
-                                               output.Description.DesktopBounds.Top,
-                                               output.Description.DesktopBounds.Right -
-                                               output.Description.DesktopBounds.Left,
-                                               output.Description.DesktopBounds.Bottom -
-                                               output.Description.DesktopBounds.Top);
+                                         output.Description.DesktopBounds.Top,
+                                         output.Description.DesktopBounds.Right -
+                                         output.Description.DesktopBounds.Left,
+                                         output.Description.DesktopBounds.Bottom -
+                                         output.Description.DesktopBounds.Top);
 
           // calculate intersection
           var intersection = Rectangle.Intersect(rect, outputRect);
 
-          if (intersection != Rectangle.Empty) {  // make sure the rectangles intersect
+          if (intersection != Rectangle.Empty) {
+            // make sure the rectangles intersect
             triples.Add((adapterIndex, outputIndex, intersection));
           }
 

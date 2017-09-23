@@ -10,55 +10,19 @@ static WINATTACHINFO g_attachinfo = { 0 };  /// window attachment information
 static WNDPROC g_lpfnOrgWndProc = NULL;     /// original window procedure
 static LONG g_lOrgWndStyle = 0;             /// original window style attributes
 
-/// replacement window procedure
+static HWINEVENTHOOK g_hweDestroyWnd;       /// window hook for window destruction
+
+                                            /// replacement window procedure
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
 
 /// ChangeWindowMessageFilterEx()
 typedef BOOL(*CWMFEPROC)(HWND, UINT, DWORD, PCHANGEFILTERSTRUCT);
 
-/// performs window attachment
-void RtAttachWindow(PWINATTACHINFO pInfo) {
-  memcpy(&g_attachinfo, pInfo, sizeof(WINATTACHINFO));
-  g_lOrgWndStyle = GetWindowLong(LongToPtr(pInfo->uiTargetHandle), GWL_STYLE);
-
-  // remove minimize/maximize/resize capabilities from window
-  SetWindowLong(LongToPtr(pInfo->uiTargetHandle), GWL_STYLE,
-    g_lOrgWndStyle & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX));
-
-  // replace window procedure if necessary
-  if (!g_lpfnOrgWndProc) {
-    g_lpfnOrgWndProc = (WNDPROC)SetWindowLongPtr(LongToPtr(pInfo->uiTargetHandle), GWLP_WNDPROC, (LONG_PTR)WndProc);
-  }
-
-  // we may need to re-attach to this window. In order to receive WM_COPYDATA messages, we need to adjust UIPI filters
-  HMODULE hUser32 = NULL;
-  CWMFEPROC fpChangeWindowMessageFilterEx = NULL;
-
-  if (IsWindows7OrGreater() &&
-    (hUser32 = LoadLibrary(TEXT("user32.dll")) &&
-    (fpChangeWindowMessageFilterEx = (CWMFEPROC)GetProcAddress(hUser32, "ChangeWindowMessageFilterEx")))) {
-    fpChangeWindowMessageFilterEx(LongToPtr(pInfo->uiTargetHandle), WM_COPYDATA, MSGFLT_ALLOW, NULL);
-  }
-  else {
-    ChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ALLOW);
-  }
-#if 0
-  if (IsWindows7OrGreater()) {
-    ChangeWindowMessageFilterEx(LongToPtr(pInfo->uiTargetHandle), WM_COPYDATA, MSGFLT_ALLOW, NULL);
-  }
-  else {
-    // for Windows Vista support
-    ChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ALLOW);
-  }
-#endif
-
-
-  // set toolbar window as owned window
-  SetWindowLongPtr(LongToPtr(pInfo->uiToolbarHandle), GWLP_HWNDPARENT, pInfo->uiTargetHandle);
-  }
-
 /// detaches the specified window
 static void DetachWindow(HWND hwnd) {
+  // unhook window events
+  UnhookWinEvent(g_hweDestroyWnd);
+
   // restore original style attributes
   SetWindowLong(hwnd, GWL_STYLE, g_lOrgWndStyle);
 
@@ -71,6 +35,10 @@ static void DetachWindow(HWND hwnd) {
   g_lpfnOrgWndProc = NULL;
 #endif
 
+  // restore original toolbar window style
+  SetWindowLong(LongToPtr(g_attachinfo.uiToolbarHandle), GWL_STYLE,
+    GetWindowLong(LongToPtr(g_attachinfo.uiToolbarHandle), GWL_STYLE) & ~WS_CHILD | WS_POPUP);
+
   // restore toolbar window parent
   SetWindowLongPtr(LongToPtr(g_attachinfo.uiToolbarHandle), GWLP_HWNDPARENT, (LONG_PTR)NULL);
 
@@ -79,51 +47,101 @@ static void DetachWindow(HWND hwnd) {
   g_lOrgWndStyle = 0;
 }
 
+/// window event hook procedure
+static void CALLBACK WinEventProc(HWINEVENTHOOK hWinEventHook, DWORD dwEvent, HWND hwnd, LONG lObject, LONG lChild,
+  DWORD lEventThread, DWORD dwmsEventTime) {
+  DebugBreak();
+
+  if (dwEvent == EVENT_OBJECT_DESTROY && PtrToLong(hwnd) == g_attachinfo.uiTargetHandle && lObject == OBJID_WINDOW &&
+    lChild == INDEXID_CONTAINER) {
+    MessageBox(NULL, "HASTA LA VISTA", "BABY", 0);
+
+    // notify grabber UI of window destruction
+    SendMessage(LongToPtr(g_attachinfo.uiGrabberHandle), WM_CAPN_DETACHWND, (WPARAM)hwnd, MAKELPARAM(NULL, NULL));
+
+    // detach the window
+    DetachWindow(hwnd);
+  }
+}
+
+/// performs window attachment
+void RtAttachWindow(PWINATTACHINFO pInfo) {
+  memcpy(&g_attachinfo, pInfo, sizeof(WINATTACHINFO));
+  g_lOrgWndStyle = GetWindowLong(LongToPtr(pInfo->uiTargetHandle), GWL_STYLE);
+
+  // remove minimize/maximize/resize capabilities from window
+  SetWindowLong(LongToPtr(pInfo->uiTargetHandle), GWL_STYLE,
+    g_lOrgWndStyle /*& ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SIZEBOX)*/);
+
+  // replace window procedure if necessary
+  if (!g_lpfnOrgWndProc) {
+    g_lpfnOrgWndProc = (WNDPROC)SetWindowLongPtr(LongToPtr(pInfo->uiTargetHandle), GWLP_WNDPROC, (LONG_PTR)WndProc);
+  }
+
+  // we may need to re-attach to this window. In order to receive WM_COPYDATA messages, we need to adjust UIPI filters
+  HMODULE hUser32;
+  CWMFEPROC fpChangeWindowMessageFilterEx;
+
+  if (IsWindows7OrGreater() && ((hUser32 = LoadLibrary(TEXT("user32.dll")))) &&
+    ((fpChangeWindowMessageFilterEx = (CWMFEPROC)GetProcAddress(hUser32, "ChangeWindowMessageFilterEx")))) {
+    fpChangeWindowMessageFilterEx(LongToPtr(pInfo->uiTargetHandle), WM_COPYDATA, MSGFLT_ALLOW, NULL);
+  }
+  else {
+    ChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ALLOW);
+  }
+
+  // watch this window so we get notified when it's destroyed
+  DWORD dwProcessId;
+  DWORD dwThreadId = GetWindowThreadProcessId(LongToPtr(pInfo->uiTargetHandle), &dwProcessId);
+  DebugBreak();
+
+  if (dwThreadId) {
+    g_hweDestroyWnd = SetWinEventHook(EVENT_OBJECT_DESTROY, EVENT_OBJECT_DESTROY, NULL, WinEventProc, dwProcessId,
+      dwThreadId, WINEVENT_OUTOFCONTEXT);
+    DebugBreak();
+  }
+
+  // prevent toolbar window to "steal" focus of the owner window
+  SetWindowLong(LongToPtr(pInfo->uiToolbarHandle), GWL_STYLE,
+    GetWindowLong(LongToPtr(pInfo->uiToolbarHandle), GWL_STYLE) & ~WS_POPUP | WS_CHILD);
+
+  // set toolbar window as owned window
+  SetWindowLongPtr(LongToPtr(pInfo->uiToolbarHandle), GWLP_HWNDPARENT, pInfo->uiTargetHandle);
+}
+
 /// replacement window procedure
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam) {
   if (g_attachinfo.uiTargetHandle == PtrToLong(hwnd)) {
     // this window is attached
     switch (uiMsg) {
-    case WM_CLOSE:
-    case WM_QUIT:
-      SendMessage(LongToPtr(g_attachinfo.uiGrabberHandle), WM_CAPN_DETACHWND, (WPARAM)hwnd, MAKELPARAM(NULL, NULL));
-      DetachWindow(hwnd);
-      break;
-
     case WM_CAPN_DETACHWND:  // detach the window
       DetachWindow(hwnd);
       return 0;
 
-    case WM_WINDOWPOSCHANGING: {  // window bounds are changing
+    case WM_WINDOWPOSCHANGED: {  // window bounds are changing
       PWINDOWPOS pos = (PWINDOWPOS)lParam;
+      RECT rcGrabber;
 
-      if (!pos->x && !pos->y && !pos->cx && !pos->cy) { break; }
+      // make sure width and height are not nil
+      if (!pos->cx || !pos->cy) { break; }
 
-      // prevent the window from being resized
-      // TODO: we could let this happen under some circumstances - investigate this possibility!
-      if (pos->cx != g_attachinfo.rcOrgTargetBounds.right - g_attachinfo.rcOrgTargetBounds.left) {
-        pos->cx = g_attachinfo.rcOrgTargetBounds.right - g_attachinfo.rcOrgTargetBounds.left;
+      // HACK: set grabber window bounds first - then copy the current bounds so we adjust to the actual allowed bounds
+      if (MoveWindow(LongToPtr(g_attachinfo.uiGrabberHandle), pos->x, pos->y, pos->cx, pos->cy, FALSE)) {
+        // get current grabber bounds
+        if (GetWindowRect(LongToPtr(g_attachinfo.uiGrabberHandle), &rcGrabber) &&
+          rcGrabber.right - rcGrabber.left &&
+          rcGrabber.bottom - rcGrabber.top) {
+          // copy position
+          pos->x = rcGrabber.left;
+          pos->y = rcGrabber.top;
+          pos->cx = rcGrabber.right - rcGrabber.left;
+          pos->cy = rcGrabber.bottom - rcGrabber.top;
+        }
       }
-
-      if (pos->cy != g_attachinfo.rcOrgTargetBounds.bottom - g_attachinfo.rcOrgTargetBounds.top) {
-        pos->cy = g_attachinfo.rcOrgTargetBounds.bottom - g_attachinfo.rcOrgTargetBounds.top;
-      }
-
-      // prevent the window from going off-screen
-      if (pos->x < g_attachinfo.rcAcceptableBounds.left) { pos->x = g_attachinfo.rcAcceptableBounds.left; }
-      if (pos->y < g_attachinfo.rcAcceptableBounds.top) { pos->y = g_attachinfo.rcAcceptableBounds.top; }
-      if (pos->x + pos->cx > g_attachinfo.rcAcceptableBounds.right) {
-        pos->x = g_attachinfo.rcAcceptableBounds.right - pos->cx;
-      }
-      if (pos->y + pos->cy > g_attachinfo.rcAcceptableBounds.bottom) {
-        pos->y = g_attachinfo.rcAcceptableBounds.bottom - pos->cy;
-      }
-
-      // if we change the grabber window position, the toolbar position will be adjusted accordingly, too
-      SetWindowPos(LongToPtr(g_attachinfo.uiGrabberHandle), NULL, pos->x, pos->y - 8, pos->cx, pos->cy + 8,
-        SWP_NOACTIVATE);
       break;
     }
+
+    default:;
     }
   }
   else if (uiMsg == WM_COPYDATA) {

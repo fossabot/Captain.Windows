@@ -24,14 +24,11 @@
   </Window.Resources>
 
   <Grid Cursor="SizeAll" MouseDown="OnMouseDown">
-    <Border Name="Border" BorderThickness="1" BorderBrush="White" Margin="8" Background="#207F7F7F">
+    <Border Name="Border" BorderThickness="1" BorderBrush="White" Margin="8" Background="Transparent" IsHitTestVisible="True">
       <Border.Effect>
         <DropShadowEffect BlurRadius="3" Direction="270" Opacity="0.66" ShadowDepth="1" />
       </Border.Effect>
     </Border>
-
-    <!-- canvas for overlay child elements -->
-    <Canvas Name="Canvas" Margin="9" ClipToBounds="True" />
 
     <!-- resize grips -->
     <Grid Name="EllipseGrid">
