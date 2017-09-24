@@ -17,7 +17,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Plugin object type
     /// </summary>
-    internal Type Type { get; private set; }
+    internal Type Type { get; }
 
     /// <summary>
     ///   Instantiates a new plugin object

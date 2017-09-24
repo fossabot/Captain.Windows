@@ -70,7 +70,7 @@ namespace Captain.Application.Native {
                                        [In] IntPtr hObjectSource,
                                        [In] int nXSrc,
                                        [In] int nYSrc,
-                                       [In] int dwRop);
+                                       [In] TernaryRasterOperations dwRop);
 
     /// <summary>
     ///   The CreateCompatibleBitmap function creates a bitmap compatible with the device that is associated with the

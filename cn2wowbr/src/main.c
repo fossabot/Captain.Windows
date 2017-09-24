@@ -6,9 +6,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   int nArgCount = 0;
   LPWSTR *lpArgList = CommandLineToArgvW(GetCommandLineW(), &nArgCount);
 
-  if (nArgCount < 5) {
-    fwprintf(stderr, L"Usage: cn2wowbr [PID] [THREAD ID] [MODE] [PATH]\n");
-    return 1;
+  if (nArgCount < 6) {
+    fwprintf(stderr, L"Usage: cn2wowbr [PID] [THREAD ID] [MODE] [PATHX86] [PATHX64]\n");
+    return ERROR_INVALID_PARAMETER;
   }
 
   DWORD dwProcessId = wcstoul(lpArgList[1], NULL, 10);
@@ -21,25 +21,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
   if (hStdin == INVALID_HANDLE_VALUE) {
-    fwprintf(stderr, L"invalid input handle\n");
-    return 3;
+    return ERROR_INVALID_HANDLE;
   }
 
   BYTE rgbBuf[0x100];
   DWORD cbBuf = 0;
 
   if (!ReadFile(hStdin, rgbBuf, sizeof(rgbBuf), &cbBuf, NULL)) {
-    fwprintf(stderr, L"ReadFile() failed with error 0x%08x\n", GetLastError());
-    return 4;
+    return GetLastError();
   }
 
 
 inject:;
-  NTSTATUS status = RhInjectLibrary(dwProcessId, dwThreadId, ulInjectionOptions, lpArgList[4], NULL, rgbBuf, cbBuf);
+  NTSTATUS status = RhInjectLibrary(dwProcessId, dwThreadId, ulInjectionOptions, lpArgList[4], lpArgList[5], rgbBuf,
+    cbBuf);
 
   if (status != ERROR_SUCCESS) {
-    fwprintf(stderr, L"RhInjectLibrary() failed with error 0x%08x: %s\n", status, RtlGetLastErrorString());
-
     if (ulInjectionOptions == EASYHOOK_INJECT_STEALTH) {
       // retry in default injection mode
       ulInjectionOptions = EASYHOOK_INJECT_DEFAULT;

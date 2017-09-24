@@ -2,7 +2,7 @@
 #include <cn2helper/shell.h>
 
 /// reveals a path in the File Explorer window
-BOOL CN2ShellRevealInFileExplorer(LPCWSTR szPath) {
+BOOL WINAPI CN2ShellRevealInFileExplorer(LPCWSTR szPath) {
   HRESULT hr = 0;
   PIDLIST_ABSOLUTE ppidl = { 0 };
 

@@ -8,9 +8,10 @@
         Topmost="True"
         WindowStyle="None"
         Background="{x:Null}"
-        SizeToContent="Width"
+        SizeToContent="WidthAndHeight"
         ShowInTaskbar="False"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        DataContext="{Binding RelativeSource={RelativeSource self}}">
   <Window.Resources>
     <ResourceDictionary Source="/Content/Grabber/GrabberToolBarWindow.xaml" />
   </Window.Resources>
@@ -20,12 +21,12 @@
       <DropShadowEffect BlurRadius="8" Direction="270" ShadowDepth="4" Opacity="0.15" />
     </Border.Effect>
 
-    <StackPanel Orientation="Horizontal">
+    <StackPanel Name="StackPanel" Orientation="{Binding Orientation}">
       <Button Name="ScreenshotButton" ToolTip="{x:Static local:Resources.GrabberUI_Screenshot}" Style="{DynamicResource ToolBarButtonStyle}" Click="ScreenshotButton_Click">
         <Image Source="/Content/Grabber/Icons/Screenshot.png" />
       </Button>
 
-      <StackPanel Name="RecordingTools" Orientation="Horizontal">
+      <StackPanel Name="RecordingTools" Orientation="{Binding Orientation}">
         <Button Name="RecordButton" ToolTip="{x:Static local:Resources.GrabberUI_Record}" Style="{DynamicResource ToolBarButtonStyle}">
           <Image Source="/Content/Grabber/Icons/Record.png" />
         </Button>
@@ -35,7 +36,7 @@
         </Button>
       </StackPanel>
 
-      <StackPanel Name="RecordingExtraTools" Visibility="Collapsed" Orientation="Horizontal">
+      <StackPanel Name="RecordingExtraTools" Visibility="Collapsed" Orientation="{Binding Orientation}">
         <Button Name="PauseButton" ToolTip="{x:Static local:Resources.GrabberUI_Pause}" Style="{DynamicResource ToolBarButtonStyle}">
           <Image Source="/Content/Grabber/Icons/Pause.png" />
         </Button>
@@ -44,7 +45,7 @@
           <Image Source="/Content/Grabber/Icons/Resume.png" />
         </Button>
 
-        <StackPanel Name="RecordingToolsSpeaker" Orientation="Horizontal">
+        <StackPanel Name="RecordingToolsSpeaker" Orientation="{Binding Orientation}">
           <Button Name="SpeakerMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteSpeaker}" Style="{DynamicResource ToolBarButtonStyle}">
             <Image Source="/Content/Grabber/Icons/UnmutedSpeaker.png" />
           </Button>
@@ -55,7 +56,7 @@
 
         </StackPanel>
 
-        <StackPanel Name="RecordingToolsMicrophone" Orientation="Horizontal">
+        <StackPanel Name="RecordingToolsMicrophone" Orientation="{Binding Orientation}">
           <Button Name="MicrophoneMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteMicrophone}" Style="{DynamicResource ToolBarButtonStyle}">
             <Image Source="/Content/Grabber/Icons/UnmutedMicrophone.png" />
           </Button>

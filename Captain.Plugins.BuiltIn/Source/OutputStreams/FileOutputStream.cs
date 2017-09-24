@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
 using Captain.Common;
 
 namespace Captain.Plugins.BuiltIn {

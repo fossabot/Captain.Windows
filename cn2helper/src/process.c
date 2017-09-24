@@ -5,7 +5,7 @@
 #include <TlHelp32.h>
 
 /// looks for a specific module in a remote process
-BOOL CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
+BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
   HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
   if (!hProcess) {
     OutputDebugStringW(L"OpenProcess() failed\n");
@@ -37,7 +37,7 @@ BOOL CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
 }
 
 /// find the parent process ID for the specified process
-DWORD CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
+DWORD WINAPI CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
   HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, dwProcessId);
   if (hSnapshot == INVALID_HANDLE_VALUE) {
     OutputDebugStringW(L"CreateToolHelp32Snapshot() failed\n");

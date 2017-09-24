@@ -230,8 +230,11 @@ namespace Captain.Application.Native {
     /// <param name="dwNewLong">The replacement value.</param>
     /// <returns>If the function succeeds, the return value is the previous value of the specified offset.</returns>
 #if WIN32
+    internal static IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong) =>
+      new IntPtr(SetWindowLongPtr(hWnd, nIndex, dwNewLong.ToInt32()));
+
     [DllImport(nameof(User32), EntryPoint = "SetWindowLong")]
-    internal static extern int SetWindowLongPtr(IntPtr hWnd, int nIndex, int dwNewLong);
+    private static extern int SetWindowLongPtr(IntPtr hWnd, int nIndex, int dwNewLong);
 #elif WIN64
     [DllImport(nameof(User32))]
     internal static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
@@ -299,8 +302,16 @@ namespace Captain.Application.Native {
     #endregion
 
     [DllImport(nameof(User32), SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport(nameof(User32), SetLastError = true)]
+    internal static extern bool MoveWindow(
+      IntPtr hWnd,
+      int X,
+      int Y,
+      int nWidth,
+      int nHeight,
+      [MarshalAs(UnmanagedType.Bool)] bool bRepaint);
 
     /// <summary>
     ///   Retrieves the identifier of the thread that created the specified window and, optionally, the identifier of

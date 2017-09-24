@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Captain.Common {
   /// <summary>
@@ -10,12 +9,12 @@ namespace Captain.Common {
     /// <summary>
     ///   Language code (may be <c>null</c>)
     /// </summary>
-    public string LanguageCode { get; private set; }
+    public string LanguageCode { get; }
 
     /// <summary>
     ///   Display name
     /// </summary>
-    public string Name { get; private set; }
+    public string Name { get; }
 
     /// <summary>
     ///   Sets the neutral display name for this object

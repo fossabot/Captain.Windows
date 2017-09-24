@@ -27,12 +27,14 @@ namespace Captain.Application {
     ///   Instantiates a filesystem manager
     /// </summary>
     internal FsManager() {
-      RootDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), VersionInfo.ProductName);
+      RootDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                       VersionInfo.ProductName);
 
       try {
         Directory.CreateDirectory(RootDirectoryPath);
       } catch (Exception exception) {
-        Log.WriteLine(LogLevel.Error, $"could not bootstrap local application directory - using temporary path: {exception}");
+        Log.WriteLine(LogLevel.Error,
+                      $"could not bootstrap local application directory - using temporary path: {exception}");
         RootDirectoryPath = Path.GetTempPath();
       }
     }
@@ -58,7 +60,9 @@ namespace Captain.Application {
     ~FsManager() {
       try {
         Directory.Delete(Path.Combine(RootDirectoryPath, TemporaryPath), true);
-      } catch (Exception exception) {
+      } catch (DirectoryNotFoundException) {
+      } catch (Exception exception) when (
+        !(exception is DirectoryNotFoundException)) {
         Log.WriteLine(LogLevel.Error, $"could not clean up filesystem: {exception}");
       }
     }

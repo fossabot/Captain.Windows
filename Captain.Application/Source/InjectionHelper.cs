@@ -39,7 +39,7 @@ namespace Captain.Application {
 
         /* We'll need to invoke cn2wowbr in order to perform injection */
         // invoke WoW64 bridge for the specified process ID, waking no thread and in stealth mode 
-        var startInfo = new ProcessStartInfo("cn2wowbr", $"{processId} 0 stealth {libraryPathX86}") {
+        var startInfo = new ProcessStartInfo("cn2wowbr", $"{processId} 0 stealth {libraryPathX86} {libraryPathX64}") {
           CreateNoWindow = true,
           UseShellExecute = false, // needed for redirecting process handles
           RedirectStandardInput = true // we're writing our pass-through payload to the standard input

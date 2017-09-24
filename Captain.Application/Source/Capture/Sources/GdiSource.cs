@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using Captain.Application.Native;
 
 namespace Captain.Application {
@@ -31,12 +30,7 @@ namespace Captain.Application {
     /// <param name="handle">Window handle</param>
     /// <param name="initialArea">Initial screen region</param>
     public GdiSource(IntPtr handle, Rectangle initialArea) : base(initialArea) {
-      if (handle == IntPtr.Zero) {
-        this.windowHandle = User32.GetDesktopWindow();
-      } else {
-        this.windowHandle = handle;
-      }
-
+      this.windowHandle = handle == IntPtr.Zero ? User32.GetDesktopWindow() : handle;
       this.drawCtx = User32.GetWindowDC(this.windowHandle);
       this.destCtx = Gdi32.CreateCompatibleDC(this.drawCtx);
       this.bitmapHandle = Gdi32.CreateCompatibleBitmap(this.drawCtx, initialArea.Width, initialArea.Height);
@@ -49,9 +43,9 @@ namespace Captain.Application {
     internal override Bitmap AcquireVideoFrame() {
       Gdi32.SelectObject(this.destCtx, this.bitmapHandle);
       Gdi32.BitBlt(this.destCtx, 0, 0, Area.Width, Area.Height, this.drawCtx,
-        this.windowHandle == IntPtr.Zero ? Area.X : 7,  // HACK!!!???
+        this.windowHandle == IntPtr.Zero ? Area.X : 0,
         this.windowHandle == IntPtr.Zero ? Area.Y : 0,
-        (int)TernaryRasterOperations.SRCCOPY);
+        TernaryRasterOperations.SRCCOPY);
 
       Bitmap bmp = Image.FromHbitmap(this.bitmapHandle);
 

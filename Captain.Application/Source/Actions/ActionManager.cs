@@ -2,7 +2,7 @@
 using System.Linq;
 
 namespace Captain.Application {
-  internal class ActionManager {
+  internal static class ActionManager {
     /// <summary>
     ///   Creates an action with the default parameterrs
     /// </summary>

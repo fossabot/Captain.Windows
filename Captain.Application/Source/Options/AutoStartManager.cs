@@ -9,11 +9,25 @@ namespace Captain.Application {
   ///   Handles the autostart feature by reading from/writing to the OS registry
   /// </summary>
   internal class AutoStartManager {
+    /// <summary>
+    ///   Contains the Startup registry key path
+    /// </summary>
     private const string StartupRegistryKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+
+    /// <summary>
+    ///   Contains the StartupApproved registry key path
+    /// </summary>
     private const string ApprovedStartupRegistryKeyPath =
       @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
 
+    /// <summary>
+    ///   Current instance of the Startup registry key
+    /// </summary>
     private RegistryKey startupRegistryKey;
+
+    /// <summary>
+    ///   Current instnace of the StartupApproved registry key
+    /// </summary>
     private RegistryKey approvedStartupRegistryKey;
 
     /// <summary>
@@ -32,7 +46,7 @@ namespace Captain.Application {
     /// <returns>Whether or not the operation completed successfully</returns>
     internal bool IsAutoStartEnabled() {
       if (this.startupRegistryKey.GetValue(VersionInfo.ProductName, null).ToString()
-              .ToLowerInvariant() != Assembly.GetExecutingAssembly().Location?.ToLowerInvariant()) {
+              .ToLowerInvariant() != Assembly.GetExecutingAssembly().Location.ToLowerInvariant()) {
         // the application executable path does not match
         return false;
       }
@@ -87,17 +101,15 @@ namespace Captain.Application {
     ///   Opens the Startup registry key
     /// </summary>
     /// <returns>Whether or not the operation completed successfully</returns>
-    private bool OpenStartupRegistryKey() {
+    private void OpenStartupRegistryKey() {
       try {
         this.startupRegistryKey = Registry.CurrentUser.OpenSubKey(StartupRegistryKeyPath,
                                                                   RegistryKeyPermissionCheck.ReadWriteSubTree);
         this.approvedStartupRegistryKey = Registry.CurrentUser.OpenSubKey(ApprovedStartupRegistryKeyPath,
                                                                           RegistryKeyPermissionCheck.ReadWriteSubTree);
         Log.WriteLine(LogLevel.Informational, "operation completed successfully");
-        return true;
       } catch {
         Log.WriteLine(LogLevel.Warning, "could not open startup registry key - some related features may be unavailable");
-        return false;
       }
     }
   }

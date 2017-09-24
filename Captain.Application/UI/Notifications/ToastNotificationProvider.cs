@@ -19,15 +19,19 @@ namespace Captain.Application {
     /// <summary>
     ///   Toast notifier instance
     /// </summary>
-    private readonly ToastNotifier toastNotifier = ToastNotificationManager.CreateToastNotifier(VersionInfo.ProductName);
+    private readonly ToastNotifier toastNotifier =
+      ToastNotificationManager.CreateToastNotifier(VersionInfo.ProductName);
 
     /// <summary>
     ///   Displays a warning message
     /// </summary>
     /// <param name="caption">Balloon tip title</param>
     /// <param name="body">Balloon tip text</param>
-    /// <param name="actions">A dictionary of actions, from which the first one may be triggered upon balloon click</param>
-    public void PushWarning(string caption, string body, Dictionary<string, Uri> actions = null) => LegacyNotificationProvider.PushMessage(caption, body, ToolTipIcon.Warning, actions?.FirstOrDefault().Value);
+    /// <param name="actions">
+    ///   A dictionary of actions, from which the first one may be triggered upon balloon click
+    /// </param>
+    public void PushWarning(string caption, string body, Dictionary<string, Uri> actions = null) =>
+      LegacyNotificationProvider.PushMessage(caption, body, ToolTipIcon.Warning, actions?.FirstOrDefault().Value);
 
     /// <summary>
     ///   Displays an informational/success message
@@ -37,19 +41,29 @@ namespace Captain.Application {
     /// <param name="subtext">Optional subtext</param>
     /// <param name="previewUri">Preview URI</param>
     /// <param name="previewImage">Preview image</param>
-    /// <param name="actions">A dictionary of actions, from which the first one may be triggered upon balloon click</param>
+    /// <param name="actions">
+    ///   A dictionary of actions, from which the first one may be triggered upon balloon click
+    /// </param>
     /// <param name="handler">Custom handler for toast activation</param>
     /// <param name="dismissionHandler">Custom handler for toast dismission</param>
-    public void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null,
-      Action<object, object> handler = null, Action<object, object> dismissionHandler = null) {
+    public void PushObject(string caption,
+                           string body,
+                           string subtext = null,
+                           Uri previewUri = null,
+                           Image previewImage = null,
+                           Dictionary<string, Uri> actions = null,
+                           Action<object, object> handler = null,
+                           Action<object, object> dismissionHandler = null) {
       string previewSource = previewUri?.ToString();
       bool isTemporaryPreviewSource = false;
 
       if (previewSource == null && previewImage != null) {
-        previewSource = Path.Combine(Application.FsManager.GetSafePath(FsManager.TemporaryPath), Guid.NewGuid().ToString());
+        previewSource = Path.Combine(Application.FsManager.GetSafePath(FsManager.TemporaryPath),
+                                     Guid.NewGuid().ToString());
         isTemporaryPreviewSource = true;
 
-        Log.WriteLine(LogLevel.Verbose, $"no preview URI but preview image present - saving to temporary path: {previewSource}");
+        Log.WriteLine(LogLevel.Verbose,
+                      $"no preview URI but preview image present - saving to temporary path: {previewSource}");
         previewImage.Save(previewSource);
       }
 
@@ -123,7 +137,7 @@ namespace Captain.Application {
             File.Delete(previewSource);
             Log.WriteLine(LogLevel.Debug, $"deleted temporary preview image: {previewSource}");
           } catch (Exception exception) {
-            Log.WriteLine(LogLevel.Warning, $"could not delete temporary preview image: {previewSource} - {exception}");
+            Log.WriteLine(LogLevel.Warning, $"couldn't delete temporary preview image: {previewSource} - {exception}");
           }
         }
 

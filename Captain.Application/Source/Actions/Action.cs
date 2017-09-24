@@ -61,22 +61,17 @@ namespace Captain.Application {
     /// <summary>
     ///   Static encoder object (may be null)
     /// </summary>
-    internal PluginObject StaticEncoder { get; }
+    private PluginObject StaticEncoder { get; }
 
     /// <summary>
     ///   Video encoder object (may be null)
     /// </summary>
-    internal PluginObject VideoEncoder { get; }
+    private PluginObject VideoEncoder { get; }
 
     /// <summary>
     ///   Output streams
     /// </summary>
-    internal List<PluginObject> OutputStreams { get; } = new List<PluginObject>();
-
-    /// <summary>
-    ///   When set to <c>true</c>, the data will be encoded as it's captured
-    /// </summary>
-    internal bool ParallelEncoding { get; }
+    private List<PluginObject> OutputStreams { get; } = new List<PluginObject>();
 
     /// <summary>
     ///   Creates a new action
@@ -136,7 +131,9 @@ namespace Captain.Application {
             this.boundGrabber.Hide();
 
             // perform screen capture
-            Bitmap bmp = this.captureHelper.CaptureFromScreen(intent.VirtualArea);
+            Bitmap bmp = intent.WindowHandle == IntPtr.Zero
+              ? this.captureHelper.CaptureFromScreen(intent.VirtualArea)
+              : this.captureHelper.CaptureFromScreen();
 
             // TODO: remove this HACK!
             this.captureHelper.Dispose();
@@ -520,8 +517,14 @@ namespace Captain.Application {
     /// <summary>
     ///   Displays a dialog containing all the result information for each output stream
     /// </summary>
-    /// <param name="results"></param>
-    private void DisplayResultsDialog(List<CaptureResult> results) => throw new NotImplementedException();
+    /// <param name="results">A list of <see cref="CaptureResult"/></param>
+    private void DisplayResultsDialog(List<CaptureResult> results) {
+      if (results.Count == 0) {
+        throw new ArgumentException(@"Value cannot be an empty collection.", nameof(results));
+      }
+
+      throw new NotImplementedException();
+    }
 
     /// <summary>
     ///   Releases resources

@@ -5,8 +5,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms;
-using Captain.Common;
 using Captain.Application.Native;
+using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -20,11 +20,6 @@ namespace Captain.Application {
     private GrabberWindow window;
 
     /// <summary>
-    ///   Grabber tool bar (displays editing tools)
-    /// </summary>
-    private GrabberToolBarWindow toolBar;
-
-    /// <summary>
     ///   Original grabber window bounds
     /// </summary>
     private Rectangle originalBounds;
@@ -32,14 +27,12 @@ namespace Captain.Application {
     /// <summary>
     ///   Holds the currently attached window handle
     /// </summary>
-    private IntPtr attachedWindow;
+    internal IntPtr AttachedWindowHandle { get; private set; }
 
     /// <summary>
-    ///   Gets the area selected by the user
-    ///   HACK: think a better graber UI so the area selection is more precise
+    ///   Grabber tool bar (displays editing tools)
     /// </summary>
-    internal Rectangle Area => this.window.Area;/*new Rectangle(this.window.Area.X - 2, this.window.Area.Y - 9,
-      this.window.Area.Width + 4, this.window.Area.Height + 11);*/
+    internal GrabberToolBarWindow ToolBar { get; private set; }
 
     /// <summary>
     ///   Intent receiving delegate
@@ -57,22 +50,19 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="acceptableActionTypes">Acceptable action types</param>
     internal Grabber(ActionType acceptableActionTypes) {
-      this.window = new GrabberWindow();
-      this.toolBar = new GrabberToolBarWindow(acceptableActionTypes);
+      this.window = new GrabberWindow(this);
+      ToolBar = new GrabberToolBarWindow(acceptableActionTypes);
 
       // TODO: restore GrabberWindow bounds
       this.window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
       this.window.Width = Screen.PrimaryScreen.WorkingArea.Width / 3d;
       this.window.Height = Screen.PrimaryScreen.WorkingArea.Height / 3d;
 
-      this.window.SizeChanged += UpdateToolBarPosition;
-      this.window.LocationChanged += UpdateToolBarPosition;
-
-      this.toolBar.OnCaptureActionInitiated += OnCaptureActionInitiated;
-      this.toolBar.OnGrabberIntentReceived += OnGrabberIntentReceived;
+      ToolBar.OnCaptureActionInitiated += OnCaptureActionInitiated;
+      ToolBar.OnGrabberIntentReceived += OnGrabberIntentReceived;
 
       this.window.Closed += (_, __) => Dispose();
-      this.toolBar.Closed += (_, __) => Dispose();
+      ToolBar.Closed += (_, __) => Dispose();
     }
 
     /// <summary>
@@ -81,50 +71,27 @@ namespace Captain.Application {
     public void Dispose() {
       try {
         this.window.Close();
-        this.toolBar.Close();
+        ToolBar.Close();
       } catch {
         // one of them was already closed - don't worry babe'
       }
 
       this.window = null;
-      this.toolBar = null;
+      ToolBar = null;
     }
 
     /// <summary>
     ///   Displays the grabber UI
     /// </summary>
     /// <returns>Whether or not the capture is being created</returns>
-    internal void Show() {
-      this.window.Show();
-      this.toolBar.Show();
-      UpdateToolBarPosition();
-    }
+    internal void Show() => this.window.Show();
 
     /// <summary>
     ///   Hides the grabber UI
     /// </summary>
     internal void Hide() {
       this.window.Hide();
-      this.toolBar.Hide();
-    }
-
-    /// <summary>
-    ///   Updates the position of the tool bar so it lays above/below the area selection window
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="eventArgs"></param>
-    private void UpdateToolBarPosition(object sender = null, EventArgs eventArgs = null) {
-      if (this.window.Top + this.window.Height + 8 + this.toolBar.Height >
-          SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight) {
-        this.toolBar.Top = this.window.Top - this.toolBar.Height - 8;
-      } else {
-        this.toolBar.Top = this.window.Top + this.window.Height + 8;
-      }
-
-      this.toolBar.Left =
-        Math.Min(Math.Max(SystemParameters.VirtualScreenLeft,
-                          this.window.Left + (this.window.Width - this.toolBar.Width) / 2),
-                 SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - this.toolBar.Width);
+      ToolBar.Hide();
     }
 
     /// <summary>
@@ -134,8 +101,8 @@ namespace Captain.Application {
     private void OnCaptureActionInitiated(ActionType type) =>
       OnIntentReceived?.Invoke(this,
                                new CaptureIntent(type) {
-                                 VirtualArea = Area,
-                                 WindowHandle = attachedWindow
+                                 VirtualArea = this.window.Area,
+                                 WindowHandle = AttachedWindowHandle
                                });
 
     /// <summary>
@@ -148,7 +115,7 @@ namespace Captain.Application {
 
       switch (intentType) {
         case GrabberIntentType.Close:
-          if (this.attachedWindow != IntPtr.Zero) {
+          if (AttachedWindowHandle != IntPtr.Zero) {
             OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow, null);
           }
 
@@ -156,19 +123,23 @@ namespace Captain.Application {
           break;
 
         case GrabberIntentType.AttachToWindow:
-          this.toolBar.SetWindowAttachmentStatus(false, false);
+          ToolBar.SetWindowAttachmentStatus(false, false);
           this.window.PassThrough = true;
 
           /* get the window that contains the central point of the grabber windows */
-          var point = new POINT { x = Area.X + Area.Width / 2, y = Area.Y + Area.Height / 2 };
+          var point = new POINT {
+            x = this.window.Area.X + this.window.Area.Width / 2,
+            y = this.window.Area.Y + this.window.Area.Height / 2
+          };
+
           IntPtr handle = User32.WindowFromPoint(point);
 
           this.window.PassThrough = false;
 
-          if (handle == IntPtr.Zero || handle == this.window.Handle || handle == this.toolBar.Handle) {
+          if (handle == IntPtr.Zero || handle == this.window.Handle || handle == ToolBar.Handle) {
             // don't attach to desktop window!
             Log.WriteLine(LogLevel.Warning, "no window at the current area");
-            this.toolBar.SetWindowAttachmentStatus(false);
+            ToolBar.SetWindowAttachmentStatus(false);
             return;
           }
 
@@ -180,13 +151,12 @@ namespace Captain.Application {
           if ((windowStyle & (int)User32.WindowStyles.WS_MAXIMIZE) != 0 ||
               (windowStyle & (int)User32.WindowStyles.WS_MINIMIZE) != 0) {
             Log.WriteLine(LogLevel.Warning, "window can not be minimized/maximized!");
-            this.toolBar.SetWindowAttachmentStatus(false);
+            ToolBar.SetWindowAttachmentStatus(false);
             return;
           }
 
           // get window bounds
-          RECT rect;
-          User32.GetWindowRect(rootHandle, out rect);
+          RECT rect = WindowHelper.GetWindowBounds(rootHandle);
 
           // save original bounds
           this.originalBounds = new Rectangle((int)this.window.Left,
@@ -199,7 +169,8 @@ namespace Captain.Application {
 
           string GetHelperLibraryPath(bool x64 = false) => Path.Combine(Directory.GetCurrentDirectory(),
                                                                         helperLibraryName +
-                                                                        (x64 ? "64" : "32") + ".dll");
+                                                                        (x64 ? "64" : "32") +
+                                                                        ".dll");
 
           uint pid;
           User32.GetWindowThreadProcessId(rootHandle, out pid);
@@ -229,12 +200,12 @@ namespace Captain.Application {
           }
 
           // create attachment information struct
-          var attachInfo = new WINATTACHINFO();
-
-          attachInfo.rcOrgTargetBounds = rect;
-          attachInfo.uiGrabberHandle = (uint)this.window.Handle;
-          attachInfo.uiToolbarHandle = (uint)this.toolBar.Handle;
-          attachInfo.uiTargetHandle = (uint)rootHandle;
+          var attachInfo = new WINATTACHINFO {
+            rcOrgTargetBounds = rect,
+            uiGrabberHandle = (uint)this.window.Handle,
+            uiToolbarHandle = (uint)ToolBar.Handle,
+            uiTargetHandle = (uint)rootHandle
+          };
 
           // allocate and copy attachInfo
           IntPtr attachInfoPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(WINATTACHINFO)));
@@ -269,7 +240,7 @@ namespace Captain.Application {
                                             Marshal.SizeOf(attachInfo));
               Log.WriteLine(LogLevel.Debug, $"injected remote helper library to process {pid}");
             } catch (Win32Exception) {
-              this.toolBar.SetWindowAttachmentStatus(false);
+              ToolBar.SetWindowAttachmentStatus(false);
               break;
             } finally {
               Log.WriteLine(LogLevel.Debug, "releasing resources");
@@ -278,32 +249,29 @@ namespace Captain.Application {
           }
 
           // everything's fine at this point
-          this.attachedWindow = rootHandle;
+          AttachedWindowHandle = rootHandle;
 
           // adjust window to target bounds
-          this.window.Left = rect.left;
-          this.window.Top = rect.top;
-          this.window.Width = rect.right - rect.left;
-          this.window.Height = rect.bottom - rect.top;
-
+          this.window.Area = new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
           this.window.CanBeResized = false;
           this.window.Hide();
 
-          this.toolBar.SetWindowAttachmentStatus(true);
+          ToolBar.SetWindowAttachmentStatus(true);
           break;
 
         case GrabberIntentType.DetachFromWindow:
-          this.toolBar.SetWindowAttachmentStatus(true, false);
+          ToolBar.SetWindowAttachmentStatus(true, false);
 
-          if (this.attachedWindow != IntPtr.Zero) {
+          if (AttachedWindowHandle != IntPtr.Zero) {
             // send detach message
-            User32.SendMessage(this.attachedWindow, WindowMessages.WM_CAPN_DETACHWND, IntPtr.Zero, IntPtr.Zero);
+            User32.SendMessage(AttachedWindowHandle, WindowMessages.WM_CAPN_DETACHWND, IntPtr.Zero, IntPtr.Zero);
             Log.WriteLine(LogLevel.Debug, "sent WM_CAPN_DETACHWND message");
+            AttachedWindowHandle = IntPtr.Zero;
           } else {
             Log.WriteLine(LogLevel.Warning, "trying to detach from window when no window is attached");
           }
 
-          this.toolBar.SetWindowAttachmentStatus(false);
+          ToolBar.SetWindowAttachmentStatus(false);
 
           this.window.Left = this.originalBounds.Left;
           this.window.Top = this.originalBounds.Top;

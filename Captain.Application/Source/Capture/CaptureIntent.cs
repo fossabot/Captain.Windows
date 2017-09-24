@@ -18,12 +18,6 @@ namespace Captain.Application {
     internal Rectangle VirtualArea { get; set; }
 
     /// <summary>
-    ///   Gets or sets the monitor index for full-screen captures of software running in an exclusive cooperation level.
-    ///   If this is not such capture kind, this property is set to -1
-    /// </summary>
-    internal int Monitor { get; set; } = -1;
-
-    /// <summary>
     ///   When capturing an application running in fullscreen mode (so <c>Monitor</c> property is set) or capturing a
     ///   window the grabber is attached to, this will contain the handle.
     /// </summary>

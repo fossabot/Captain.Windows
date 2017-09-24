@@ -10,6 +10,7 @@ using Captain.Application.Native;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Brushes = System.Windows.Media.Brushes;
+using Orientation = System.Windows.Controls.Orientation;
 
 namespace Captain.Application {
   /// <summary>
@@ -17,9 +18,9 @@ namespace Captain.Application {
   /// </summary>
   internal partial class GrabberWindow {
     /// <summary>
-    ///   Window padding required for a better resizing target
+    ///   <see cref="Grabber"/>  instance
     /// </summary>
-    private new const int Padding = 16;
+    private readonly Grabber grabber;
 
     /// <summary>
     ///   Acceptable capture region
@@ -30,6 +31,19 @@ namespace Captain.Application {
     ///   Device notification filter handle
     /// </summary>
     private IntPtr devNotify;
+
+    /// <summary>
+    ///   Toolbar UI padding
+    /// </summary>
+    private Padding ToolBarPadding => new Padding(8);
+
+    /// <summary>
+    ///   UI padding
+    /// </summary>
+    private new Padding Padding => new Padding((int)(this.Border.Margin.Left + this.Border.BorderThickness.Left),
+                                               (int)(this.Border.Margin.Top + this.Border.BorderThickness.Top),
+                                               (int)(this.Border.Margin.Right + this.Border.BorderThickness.Right),
+                                               (int)(this.Border.Margin.Bottom + this.Border.BorderThickness.Bottom));
 
     /// <summary>
     ///   HACK: When true, the window will return HTTRANSPARENT for the WM_NCHITTEST message so, for instance, it
@@ -45,10 +59,19 @@ namespace Captain.Application {
     /// <summary>
     ///   Actual capture bounds
     /// </summary>
-    internal Rectangle Area => new Rectangle((int)Left + Padding,
-                                             (int)Top + Padding,
-                                             (int)Width - Padding,
-                                             (int)Height - Padding);
+    internal Rectangle Area {
+      get => new Rectangle((int)Left + Padding.Left,
+                           (int)Top + Padding.Top,
+                           (int)Width - Padding.Left - Padding.Right,
+                           (int)Height - Padding.Top - Padding.Bottom);
+
+      set {
+        value.X -= Padding.Left;
+        value.Y -= Padding.Top;
+        value.Width += Padding.Left + Padding.Right;
+        value.Height += Padding.Top + Padding.Bottom;
+      }
+    }
 
     /// <summary>
     ///   Changes/gets whether the window can be resized
@@ -82,7 +105,10 @@ namespace Captain.Application {
     /// <summary>
     ///   Class constructor
     /// </summary>
-    internal GrabberWindow() => InitializeComponent();
+    internal GrabberWindow(Grabber grabber) {
+      this.grabber = grabber;
+      InitializeComponent();
+    }
 
     /// <summary>
     ///   Class destructor
@@ -95,7 +121,6 @@ namespace Captain.Application {
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnSourceInitialized(EventArgs eventArgs) {
       base.OnSourceInitialized(eventArgs);
-      UpdateWindowGeometry();
 
       if (PresentationSource.FromVisual(this) is HwndSource source) {
         Handle = source.Handle;
@@ -118,6 +143,8 @@ namespace Captain.Application {
         Display.RegisterChangeNotifications(Handle, out this.devNotify);
         source.AddHook(WndProc);
       }
+
+      UpdateWindowGeometry();
     }
 
     /// <summary>
@@ -127,9 +154,8 @@ namespace Captain.Application {
       // update displays' bounds
       this.acceptableRectangles = DisplayHelper.GetOutputInfo().Select(i => i.Bounds).ToArray();
 
-      // HACK! 1/(2^42) is the minimum double value that, added to a coordinate, does not apparently chnage it but
-      // but does, in fact, trigger window reposition mechanisms (i.e. we receive WM_WINDOWPOSCHANGING et al.)
-      Left += Math.Pow(2, -42);
+      // HACK! Trigger window position change mechanisms
+      User32.MoveWindow(Handle, (int)Left, (int)Top, (int)Width, (int)Height, true);
     }
 
     /// <summary>
@@ -158,7 +184,13 @@ namespace Captain.Application {
           //       the screen
           // TODO: reduce flicker somehow! The larger the window gets, the more noticeable the flicker is!
           var pos = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS));
-          var rect = new Rectangle(pos.x, pos.y, pos.cx, pos.cy);
+          var rect = new Rectangle(pos.x,
+                                   pos.y,
+                                   pos.cx,
+                                   (int)(pos.cy +
+                                         ToolBarPadding.Top +
+                                         ToolBarPadding.Bottom +
+                                         this.grabber.ToolBar.Thickness));
 
           if ((pos.flags & (int)User32.SetWindowPosFlags.SWP_NOACTIVATE) == 0) {
             // HACK: when windows get moved beyond the top limits of the screen, windows automatically snaps the bounds
@@ -169,31 +201,70 @@ namespace Captain.Application {
           }
 
           // make sure the next position is not off-screen
-          if (this.acceptableRectangles.Count(r => Rectangle.Intersect(r, rect).Contains(rect)) == 0) {
-            // retrieve the bounds of the displays containing at least a part from the window
-            Rectangle[] containers = this.acceptableRectangles.Where(r => rect.IntersectsWith(r)).ToArray();
+          //if (this.acceptableRectangles.Count(r => Rectangle.Intersect(r, rect).Contains(rect)) == 0) {
+          // retrieve the bounds of the displays containing at least a part from the window
+          Rectangle[] containers = this.acceptableRectangles.Where(r => rect.IntersectsWith(r)).ToArray();
 
-            // in case no display is containing the window, default to the primary screen
-            if (!containers.Any()) { containers = new[] { Screen.PrimaryScreen.Bounds }; }
+          // in case no display is containing the window, default to the primary screen
+          if (!containers.Any()) { containers = new[] { Screen.PrimaryScreen.Bounds }; }
 
-            // calculate the acceptable bounds for ALL the displays at once
-            int minLeft = containers.Min(c => c.Left);
-            int maxTop = containers.Max(c => c.Top);
-            int maxRight = containers.Max(c => c.Right);
-            int minBottom = containers.Min(c => c.Bottom);
+          // calculate the acceptable bounds for ALL the displays at once
+          int minLeft = containers.Min(c => c.Left);
+          int maxTop = containers.Max(c => c.Top);
+          int maxRight = containers.Max(c => c.Right);
+          int minBottom = containers.Min(c => c.Bottom);
 
-            // limit window coordinatesç
-            pos.x = pos.x - Padding < minLeft
-                      ? minLeft - Padding
-                      : (pos.x + pos.cx - Padding > maxRight
-                           ? maxRight - pos.cx + Padding
-                           : pos.x);
+          // limit window coordinates
+          pos.x = pos.x + Padding.Left < minLeft
+                    ? minLeft - Padding.Left
+                    : (pos.x + pos.cx - Padding.Right > maxRight
+                         ? maxRight - pos.cx + Padding.Right
+                         : pos.x);
 
-            pos.y = pos.y + Padding < maxTop
-                      ? maxTop - Padding
-                      : (pos.y + pos.cy - Padding > minBottom
-                           ? minBottom - pos.cy + Padding
-                           : pos.y);
+          pos.y = pos.y + Padding.Top < maxTop
+                    ? maxTop - Padding.Top
+                    : (pos.y + pos.cy - Padding.Bottom > minBottom
+                         ? minBottom - pos.cy + Padding.Bottom
+                         : pos.y);
+
+          if (pos.x != 0 && pos.y != 0 && pos.hwnd != IntPtr.Zero) {
+            if (!this.grabber.ToolBar.IsVisible) {
+              this.grabber.ToolBar.Show();
+            }
+
+            // move toolbar accordingly
+            if (pos.y + pos.cy + ToolBarPadding.Top + this.grabber.ToolBar.Thickness > minBottom) {
+              if (pos.y - ToolBarPadding.Bottom - this.grabber.ToolBar.Thickness > maxTop) {
+                this.grabber.ToolBar.Orientation = Orientation.Horizontal;
+                this.grabber.ToolBar.Top = pos.y - ToolBarPadding.Bottom - this.grabber.ToolBar.Thickness;
+              } else {
+                this.grabber.ToolBar.Orientation = Orientation.Vertical;
+
+                if (pos.x + pos.cx + ToolBarPadding.Left + this.grabber.ToolBar.Thickness < maxRight) {
+                  this.grabber.ToolBar.Left = pos.x + pos.cx + ToolBarPadding.Left;
+                } else {
+                  this.grabber.ToolBar.Left = pos.x - ToolBarPadding.Right - this.grabber.ToolBar.Thickness;
+                }
+
+                this.grabber.ToolBar.Top =
+                  Math.Min(Math.Max(maxTop, pos.y + (pos.cy - this.grabber.ToolBar.Height) / 2),
+                           minBottom - this.grabber.ToolBar.Height);
+              }
+            } else {
+              this.grabber.ToolBar.Orientation = Orientation.Horizontal;
+              this.grabber.ToolBar.Top = pos.y + pos.cy + ToolBarPadding.Top;
+            }
+
+            if (this.grabber.ToolBar.Orientation == Orientation.Horizontal) {
+              this.grabber.ToolBar.Left = Math.Min(maxRight - this.grabber.ToolBar.Width,
+                                                   Math.Max(minLeft,
+                                                            pos.x + (pos.cx - this.grabber.ToolBar.Width) / 2));
+            }
+
+            // move target window, if any
+            if (this.grabber.AttachedWindowHandle != IntPtr.Zero) {
+              User32.MoveWindow(this.grabber.AttachedWindowHandle, pos.x, pos.y, pos.cx, pos.cy, false);
+            }
           }
 
           Marshal.StructureToPtr(pos, lParam, false);

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Captain.Common;
 using SharpDX;
 using static Captain.Application.Application;
@@ -14,14 +12,6 @@ namespace Captain.Application {
   ///   Helper class which abstracts screen capture
   /// </summary>
   internal class CaptureHelper : IDisposable {
-
-    private (int AdapterIndex, int OutputIndex, Rectangle Bounds)[] outputInfo = DisplayHelper.GetOutputInfo();
-
-    /// <summary>
-    ///   Whether we are using DXGI desktop duplication or not
-    /// </summary>
-    private bool usingDesktopDuplication = false;
-
     /// <summary>
     ///   Contains the underlying capture sources. If <c>usingDesktopDuplication</c> is false, this array only contains
     ///   a single instance of <see cref="GdiSource" />
@@ -40,6 +30,11 @@ namespace Captain.Application {
     internal IntPtr WindowHandle { get; set; }
 
     /// <summary>
+    ///   Captures the attached window
+    /// </summary>
+    /// <returns>A Bitmap containing the currently attached window</returns>
+    internal Bitmap CaptureFromScreen() => CaptureFromScreen(WindowHelper.GetWindowBounds(WindowHandle).ToRectangle());
+    /// <summary>
     ///   Captures a bitmap from screen
     /// </summary>
     /// <param name="area">Virtual desktop area</param>
@@ -55,7 +50,7 @@ namespace Captain.Application {
         try {
           // use DXGI
           this.sources = info
-            .Select(i => new DxgiSource(WindowHandle, i.Bounds, i.AdapterIndex, i.OutputIndex) as CaptureSource)
+            .Select(i => new DxgiSource(i.Bounds, i.AdapterIndex, i.OutputIndex) as CaptureSource)
             .ToArray();
         } catch (SharpDXException exception) {
           // fall back to GDI

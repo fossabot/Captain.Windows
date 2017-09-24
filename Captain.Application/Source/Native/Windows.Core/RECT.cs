@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
 using SharpDX.Mathematics.Interop;
 
 // ReSharper disable All
@@ -41,5 +42,12 @@ namespace Captain.Application.Native {
     /// <returns>True on equality</returns>
     internal bool Equals(RawRectangle rect) =>
       this.left == rect.Left && this.top == rect.Top && this.right == rect.Right && this.bottom == rect.Bottom;
+
+    /// <summary>
+    ///   Creates a new <see cref="Rectangle"/> instance from this <see cref="RECT"/>
+    /// </summary>
+    /// <returns>The newly-created rectangle</returns>
+    internal Rectangle ToRectangle() =>
+      new Rectangle(this.left, this.top, this.right - this.left, this.bottom - this.top);
   }
 }

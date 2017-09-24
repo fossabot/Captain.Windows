@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Captain.Application.Native;
@@ -12,12 +13,22 @@ namespace Captain.Application {
     /// <summary>
     ///   True when the screen may be being recorded
     /// </summary>
-    private bool mayBeRecording;
+    private bool mayBeRecording = false;
+
+    /// <summary>
+    ///   Toolbar orientation
+    /// </summary>
+    private Orientation orientation = Orientation.Horizontal;
 
     /// <summary>
     ///   Internal window handle
     /// </summary>
     internal IntPtr Handle { get; private set; }
+
+    /// <summary>
+    ///   Initial toolbar thickness
+    /// </summary>
+    internal double Thickness { get; }
 
     /// <summary>
     ///   Handles capture button events
@@ -43,6 +54,22 @@ namespace Captain.Application {
     internal event GrabberIntentHandler OnGrabberIntentReceived;
 
     /// <summary>
+    ///   Gets or sets the toolbar orientation
+    /// </summary>
+    public Orientation Orientation {
+      get => this.orientation;
+      set {
+        this.orientation = this.StackPanel.Orientation = value;
+
+        if (this.orientation == Orientation.Horizontal) {
+          Height = Thickness;
+        } else {
+          Width = Thickness;
+        }
+      }
+    }
+
+    /// <summary>
     ///   Creates a new capture toolbar
     /// </summary>
     /// <param name="acceptableActionTypes">Action types that are available</param>
@@ -52,10 +79,10 @@ namespace Captain.Application {
       this.ScreenshotButton.Visibility = acceptableActionTypes.HasFlag(ActionType.Screenshot)
                                    ? Visibility.Visible
                                    : Visibility.Collapsed;
-
       this.RecordingTools.Visibility = acceptableActionTypes.HasFlag(ActionType.Record)
                                              ? Visibility.Visible
                                              : Visibility.Collapsed;
+      Thickness = Height;
     }
 
     /// <summary>
@@ -106,7 +133,7 @@ namespace Captain.Application {
 
         // hide from window switcher
         User32.SetWindowLongPtr(Handle, (int)User32.WindowLongParam.GWL_EXSTYLE,
-          new IntPtr(windowExStyle | (long)User32.WindowStylesEx.WS_EX_TOOLWINDOW));
+          new IntPtr(windowExStyle | (long)User32.WindowStylesEx.WS_EX_TOOLWINDOW | 0x08000000L));
         source.AddHook(WndProc);
       }
     }

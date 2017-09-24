@@ -6,6 +6,7 @@
     <TargetPlatformVersion>10.0.10586</TargetPlatformVersion>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -18,7 +19,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -137,15 +137,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="Source\Actions\Action.old.cs" />
     <Compile Include="Source\Actions\Action.cs" />
     <Compile Include="Source\Actions\ActionManager.cs" />
     <Compile Include="Source\Actions\ActionType.cs" />
     <Compile Include="Source\Capture\CaptureHelper.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
-    <None Include="Source\Capture\Sources\CaptureHelper.old.cs" />
     <Compile Include="Source\Capture\Sources\CaptureSource.cs" />
-    <Compile Include="Source\Capture\Sources\DesktopDuplicationSource.old.cs" />
     <Compile Include="Source\Capture\Sources\DxgiSource.cs" />
     <Compile Include="Source\Capture\Sources\GdiSource.cs" />
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
@@ -157,6 +154,8 @@
     <Compile Include="Source\Native\Cyanogen\Shell.cs" />
     <Compile Include="Source\Native\Cyanogen\WINATTACHINFO.cs" />
     <Compile Include="Source\Native\Cyanogen\WindowMessages.cs" />
+    <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
+    <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
     <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
     <Compile Include="Source\Native\User32\COPYDATASTRUCT.cs" />
@@ -174,6 +173,7 @@
     <Compile Include="Source\Options\Options.cs" />
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
+    <Compile Include="Source\WindowHelper.cs" />
     <Compile Include="UI\Grabber\Grabber.cs" />
     <Compile Include="UI\Grabber\GrabberIntentType.cs" />
     <Compile Include="UI\Grabber\GrabberToolBarWindow.xaml.cs">
@@ -280,10 +280,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2wowbr /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2helper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=$(Platform);Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)\$(OutDir);Platform=x64;Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2wowbr /p:OutDir=$(ProjectDir)$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2helper /p:OutDir=$(ProjectDir)$(OutDir);Platform=$(Platform);Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
+      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)$(OutDir);Platform=x64;Configuration=$(ConfigurationName) /nologo
 </PreBuildEvent>
   </PropertyGroup>
 </Project>

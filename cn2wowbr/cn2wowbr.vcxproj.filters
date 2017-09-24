@@ -20,6 +20,7 @@
     <None Include=".gitignore" />
     <None Include=".gitattributes" />
     <None Include=".editorconfig" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.c">
