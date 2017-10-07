@@ -16,70 +16,86 @@
     <ResourceDictionary Source="/Content/Grabber/GrabberToolBarWindow.xaml" />
   </Window.Resources>
 
-  <Border Background="#F2FFFFFF" CornerRadius="24" Margin="12" Padding="8">
-    <Border.Effect>
+  <Border Background="#F2FFFFFF" BorderBrush="#10000000" CornerRadius="4" Margin="9" BorderThickness="3">
+    <!--<Border.Effect>
       <DropShadowEffect BlurRadius="8" Direction="270" ShadowDepth="4" Opacity="0.15" />
-    </Border.Effect>
+    </Border.Effect>-->
 
-    <StackPanel Name="StackPanel" Orientation="{Binding Orientation}">
-      <Button Name="ScreenshotButton" ToolTip="{x:Static local:Resources.GrabberUI_Screenshot}" Style="{DynamicResource ToolBarButtonStyle}" Click="ScreenshotButton_Click">
-        <Image Source="/Content/Grabber/Icons/Screenshot.png" />
-      </Button>
-
-      <StackPanel Name="RecordingTools" Orientation="{Binding Orientation}">
-        <Button Name="RecordButton" ToolTip="{x:Static local:Resources.GrabberUI_Record}" Style="{DynamicResource ToolBarButtonStyle}">
-          <Image Source="/Content/Grabber/Icons/Record.png" />
+    <Border BorderThickness="1" Padding="8" CornerRadius="2" BorderBrush="#20000000" Margin="-1">
+      <StackPanel Name="StackPanel" Orientation="{Binding Orientation}">
+        <Button Name="ScreenshotButton" ToolTip="{x:Static local:Resources.GrabberUI_Screenshot}"
+                Style="{DynamicResource ToolBarButtonStyle}" Click="ScreenshotButton_Click">
+          <Image Source="/Content/Grabber/Icons/Screenshot.png" />
         </Button>
 
-        <Button Name="StopButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Stop}" Style="{DynamicResource ToolBarButtonStyle}">
-          <Image Source="/Content/Grabber/Icons/Stop.png" />
-        </Button>
-      </StackPanel>
-
-      <StackPanel Name="RecordingExtraTools" Visibility="Collapsed" Orientation="{Binding Orientation}">
-        <Button Name="PauseButton" ToolTip="{x:Static local:Resources.GrabberUI_Pause}" Style="{DynamicResource ToolBarButtonStyle}">
-          <Image Source="/Content/Grabber/Icons/Pause.png" />
-        </Button>
-
-        <Button Name="ResumeButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Resume}" Style="{DynamicResource ToolBarButtonStyle}">
-          <Image Source="/Content/Grabber/Icons/Resume.png" />
-        </Button>
-
-        <StackPanel Name="RecordingToolsSpeaker" Orientation="{Binding Orientation}">
-          <Button Name="SpeakerMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteSpeaker}" Style="{DynamicResource ToolBarButtonStyle}">
-            <Image Source="/Content/Grabber/Icons/UnmutedSpeaker.png" />
+        <StackPanel Name="RecordingTools" Orientation="{Binding Orientation}">
+          <Button Name="RecordButton" ToolTip="{x:Static local:Resources.GrabberUI_Record}"
+                  Style="{DynamicResource ToolBarButtonStyle}">
+            <Image Source="/Content/Grabber/Icons/Record.png" />
           </Button>
 
-          <Button Name="SpeakerUnmuteButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_UnmuteSpeaker}" Style="{DynamicResource ToolBarButtonStyle}">
-            <Image Source="/Content/Grabber/Icons/MutedSpeaker.png" />
-          </Button>
-
-        </StackPanel>
-
-        <StackPanel Name="RecordingToolsMicrophone" Orientation="{Binding Orientation}">
-          <Button Name="MicrophoneMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteMicrophone}" Style="{DynamicResource ToolBarButtonStyle}">
-            <Image Source="/Content/Grabber/Icons/UnmutedMicrophone.png" />
-          </Button>
-
-          <Button Name="MicrophoneUnmuteButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_UnmuteMicrophone}" Style="{DynamicResource ToolBarButtonStyle}">
-            <Image Source="/Content/Grabber/Icons/MutedMicrophone.png" />
+          <Button Name="StopButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Stop}"
+                  Style="{DynamicResource ToolBarButtonStyle}">
+            <Image Source="/Content/Grabber/Icons/Stop.png" />
           </Button>
         </StackPanel>
 
+        <StackPanel Name="RecordingExtraTools" Visibility="Collapsed" Orientation="{Binding Orientation}">
+          <Button Name="PauseButton" ToolTip="{x:Static local:Resources.GrabberUI_Pause}"
+                  Style="{DynamicResource ToolBarButtonStyle}">
+            <Image Source="/Content/Grabber/Icons/Pause.png" />
+          </Button>
+
+          <Button Name="ResumeButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Resume}"
+                  Style="{DynamicResource ToolBarButtonStyle}">
+            <Image Source="/Content/Grabber/Icons/Resume.png" />
+          </Button>
+
+          <StackPanel Name="RecordingToolsSpeaker" Orientation="{Binding Orientation}">
+            <Button Name="SpeakerMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteSpeaker}"
+                    Style="{DynamicResource ToolBarButtonStyle}">
+              <Image Source="/Content/Grabber/Icons/UnmutedSpeaker.png" />
+            </Button>
+
+            <Button Name="SpeakerUnmuteButton" Visibility="Collapsed"
+                    ToolTip="{x:Static local:Resources.GrabberUI_UnmuteSpeaker}"
+                    Style="{DynamicResource ToolBarButtonStyle}">
+              <Image Source="/Content/Grabber/Icons/MutedSpeaker.png" />
+            </Button>
+
+          </StackPanel>
+
+          <StackPanel Name="RecordingToolsMicrophone" Orientation="{Binding Orientation}">
+            <Button Name="MicrophoneMuteButton" ToolTip="{x:Static local:Resources.GrabberUI_MuteMicrophone}"
+                    Style="{DynamicResource ToolBarButtonStyle}">
+              <Image Source="/Content/Grabber/Icons/UnmutedMicrophone.png" />
+            </Button>
+
+            <Button Name="MicrophoneUnmuteButton" Visibility="Collapsed"
+                    ToolTip="{x:Static local:Resources.GrabberUI_UnmuteMicrophone}"
+                    Style="{DynamicResource ToolBarButtonStyle}">
+              <Image Source="/Content/Grabber/Icons/MutedMicrophone.png" />
+            </Button>
+          </StackPanel>
+
+        </StackPanel>
+
+        <Button Name="PinButton" ToolTip="{x:Static local:Resources.GrabberUI_Pin}"
+                Style="{DynamicResource ToolBarButtonStyle}" Click="PinButton_Click">
+          <Image Source="/Content/Grabber/Icons/Pin.png" />
+        </Button>
+
+        <Button Name="UnpinButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Unpin}"
+                Style="{DynamicResource ToolBarButtonStyle}" Click="UnpinButton_Click">
+          <Image Source="/Content/Grabber/Icons/Unpin.png" />
+        </Button>
+
+
+        <Button Name="CancelButton" ToolTip="{x:Static local:Resources.GrabberUI_Cancel}"
+                Style="{DynamicResource ToolBarButtonStyle}" Click="CancelButton_Click">
+          <Image Source="/Content/Grabber/Icons/Cancel.png" />
+        </Button>
       </StackPanel>
-
-      <Button Name="PinButton" ToolTip="{x:Static local:Resources.GrabberUI_Pin}" Style="{DynamicResource ToolBarButtonStyle}" Click="PinButton_Click">
-        <Image Source="/Content/Grabber/Icons/Pin.png" />
-      </Button>
-
-      <Button Name="UnpinButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Unpin}" Style="{DynamicResource ToolBarButtonStyle}" Click="UnpinButton_Click">
-        <Image Source="/Content/Grabber/Icons/Unpin.png" />
-      </Button>
-
-
-      <Button Name="CancelButton" ToolTip="{x:Static local:Resources.GrabberUI_Cancel}" Style="{DynamicResource ToolBarButtonStyle}" Click="CancelButton_Click">
-        <Image Source="/Content/Grabber/Icons/Cancel.png" />
-      </Button>
-    </StackPanel>
+    </Border>
   </Border>
 </Window>

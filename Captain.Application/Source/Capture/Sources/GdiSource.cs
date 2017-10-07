@@ -45,7 +45,7 @@ namespace Captain.Application {
       Gdi32.BitBlt(this.destCtx, 0, 0, Area.Width, Area.Height, this.drawCtx,
         this.windowHandle == IntPtr.Zero ? Area.X : 0,
         this.windowHandle == IntPtr.Zero ? Area.Y : 0,
-        TernaryRasterOperations.SRCCOPY);
+        Gdi32.TernaryRasterOperations.SRCCOPY);
 
       Bitmap bmp = Image.FromHbitmap(this.bitmapHandle);
 

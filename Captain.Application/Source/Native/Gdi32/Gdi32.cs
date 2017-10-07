@@ -7,7 +7,7 @@ namespace Captain.Application.Native {
   /// <summary>
   ///   Exported functions from the gdi32.dll Windows library.
   /// </summary>
-  internal static class Gdi32 {
+  internal static partial class Gdi32 {
     /// <summary>
     ///   The DeleteObject function deletes a logical pen, brush, font, bitmap, region, or palette, freeing all system
     ///   resources associated with the object. After the object is deleted, the specified handle is no longer valid.
@@ -99,5 +99,17 @@ namespace Captain.Application.Native {
     /// </returns>
     [DllImport(nameof(Gdi32))]
     internal static extern IntPtr CreateCompatibleDC([In] IntPtr hDC);
+
+    /// <summary>
+    ///   The GetDeviceCaps function retrieves device-specific information for the specified device.
+    /// </summary>
+    /// <param name="hdc">A handle to the DC.</param>
+    /// <param name="nIndex">The item to be returned.</param>
+    /// <returns>
+    ///   The return value specifies the value of the desired item.
+    ///   When nIndex is BITSPIXEL (12) and the device has 15bpp or 16bpp, the return value is 16.
+    /// </returns>
+    [DllImport(nameof(Gdi32), SetLastError = false)]
+    internal static extern int GetDeviceCaps(IntPtr hdc, DeviceCaps nIndex);
   }
 }

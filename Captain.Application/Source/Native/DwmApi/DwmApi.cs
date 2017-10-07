@@ -7,7 +7,7 @@ namespace Captain.Application.Native {
   /// <summary>
   ///   Exported functions from the dwmapi.dll Windows library.
   /// </summary>
-  internal static class DwmApi {
+  internal static partial class DwmApi {
     /// <summary>
     ///   Retrieves the current value of a specified attribute applied to a window.
     /// </summary>

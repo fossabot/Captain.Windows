@@ -17,7 +17,7 @@ namespace Captain.Application {
     internal static RECT GetWindowBounds(IntPtr handle) {
       // try to use DWM to retrieve the extended window frame bounds - fall back to GetWindowRect on failure
       if (DwmApi.DwmGetWindowAttribute(handle,
-                                       DwmWindowAttribute.DWMWA_EXTENDED_FRAME_BOUNDS,
+                                       DwmApi.DwmWindowAttribute.DWMWA_EXTENDED_FRAME_BOUNDS,
                                        out RECT rect,
                                        Marshal.SizeOf(typeof(RECT))) != 0) {
         Log.WriteLine(LogLevel.Warning, "DwmGetWindowAttribute() failed - falling back to GetWindowRect()");

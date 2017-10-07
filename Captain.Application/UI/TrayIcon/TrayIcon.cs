@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Drawing;
+using System.ComponentModel;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
 
@@ -9,41 +12,31 @@ namespace Captain.Application {
   /// <summary>
   ///   Icon shown on the notification area from which the user can access diverse actions and settings
   /// </summary>
-  /// <remarks>
-  ///   The implementation for this class contains lots of hardcoded values.
-  ///   TODO: Think of a more cleaner solution without adding much abstraction
-  /// </remarks>
   internal class TrayIcon {
     /// <summary>
-    ///   Square size of each indicator icon
+    ///   Renders tray icons
     /// </summary>
-    private const uint IndicatorIconSquare = 16;
+    private readonly IIndicatorRenderer iconRenderer;
 
     /// <summary>
-    ///   Maximum TTL, in milliseconds, for the warning badge
-    ///   Yes I'm being serious on this one
+    ///   Current indicator status
     /// </summary>
-    internal const int WarningBadgeTtl = 10_000;
+    private IndicatorStatus currentStatus;
 
     /// <summary>
-    ///   When true, a looping animation is being played
+    ///   Whether the current indicator is animated or not
     /// </summary>
-    private bool isLoopingAnimationPlaying;
+    private bool isIndicatorAnimated;
 
     /// <summary>
     ///   Animation thread
     /// </summary>
-    private Thread loopingAnimationThread;
+    private Thread indicatorAnimationThread;
 
     /// <summary>
-    ///   Holds the zero-based index of the icon row on the indicator strip
+    ///   Hint circle lets the user know where to start when first opening the application
     /// </summary>
-    private readonly TrayIconVariant iconVariant;
-
-    /// <summary>
-    ///   Contains a cache of all the indicator bitmaps to be used within the tray icon
-    /// </summary>
-    private readonly Icon[] indicators;
+    private readonly TrayIconHintCircle hintCircle;
 
     /// <summary>
     ///   Exposes underlying NotifyIcon
@@ -56,48 +49,45 @@ namespace Captain.Application {
     internal TrayIcon() {
       var contextMenu = new ContextMenu();
       NotifyIcon = new NotifyIcon { ContextMenu = contextMenu };
+      NotifyIcon.MouseDown += (_, __) => this.hintCircle?.Close();
 
       contextMenu.MenuItems.AddRange(new[] {
-        new MenuItem(Resources.AppMenu_Capture,
-                     (_, __) => {
-
-                     }) {
+        new MenuItem(Resources.AppMenu_Capture) {
           DefaultItem = true,
           Visible = true
         },
         new MenuItem("-"),
-        new MenuItem(Resources.AppMenu_Options, (_, __) => {}),  // TODO: implement this
-        new MenuItem(Resources.AppMenu_About),
+        new MenuItem(Resources.AppMenu_Options),
+        new MenuItem(Resources.AppMenu_About, (_, __) => new AboutWindow().Show()),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Exit, (_, __) => Exit())
       });
 
       // get the platform-dependent indicator style variant
-      if (Environment.OSVersion.Version.Major < 6) {
-        this.iconVariant = TrayIconVariant.Classic;
-      } else if (Environment.OSVersion.Version.Major > 6) {
-        this.iconVariant = TrayIconVariant.Modern;
+      if (Environment.OSVersion.Version.Major > 6) {
+        this.iconRenderer = new FluentIndicatorRenderer();
       } else if (Environment.OSVersion.Version.Minor > 2) {
-        this.iconVariant = TrayIconVariant.Metro;
+        throw new NotImplementedException("Icon renderer for Windows 8/8.1");
       } else {
-        this.iconVariant = TrayIconVariant.Aero;
+        throw new NotImplementedException("Icon renderer for Windows Vista/7");
       }
 
-      Log.WriteLine(LogLevel.Debug, $"indicator variant: {this.iconVariant}");
-
-      // allocate array of bitmaps for indicator classes
-      this.indicators = new Icon[14 + (this.iconVariant == TrayIconVariant.Modern
-                                         ? 5
-                                         : this.iconVariant == TrayIconVariant.Aero
-                                           ? 13
-                                           : 0)];
-      Log.WriteLine(LogLevel.Debug, $"created {this.indicators.Length} indicator icons");
-
       // set initial icon
-      SetIcon();
+      SetIndicator(IndicatorStatus.Idle);
 
-      // discover capture providers and display them as sub-menu items
-      //InitializeCaptureMenu();
+      // display the tray icon
+      Show();
+
+      // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
+      if (true) {
+        RECT iconRect = GetIconRect();
+
+        this.hintCircle = new TrayIconHintCircle();
+        this.hintCircle.Show();
+        this.hintCircle.Left = iconRect.left;
+        this.hintCircle.Top = iconRect.top;
+        this.hintCircle.Width = this.hintCircle.Height = Math.Max(iconRect.right - iconRect.left, iconRect.bottom - iconRect.top);
+      }
     }
 
     /// <summary>
@@ -110,29 +100,19 @@ namespace Captain.Application {
     }
 
     /// <summary>
-    ///   Crops a frame from the tray indicator strip bitmap
+    ///   Stops indicator animation
     /// </summary>
-    /// <param name="col">Colummn index</param>
-    /// <param name="row">Row index</param>
-    /// <returns>An Icon with the cropped frame</returns>
-    private static Icon CropIconFrame(uint col, uint row) {
-      var bitmap = new Bitmap((int)IndicatorIconSquare, (int)IndicatorIconSquare);
+    private void StopIndicatorAnimation() {
+      this.isIndicatorAnimated = false;
 
-      using (var graphics = Graphics.FromImage(bitmap)) {
-        var (width, height) = ((int)IndicatorIconSquare, (int)IndicatorIconSquare);
-        var (x, y) = (width * (int)col, height * (int)row);
-
-        graphics.DrawImage(Resources.TrayIconStrip, new Rectangle(0, 0, width, width),
-                           new Rectangle(x, y, width, height), GraphicsUnit.Pixel);
-      }
-
-      return Icon.FromHandle(bitmap.GetHicon());
+      this.indicatorAnimationThread?.Join();
+      this.indicatorAnimationThread = null;
     }
 
     /// <summary>
     ///   Displays the tray icon
     /// </summary>
-    internal void Show() => NotifyIcon.Visible = true;
+    private void Show() => NotifyIcon.Visible = true;
 
     /// <summary>
     ///   Hides the tray icon
@@ -140,99 +120,115 @@ namespace Captain.Application {
     internal void Hide() => NotifyIcon.Visible = false;
 
     /// <summary>
-    ///   Plays a looping animation with the specified icon class
+    ///   Updates the current indicator status/animation frame
     /// </summary>
-    /// <param name="iconClass">Animation icon class</param>
-    internal void PlayLoopingIconAnimation(TrayIconClass iconClass = TrayIconClass.IndeterminateProgress) {
-#if false  /// XXX: possibly dead code?
-      if (this.loopingAnimationThread != null && this.isLoopingAnimationPlaying) {
-        Log.WriteLine(LogLevel.Warning, "you are supposed to call StopLoopingIconAnimation() - do your job!");
-        StopLoopingIconAnimation(iconClass);
+    /// <param name="status">Indicator status</param>
+    internal void SetIndicator(IndicatorStatus status) {
+      if (status != this.currentStatus && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
+      NotifyIcon.Icon = this.iconRenderer.RenderFrame(this.currentStatus = status);
+    }
 
-        this.isLoopingAnimationPlaying = false;  // we want to stop the inner thread loop
-        this.loopingAnimationThread.Join();      // wait for the previous thread to end
-      }
-#endif
+    /// <summary>
+    ///   Animates the indicator with the specified status until another indicator is set
+    /// </summary>
+    /// <param name="status">Indicator status</param>
+    /// <param name="frameTtl">Animation frame lifetime</param>
+    internal void AnimateIndicator(IndicatorStatus status, int frameTtl = 100) {
+      StopIndicatorAnimation();
+      SetIndicator(status);
 
-      this.isLoopingAnimationPlaying = true;
-      this.loopingAnimationThread = new Thread(() => {
-        uint progressValue = 0;
+      this.isIndicatorAnimated = true;
 
-        while (this.isLoopingAnimationPlaying) {
-          SetIcon(iconClass, progressValue = (progressValue + 5) % 100);
-          Thread.Sleep(30);
+      (this.indicatorAnimationThread = new Thread(() => {
+        while (this.isIndicatorAnimated) {
+          Thread.Sleep(frameTtl);
+          SetIndicator(status);
         }
-      });
-      this.loopingAnimationThread.Start();
+      })).Start();
     }
 
     /// <summary>
-    ///   Stops a previously started looping animation
+    ///   Updates the current indicator status for a specified amount of time and then sets back the previous status
     /// </summary>
-    /// <param name="newIconClass">New icon class to be set after the animation stops</param>
-    internal void StopLoopingIconAnimation(TrayIconClass newIconClass = TrayIconClass.Application) {
-#if false  /// XXX: possibly dead code?
-      if (!this.isLoopingAnimationPlaying) {
-        Log.WriteLine(LogLevel.Warning, "tried to stop looping animation when a static indicator is set");
-        return;
-      }
-#endif
+    /// <param name="status">Indicator status</param>
+    /// <param name="ttl">Indicator lifetime</param>
+    internal void SetTimedIndicator(IndicatorStatus status, int ttl = 5_000) {
+      SetIndicator(status);
 
-      this.isLoopingAnimationPlaying = false;  // stop animation
-      this.loopingAnimationThread.Join();      // wait for the thread to terminate
-      SetIcon(newIconClass);                   // bang!
+      new Thread(() => {
+        Thread.Sleep(ttl);
+        SetIndicator(IndicatorStatus.Idle);
+      }).Start();
     }
 
     /// <summary>
-    ///   Sets the current icon
+    ///   Tries to obtain the bounds of the notify icon
     /// </summary>
-    /// <param name="iconClass">Tray icon kind</param>
-    /// <param name="progressValue">
-    ///   Progress value for <see cref="TrayIconClass.DeterminateProgress"/> and
-    ///   <see cref="TrayIconClass.IndeterminateProgress"/>, with a maximum value of <c>100</c>.
-    /// </param>
-    /// <remarks>
-    ///   When <c>iconClass</c> parameter is set to any other value than <see cref="TrayIconClass.Warning"/>,
-    ///   <c>progressValue</c> parameter must be non-null.
-    /// </remarks>
-    internal void SetIcon(TrayIconClass iconClass = TrayIconClass.Application, uint? progressValue = null) {
-      uint index = 0;
-      NotifyIcon.Text = VersionInfo.ProductName;
-
-      switch (iconClass) {
-        case TrayIconClass.Warning:
-          index = 1;
-          break;
-
-        case TrayIconClass.DeterminateProgress:
-          // 0.10 = 11 - 1 progress icons / 100 (maximum progressValue) on modern icon variant
-          // 0.07 = 8 - 1 progress icons / 100 (maximum progressValue) on the rest of variants
-          // ReSharper disable once PossibleInvalidOperationException
-          index = 2 + (uint)Math.Ceiling((this.iconVariant == TrayIconVariant.Modern ? 0.10 : 0.07) *
-                                         (uint)progressValue);
-          NotifyIcon.Text = $@"{VersionInfo.ProductName} ({progressValue}%)";
-          break;
-
-        case TrayIconClass.IndeterminateProgress:
-          // 0.03 = 4 - 1 progress icons / 100 (maximum progressValue) on classic and metro icon variants
-          // 0.17 = 18 - 1 progress icons / 100 (maximum progressValue) on aero icon variants
-          // 0.05 = 6 - 1 progress icons / 100 (maximum progressValue) on modern icon variant
-          // ReSharper disable once PossibleInvalidOperationException
-          index = 1 + (uint)((this.iconVariant == TrayIconVariant.Modern ? 13 : 9) +
-                             Math.Floor((this.iconVariant == TrayIconVariant.Modern
-                                           ? 0.05
-                                           : this.iconVariant == TrayIconVariant.Aero
-                                             ? 0.17
-                                             : 0.03) * (uint)progressValue));
-          break;
+    /// <returns>A <see cref="RECT"/> structure containing the notify icon rectangle</returns>
+    /// <exception cref="InvalidOperationException">Thrown when some data could not be retrieved</exception>
+    /// <exception cref="Win32Exception">Thrown when the shell fails to obtain the notify icon rectangle</exception>
+    private RECT GetIconRect() {
+      /* get notify icon handle */
+      // get "window" field
+      FieldInfo windowField = typeof(NotifyIcon).GetField("window", BindingFlags.NonPublic | BindingFlags.Instance);
+      if (windowField == null) {
+        throw new InvalidOperationException("Could not retrieve window field for NotifyIcon");
       }
 
-      if (this.indicators[index] == null) {
-        // not in cache (yet)
-        this.indicators[index] = CropIconFrame(index, (uint)this.iconVariant);
+      // get native window instance
+      var window = windowField.GetValue(NotifyIcon) as NativeWindow;
+      if (window == null) {
+        throw new InvalidOperationException("Could not retrieve native window instance for NotifyIcon");
       }
 
-      NotifyIcon.Icon = this.indicators[index];
+      /* get notify icon ID */
+      // get "id" field
+      FieldInfo idField = typeof(NotifyIcon).GetField("id", BindingFlags.NonPublic | BindingFlags.Instance);
+      if (idField == null) {
+        throw new InvalidOperationException("Could not retrieve ID field for NotifyIcon");
+      }
+
+      // create notify icon identifier structure
+      var notifyIconId = new NOTIFYICONIDENTIFIER {
+        cbSize = Marshal.SizeOf(typeof(NOTIFYICONIDENTIFIER)),
+        hWnd = window.Handle,
+        uID = (int)idField.GetValue(NotifyIcon)
+      };
+
+      int result = Shell32.NotifyIconGetRect(ref notifyIconId, out RECT rect);
+      if (result == 0) {
+        if (rect.bottom == Screen.PrimaryScreen.Bounds.Height) {
+          // HACK: tray area is only displayed on the primary screen - if the icon is NOT on the fly-out window then
+          //       substract 8px so the hint circle fits perfectly
+          rect.left -= 8;
+        }
+
+        return rect;
+      }
+
+      if (result == 1) {
+        // perhaps the icon is hidden in the tray fly-out - we want to find that lil' son of a beach
+        IntPtr trayWindowHandle = User32.FindWindow("Shell_TrayWnd");
+
+        if (trayWindowHandle != IntPtr.Zero) {
+          IntPtr trayNotifyWindowHandle = User32.FindWindowEx(trayWindowHandle, lpszClass: "TrayNotifyWnd");
+
+          if (trayNotifyWindowHandle != IntPtr.Zero) {
+            // we found it, try to find the show/hide icons button
+            IntPtr notifyFlyOutButtonHandle = User32.FindWindowEx(trayNotifyWindowHandle, lpszClass: "Button");
+
+            if (notifyFlyOutButtonHandle != IntPtr.Zero &&
+                User32.GetWindowRect(notifyFlyOutButtonHandle, out RECT flyOutRect)) {
+              // got it!
+              flyOutRect.left -= 8;
+              return flyOutRect;
+            }
+          }
+        }
+      }
+
+      // something went wrong
+      throw new Win32Exception(result);
     }
   }
 }

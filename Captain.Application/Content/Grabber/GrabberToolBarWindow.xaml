@@ -12,9 +12,9 @@
                   BorderThickness="1"
                   MinWidth="24"
                   Background="Transparent"
-                  CornerRadius="24"
+                  CornerRadius="4"
                   Padding="4" 
-                  Margin="4,0,4,0">
+                  Margin="0">
             <Border.Triggers>
               <EventTrigger RoutedEvent="Ellipse.Loaded">
                 <!-- "fade" continuously between blue-indigo tones -->
@@ -58,15 +58,15 @@
           <Border MinHeight="24"
                   MinWidth="24"
                   Background="Transparent"
-                  CornerRadius="24"
+                  CornerRadius="4"
                   Padding="8"
-                  Margin="4,0,4,0">
+                  Margin="0">
             <!-- display button content -->
             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                               RecognizesAccessKey="True"
                               SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
-                              Opacity="0.5" />
+                              Opacity="0.5"/>
 
             <!-- event triggers -->
             <Border.Triggers>

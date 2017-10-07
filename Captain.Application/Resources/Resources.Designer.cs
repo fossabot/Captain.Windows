@@ -79,6 +79,16 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap AeroIndicatorStrip {
+            get {
+                object obj = ResourceManager.GetObject("AeroIndicatorStrip", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         public static System.Drawing.Icon AppIcon {
@@ -130,6 +140,16 @@ namespace Captain.Application {
         public static string CapturesFolderName {
             get {
                 return ResourceManager.GetString("CapturesFolderName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap FluentIndicatorStrip {
+            get {
+                object obj = ResourceManager.GetObject("FluentIndicatorStrip", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -256,6 +276,16 @@ namespace Captain.Application {
         public static string GrabberUI_Unpin {
             get {
                 return ResourceManager.GetString("GrabberUI_Unpin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap Logo {
+            get {
+                object obj = ResourceManager.GetObject("Logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -400,16 +430,6 @@ namespace Captain.Application {
         public static string Toast_ViewResultsActionText {
             get {
                 return ResourceManager.GetString("Toast_ViewResultsActionText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        public static System.Drawing.Bitmap TrayIconStrip {
-            get {
-                object obj = ResourceManager.GetObject("TrayIconStrip", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

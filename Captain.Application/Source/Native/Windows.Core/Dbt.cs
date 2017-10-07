@@ -1,4 +1,5 @@
 ﻿// ReSharper disable All
+
 namespace Captain.Application.Native {
   internal static class Dbt {
     /// <summary>

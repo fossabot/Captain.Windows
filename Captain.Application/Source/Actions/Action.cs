@@ -125,15 +125,15 @@ namespace Captain.Application {
       if (intent.ActionType == ActionType.Screenshot) {
         try {
           if (Activator.CreateInstance(StaticEncoder.Type) as IStaticEncoder is IStaticEncoder encoder) {
-            Application.TrayIcon.PlayLoopingIconAnimation();
+            Application.TrayIcon.AnimateIndicator(IndicatorStatus.Progress);
 
             this.captureHelper.WindowHandle = intent.WindowHandle;
             this.boundGrabber.Hide();
 
             // perform screen capture
             Bitmap bmp = intent.WindowHandle == IntPtr.Zero
-              ? this.captureHelper.CaptureFromScreen(intent.VirtualArea)
-              : this.captureHelper.CaptureFromScreen();
+                           ? this.captureHelper.CaptureFromScreen(intent.VirtualArea)
+                           : this.captureHelper.CaptureFromScreen();
 
             // TODO: remove this HACK!
             this.captureHelper.Dispose();
@@ -143,8 +143,6 @@ namespace Captain.Application {
 
             // get number of failed tasks
             int failedCount = results.Count(r => r is UnsuccessfulCaptureResult);
-            Application.TrayIcon.StopLoopingIconAnimation();
-
             Uri previewUri = null;
 
             try {
@@ -198,6 +196,7 @@ namespace Captain.Application {
               throw exception;
             } else if (failedCount > 0) {
               /* some failed, some not */
+              Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
               ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
                                        Resources.Toast_StaticDonePartialSuccessContent,
                                        Resources.Toast_StaticDonePartialSuccessSubtext,
@@ -230,6 +229,7 @@ namespace Captain.Application {
                                        });
             } else {
               // everything worked! Fireworks! Green lights! Yay I'm so sick of handling errors
+              Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
               ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
                                        Resources.Toast_StaticDoneContent,
                                        results.Any() ? Resources.Toast_StaticDoneDetailsSubtext : null,
@@ -244,6 +244,8 @@ namespace Captain.Application {
           }
         } catch (Exception exception) {
           Log.WriteLine(LogLevel.Error, $"capture/encode error: {exception}");
+
+          Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
           DisplayErrorToast(exception.Data["caption"] as string ?? Resources.Toast_CaptureFailedCaption,
                             exception.Data["content"] as string ?? Resources.Toast_CaptureFailedContent,
 
@@ -323,7 +325,7 @@ namespace Captain.Application {
       var failed = new List<(PluginObject OutputStream, Exception Exception)>();
 
       // initialize the rest of streams
-      var streamInstances = streams.Select(o => {
+      var streamInstances = new List<Stream>(streams.Select(o => {
         try {
           // create uninitialized stream instance
           var stream = FormatterServices.GetUninitializedObject(o.Type) as Stream;
@@ -340,9 +342,7 @@ namespace Captain.Application {
           failed.Add((o, targetInvocationException.InnerException));
           return null;
         }
-      })
-                                   .Where(s => s != null)
-                                   .ToList();
+      }));
 
       // hold on! were we fucked?
       if (!isMasterReadable) {
@@ -352,7 +352,7 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Warning, "fell back to MemoryStream due a non-readable master stream");
       }
 
-      return (masterStream, streamInstances, failed);
+      return (masterStream, streamInstances.Where(s => s != null), failed);
     }
 
     /// <summary>
@@ -376,61 +376,73 @@ namespace Captain.Application {
       var results = new List<CaptureResult>();
 
       // ArrangeOutputStrams() may have omitted one or more streams due to initialization exceptions.
-      // In this case, the failed output streams are contained, alongside the respective exceptions, in the `Failed` member of the tuple.
-      // So let's create UnsuccessfulCaptureResult's for each failed one, for we want the user to acknowledge this errors
+      // In this case, the failed output streams are contained, alongside the respective exceptions, in the `Failed`
+      // member of the tuple. So let's create UnsuccessfulCaptureResult's for each failed one, for we want the user to
+      // acknowledge this errors
       results.AddRange(streams.Failed.ToList().Select(fs => new UnsuccessfulCaptureResult(fs.Exception)));
 
-      // XXX: if IStaticEncoder.Encode() fails, an exception is thrown instead of pushing an unsuccessful CaptureResult.
-      //      We have no way to determine whether the exception was an encoder exception or an error while writing to the
-      //      master stream, or do we? Think 'bout this later
+      // XXX: if IStaticEncoder.Encode() fails, an exception is thrown instead of pushing an unsuccessful CaptureResult
+      //      We have no way to determine whether the exception was an encoder exception or an error while writing to
+      //      the master stream, or do we? Think 'bout this later
+      // TODO: wrap this line around a try-catch block and the underlying exception under some sort of EncoderException
+      Log.WriteLine(LogLevel.Verbose, "encoding static capture");
       encoder.Encode(bmp, streams.MasterStream);
 
       // take every output stream instance
+      var threads = new List<Thread>(streams.OutputStreams.Select(s => {
+        var thread = new Thread(() => {
+          // copy the data from the master stream
+          try {
+            // ReSharper disable AccessToDisposedClosure
+            // although MasterStream is disposed below, it is guaranteed to never be disposed at this point,
+            // for we block the calling thread while waiting for all threads to end
+            streams.MasterStream.Position = 0; // we need to reset position on the master stream
+            streams.MasterStream.CopyTo(s); // Stream.CopyTo() reads the source stream to end
+          } catch (Exception exception) {
+            Log.WriteLine(LogLevel.Error, $"error copying to stream {s}: {exception}");
+            results.Add(new UnsuccessfulCaptureResult(exception));
+            return;
+          }
 
-      var threads = streams.OutputStreams.Select(s => new Thread(() => {
-        // copy the data from the master stream
+          // commit and receive CaptureResult, then release stream
+          if (((IOutputStream)s).Commit() is CaptureResult result) {
+            results.Add(result);
+          }
 
-        try {
-          // ReSharper disable AccessToDisposedClosure
-          // although MasterStream is disposed below, it is guaranteed to never be disposed at this point,
-          // for we block the calling thread while waiting for all threads to end
-          streams.MasterStream.Position = 0; // we need to reset position on the master stream
-          streams.MasterStream.CopyTo(s); // Stream.CopyTo() reads the source stream to end
-        } catch (Exception exception) {
-          Log.WriteLine(LogLevel.Error,
-                        $"error copying to stream of type {s.GetType()}: {exception}");
-          results.Add(new UnsuccessfulCaptureResult(exception));
-          return;
+          s.Dispose();
+        });
+
+        // some streams may require certain apartment state in order to work - change the thread apartment state here
+        object[] attributes = s.GetType().GetCustomAttributes(typeof(ThreadApartmentState), true);
+        if (attributes.Length > 0) {
+          // apartment state attribute is present
+          var state = (ThreadApartmentState)attributes.First(); // only one attribute is allowed so this is safe
+
+          // only STA/MTA apartment states can be set
+          if (state.ApartmentState != ApartmentState.Unknown) {
+            // set thread apartment state
+            if (thread.TrySetApartmentState(state.ApartmentState)) {
+              Log.WriteLine(LogLevel.Debug, $"set apartment state of {s} to {state.ApartmentState}");
+            } else {
+              Log.WriteLine(LogLevel.Warning, $"could not set apartment state of {s} to {state.ApartmentState}");
+            }
+          }
         }
 
-        // commit and receive CaptureResult, then release stream
-        if (((IOutputStream)s).Commit() is CaptureResult result) {
-          results.Add(result);
-        }
-
-        s.Dispose();
-      }))
-                           .ToList();
+        return thread;
+      }));
 
       // start all the threads at the same time
-      threads.ForEach(t => {
-        // HACK: OK let's be honest on this one. Core Captain functionality requires this because I'm using some
-        //       Windows Forms Clipboard functions on the built-in plugin 
-        //       (see /Captain.Plugins.BuiltIn/OutputStreams/ClipboardOutputStream.cpp). Ideally we'd look for an STA 
-        //       thread attribute on the output stream class or the implementation could create a new STA thread for
-        //       doing whatever they have to. But this Just Works (TM)
-        t.TrySetApartmentState(ApartmentState.STA);
-        t.Start();
-      });
+      threads.ForEach(t => t.Start());
 
       // now wait for every single one to finish
       threads.ForEach(t => t.Join());
 
       // release master
       try {
-        // XXX: beware, unwise homunculi! MasterStream is the only one that just *may* not implement IOutputStream.
-        //      In the remote case everything blew up, forcing us to fall back to a MemoryStream, a direct cast to
-        //      IOutputStream would fail
+        // NOTE: beware, unwise homunculi! MasterStream is the only one that just *may* not implement IOutputStream.
+        //       In the remote case everything blew up, forcing us to fall back to a MemoryStream, a direct cast to
+        //       IOutputStream would fail
         if (streams.MasterStream is IOutputStream masterStream && masterStream.Commit() is CaptureResult masterResult) {
           results.Add(masterResult);
         }
@@ -450,43 +462,26 @@ namespace Captain.Application {
     /// <param name="caption">Instruction text</param>
     /// <param name="body">Dialog body</param>
     /// <param name="exceptions">Exception list</param>
-    private void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions) {
-      if (TaskDialog.IsPlatformSupported) {
-        var dialog = new TaskDialog {
-          Caption = VersionInfo.ProductName,
-          InstructionText = caption,
-          Text = body,
-          StandardButtons = TaskDialogStandardButtons.Close,
+    private static void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions) {
+      var dialog = new TaskDialog {
+        Caption = VersionInfo.ProductName,
+        InstructionText = caption,
+        Text = body,
+        StandardButtons = TaskDialogStandardButtons.Close,
 
-          ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandFooter,
-          DetailsExpanded = false,
-          DetailsExpandedLabel = Resources.GenericActionErrorDialog_HideDetails,
-          DetailsCollapsedLabel = Resources.GenericActionErrorDialog_ShowDetails,
-          DetailsExpandedText = String.Join(Environment.NewLine, exceptions.Select(e => e.Message))
-        };
+        ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandFooter,
+        DetailsExpanded = false,
+        DetailsExpandedLabel = Resources.GenericActionErrorDialog_HideDetails,
+        DetailsCollapsedLabel = Resources.GenericActionErrorDialog_ShowDetails,
+        DetailsExpandedText = String.Join(Environment.NewLine, exceptions.Select(e => e.Message))
+      };
 
-        dialog.Opened += (sender, eventArgs) =>
-            // ReSharper disable once AccessToDisposedClosure
-            // HACK: setting Icon property before the dialog is open has no effect
-            dialog.Icon = TaskDialogStandardIcon.Warning;
+      // NOTE: setting the Icon property before the TaskDialog has been open has no effect
+      dialog.Opened += (_, __) => dialog.Icon = TaskDialogStandardIcon.Warning;
 
-        // remove warning badge by setting the original indicator back
-        dialog.Closing += (sender, eventArgs) => Application.TrayIcon.SetIcon();
-        dialog.Show();
-      } else {
-        // TaskDialog is not supported by the current platform
-        Log.WriteLine(LogLevel.Warning, "falling back to MessageBox");
-        MessageBox.Show(caption +
-                        Environment.NewLine +
-                        body +
-                        Environment.NewLine +
-                        Environment.NewLine +
-                        String.Join(Environment.NewLine, exceptions.Select(e => e.Message)),
-                        VersionInfo.ProductName,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-        Application.TrayIcon.SetIcon();
-      }
+      // reset indicator
+      dialog.Closing += (_, __) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
+      dialog.Show();
     }
 
     /// <summary>
@@ -495,24 +490,13 @@ namespace Captain.Application {
     /// <param name="caption">Toast title</param>
     /// <param name="body">Toast content</param>
     /// <param name="exceptions">Underlying exceptions</param>
-    private void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) {
-      Application.TrayIcon.StopLoopingIconAnimation();
-      Application.TrayIcon.SetIcon(TrayIconClass.Warning);
-
-      new Thread(() => {
-        // oh c'mon dude! are you really doing this?
-        Thread.Sleep(TrayIcon.WarningBadgeTtl);
-
-        // reset the icon after a timeout, just in case our previous handlers don't get called
-        Application.TrayIcon.SetIcon();
-      }).Start();
-
+    private static void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) =>
       LegacyNotificationProvider.PushMessage(caption,
                                              body,
                                              ToolTipIcon.Warning,
                                              handler: (_, __) => DisplayErrorDialog(caption, body, exceptions),
-                                             closeHandler: (_, __) => Application.TrayIcon.SetIcon());
-    }
+                                             closeHandler: (_, __) =>
+                                               Application.TrayIcon.SetIndicator(IndicatorStatus.Idle));
 
     /// <summary>
     ///   Displays a dialog containing all the result information for each output stream

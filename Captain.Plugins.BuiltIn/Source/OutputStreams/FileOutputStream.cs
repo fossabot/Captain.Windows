@@ -12,7 +12,6 @@ namespace Captain.Plugins.BuiltIn {
 
     /// <summary>
     ///   Encoder information passed to this output stream
-    ///   HACK
     /// </summary>
     private static EncoderInfo encoderInfo;
 
@@ -20,7 +19,6 @@ namespace Captain.Plugins.BuiltIn {
     ///   Encoder information passed to this output stream
     /// </summary>
     public EncoderInfo EncoderInfo {
-      // HACK
       get => encoderInfo;
       set => encoderInfo = value;
     }
@@ -32,19 +30,21 @@ namespace Captain.Plugins.BuiltIn {
     /// <returns>A file name</returns>
     private static string GetFileName(string extension) =>
       Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                   DateTime.Now.ToString("dd-MM-yyyy hh.mm.ss.") + extension);
+                   DateTime.Now.ToString("dd-MM-yyyy HH.mm.ss.") + extension);
 
     /// <summary>
     ///   Dummy parameterless constructor
-    ///   HACK
     /// </summary>
     // ReSharper disable once UnusedMember.Global
     public FileOutputStream() : this(GetFileName(encoderInfo.Extension)) { }
 
     /// <summary>
     ///   Actual class constructor
-    ///   NOTE: Always allow IOutputStreams to be read from if you want them to be selected as master streams
     /// </summary>
+    /// <remarks>
+    ///   Always allow streams implementing <see cref="IOutputStream"/> to be read from so they can be selected as
+    ///   master stream
+    /// </remarks>
     private FileOutputStream(string fileName) : base(fileName, FileMode.CreateNew, FileAccess.ReadWrite) =>
       this.fileName = fileName;
 
@@ -53,8 +53,6 @@ namespace Captain.Plugins.BuiltIn {
     /// </summary>
     /// <returns>A <see cref="CaptureResult"/> instance containing result information</returns>
     public CaptureResult Commit() {
-      Flush();
-
       var result = new CaptureResult {
         ToastTitle = "Capture saved!",
         ToastContent = "The file has been saved to your Captures folder.",

@@ -120,7 +120,6 @@ namespace Captain.Application {
       doc.LoadXml(content.GetContent());
 
       var notification = new ToastNotification(doc) {
-        Priority = ToastNotificationPriority.High,
         SuppressPopup = false
       };
 

@@ -95,16 +95,22 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="LICENSE.md" />
     <None Include="packages.config" />
-    <None Include="Properties\app.manifest" />
+    <None Include="Properties\app.manifest">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="README.md" />
     <None Include="Source\Native\README.md" />
+    <None Include="UI\Controls\LinkLabel2\LICENSE.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <None Include="Resources\Logo.png" />
     <Resource Include="Content\Grabber\Icons\Cancel.png" />
     <Resource Include="Content\Grabber\Icons\Pin.png" />
     <Resource Include="Content\Grabber\Icons\Unpin.png" />
@@ -127,8 +133,9 @@
     <Content Include="EasyHook64Svc.exe" />
     <Content Include="EasyLoad32.dll" />
     <Content Include="EasyLoad64.dll" />
+    <None Include="Resources\AeroIndicatorStrip.png" />
     <Content Include="Resources\AppIcon.ico" />
-    <Content Include="Resources\TrayIconStrip.png" />
+    <None Include="Resources\FluentIndicatorStrip.png" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -148,17 +155,20 @@
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
     <Compile Include="Source\DisplayHelper.cs" />
     <Compile Include="Source\InjectionHelper.cs" />
-    <Compile Include="Source\Native\Cyanogen\Capture.cs" />
-    <Compile Include="Source\Native\Cyanogen\Display.cs" />
-    <Compile Include="Source\Native\Cyanogen\Process.cs" />
-    <Compile Include="Source\Native\Cyanogen\Shell.cs" />
-    <Compile Include="Source\Native\Cyanogen\WINATTACHINFO.cs" />
-    <Compile Include="Source\Native\Cyanogen\WindowMessages.cs" />
+    <Compile Include="Source\Native\Capture.cs" />
+    <Compile Include="Source\Native\Display.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
+    <Compile Include="Source\Native\Gdi32\DeviceCaps.cs" />
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
     <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
+    <Compile Include="Source\Native\Process.cs" />
+    <Compile Include="Source\Native\Shell.cs" />
+    <Compile Include="Source\Native\Shell32\NOTIFYICONIDENTIFIER.cs" />
+    <Compile Include="Source\Native\Shell32\Shell32.cs" />
     <Compile Include="Source\Native\User32\COPYDATASTRUCT.cs" />
+    <Compile Include="Source\Native\WINATTACHINFO.cs" />
+    <Compile Include="Source\Native\WindowMessages.cs" />
     <Compile Include="Source\Native\Windows.Core\Dbt.cs" />
     <Compile Include="Source\Native\Windows.Core\POINT.cs" />
     <Compile Include="Source\Native\Windows.Core\RECT.cs" />
@@ -174,6 +184,18 @@
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="Source\WindowHelper.cs" />
+    <Compile Include="UI\TrayIcon\TrayIconHintCircle.xaml.cs">
+      <DependentUpon>TrayIconHintCircle.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\About\AboutWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\About\AboutWindow.Designer.cs">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Controls\LinkLabel2\LinkLabel2.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UI\Grabber\Grabber.cs" />
     <Compile Include="UI\Grabber\GrabberIntentType.cs" />
     <Compile Include="UI\Grabber\GrabberToolBarWindow.xaml.cs">
@@ -185,15 +207,19 @@
     <Compile Include="UI\Notifications\IToastProvider.cs" />
     <Compile Include="UI\Notifications\LegacyNotificationProvider.cs" />
     <Compile Include="UI\Notifications\ToastNotificationProvider.cs" />
+    <Compile Include="UI\TrayIcon\Renderers\FluentIndicatorRenderer.cs" />
+    <Compile Include="UI\TrayIcon\Renderers\IIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\TrayIcon.cs" />
-    <Compile Include="UI\TrayIcon\TrayIconClass.cs" />
-    <Compile Include="UI\TrayIcon\TrayIconVariant.cs" />
+    <Compile Include="UI\TrayIcon\IndicatorStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Captain.Application</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\About\AboutWindow.resx">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -204,6 +230,10 @@
     <Page Include="Content\Grabber\GrabberWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TrayIcon\TrayIconHintCircle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Grabber\GrabberToolBarWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -232,20 +262,12 @@
     <Reference Include="SharpDX.Direct3D11, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.Direct3D11.4.0.1\lib\net45\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.Direct3D9, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Direct3D9.4.0.1\lib\net45\SharpDX.Direct3D9.dll</HintPath>
-    </Reference>
     <Reference Include="SharpDX.DXGI, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.DXGI.4.0.1\lib\net45\SharpDX.DXGI.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.Mathematics, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Mathematics.4.0.1\lib\net45\SharpDX.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.MediaFoundation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.MediaFoundation.4.0.1\lib\net45\SharpDX.MediaFoundation.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities.Presentation" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -277,6 +299,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

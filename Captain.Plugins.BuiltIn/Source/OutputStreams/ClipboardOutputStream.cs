@@ -1,10 +1,11 @@
 ﻿using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 using Captain.Common;
 
 namespace Captain.Plugins.BuiltIn {
-  [DisplayName("Copy to clipboard")]
+  [DisplayName("Copy to clipboard"), ThreadApartmentState(ApartmentState.STA)]
   public class ClipboardOutputStream : MemoryStream, IOutputStream {
     /// <summary>
     ///   Encoder information passed to this output stream
@@ -26,7 +27,6 @@ namespace Captain.Plugins.BuiltIn {
     /// </summary>
     /// <returns>A <see cref="CaptureResult"/> instance containing result information</returns>
     public CaptureResult Commit() {
-      Flush();
       Clipboard.SetImage(Image.FromStream(this));
 
       var result = new CaptureResult {

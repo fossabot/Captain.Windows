@@ -15,6 +15,11 @@ namespace Captain.Application {
   /// </summary>
   internal class Grabber : IDisposable {
     /// <summary>
+    ///   Currently instantiated Grabber instance
+    /// </summary>
+    private static Grabber singleton;
+
+    /// <summary>
     ///   Grabber window (displays the area rectangle)
     /// </summary>
     private GrabberWindow window;
@@ -23,6 +28,11 @@ namespace Captain.Application {
     ///   Original grabber window bounds
     /// </summary>
     private Rectangle originalBounds;
+
+    /// <summary>
+    ///   Whether this Grabber instance is disposed or not
+    /// </summary>
+    private bool IsDisposed { get; set; }
 
     /// <summary>
     ///   Holds the currently attached window handle
@@ -46,10 +56,22 @@ namespace Captain.Application {
     internal event IntentReceivedHandler OnIntentReceived;
 
     /// <summary>
+    ///   Creates a <see cref="Grabber"/> instance
+    /// </summary>
+    /// <param name="acceptableActionTypes">Acceptable action types</param>
+    internal static Grabber Create(ActionType acceptableActionTypes) {
+      if (singleton != null && !singleton.IsDisposed) {
+        return singleton;
+      }
+
+      return singleton = new Grabber(acceptableActionTypes);
+    }
+
+    /// <summary>
     ///   Creates a new <see cref="Grabber"/> instance
     /// </summary>
     /// <param name="acceptableActionTypes">Acceptable action types</param>
-    internal Grabber(ActionType acceptableActionTypes) {
+    private Grabber(ActionType acceptableActionTypes) {
       this.window = new GrabberWindow(this);
       ToolBar = new GrabberToolBarWindow(acceptableActionTypes);
 
@@ -61,23 +83,31 @@ namespace Captain.Application {
       ToolBar.OnCaptureActionInitiated += OnCaptureActionInitiated;
       ToolBar.OnGrabberIntentReceived += OnGrabberIntentReceived;
 
-      this.window.Closed += (_, __) => Dispose();
-      ToolBar.Closed += (_, __) => Dispose();
+      this.window.Closed += OnWindowClosed;
+      ToolBar.Closed += OnWindowClosed;
     }
+
+    /// <summary>
+    ///   Triggered whenever the grabber UI window or the toolbar window are closed
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event args</param>
+    private void OnWindowClosed(object sender, EventArgs eventArgs) => Dispose();
 
     /// <summary>
     ///   Disposes resources used by the grabber interface
     /// </summary>
     public void Dispose() {
-      try {
-        this.window.Close();
-        ToolBar.Close();
-      } catch {
-        // one of them was already closed - don't worry babe'
-      }
+      this.window.Closed -= OnWindowClosed;
+      ToolBar.Closed -= OnWindowClosed;
+
+      this.window.Close();
+      ToolBar.Close();
 
       this.window = null;
       ToolBar = null;
+
+      IsDisposed = true;
     }
 
     /// <summary>
@@ -119,7 +149,7 @@ namespace Captain.Application {
             OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow, null);
           }
 
-          this.window.Close();
+          Dispose();
           break;
 
         case GrabberIntentType.AttachToWindow:
@@ -201,6 +231,7 @@ namespace Captain.Application {
 
           // create attachment information struct
           var attachInfo = new WINATTACHINFO {
+            bD3DPresent = Process.FindModule(pid, "d3d"),
             rcOrgTargetBounds = rect,
             uiGrabberHandle = (uint)this.window.Handle,
             uiToolbarHandle = (uint)ToolBar.Handle,
@@ -217,7 +248,7 @@ namespace Captain.Application {
             Log.WriteLine(LogLevel.Debug, "no need to inject library");
 
             try {
-              var copydata = new COPYDATASTRUCT {
+              var copydata = new User32.COPYDATASTRUCT {
                 dwData = new IntPtr(WindowMessages.WM_COPYDATA_CAPNSIG),
                 cbData = new IntPtr(Marshal.SizeOf(attachInfo)),
                 lpData = attachInfoPtr
@@ -253,10 +284,12 @@ namespace Captain.Application {
 
           // adjust window to target bounds
           this.window.Area = new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+          this.window.UpdatePosition(rootHandle);
           this.window.CanBeResized = false;
           this.window.Hide();
 
           ToolBar.SetWindowAttachmentStatus(true);
+
           break;
 
         case GrabberIntentType.DetachFromWindow:
@@ -278,6 +311,7 @@ namespace Captain.Application {
           this.window.Width = this.originalBounds.Width;
           this.window.Height = this.originalBounds.Height;
           this.window.Show();
+          this.window.UpdatePosition();
 
           // TODO: if this is a recording CanBeResized must be set to false!
           this.window.CanBeResized = true;

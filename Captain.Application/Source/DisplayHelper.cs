@@ -1,6 +1,8 @@
-﻿using SharpDX.DXGI;
+﻿using System;
+using SharpDX.DXGI;
 using System.Collections.Generic;
 using System.Drawing;
+using Captain.Application.Native;
 
 namespace Captain.Application {
   /// <summary>
@@ -80,6 +82,26 @@ namespace Captain.Application {
       }
 
       return triples.ToArray();
+    }
+
+    /// <summary>
+    ///   Gets the DPI value for the default display or the screen containing the specified window
+    /// </summary>
+    /// <param name="hwnd">Optionally specify a window handle</param>
+    /// <returns>A float value containing the screen DPI</returns>
+    internal static float GetScreenDpi(IntPtr? hwnd = null) {
+      try {
+        // return system DPI/DPI for the specified window
+        return hwnd.HasValue ? User32.GetDpiForWindow(hwnd.Value) : User32.GetDpiForSystem();
+      } catch (EntryPointNotFoundException) {
+        // unsupported platform
+        IntPtr hdc = User32.GetDC(hwnd ?? IntPtr.Zero);
+
+        int virtualWidth = Gdi32.GetDeviceCaps(hdc, Gdi32.DeviceCaps.HORZRES);
+        int physicalWidth = Gdi32.GetDeviceCaps(hdc, Gdi32.DeviceCaps.DESKTOPHORZRES);
+
+        return 96.0f * virtualWidth / physicalWidth;
+      }
     }
   }
 }

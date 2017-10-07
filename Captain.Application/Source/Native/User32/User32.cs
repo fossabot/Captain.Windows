@@ -2,12 +2,48 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Windows.UI.Composition.Interactions;
 
 namespace Captain.Application.Native {
   /// <summary>
   ///   Exported functions from the user32.dll Windows library.
   /// </summary>
-  internal static class User32 {
+  internal static partial class User32 {
+    internal enum SystemResources {
+      /// <summary>
+      ///   Hand cursor
+      /// </summary>
+      IDC_HAND = 32649
+    }
+
+    internal enum HitTestValues {
+      /// <summary>
+      ///   In a window currently covered by another window in the same thread (the message will be sent to underlying
+      ///   windows in the same thread until one of them returns a code that is not HTTRANSPARENT).
+      /// </summary>
+      HTTRANSPARENT = -1
+    }
+
+    [Flags]
+    internal enum SetWindowPosFlags {
+      /// <summary>
+      ///   Retains the current size (ignores the cx and cy parameters).
+      /// </summary>
+      SWP_NOSIZE = 0x0001,
+
+      /// <summary>
+      ///   Retains the current position (ignores X and Y parameters).
+      /// </summary>
+      SWP_NOMOVE = 0x0002,
+
+      /// <summary>
+      ///   Does not activate the window. If this flag is not set, the window is activated and moved to the top of
+      ///   either the topmost or non-topmost group (depending on the setting of the hwndInsertAfter member).
+      /// </summary>
+      SWP_NOACTIVATE = 0x0010
+    }
+
+    #region Windows
     #region Window styles
 
     /// <summary>
@@ -16,6 +52,16 @@ namespace Captain.Application.Native {
     /// </summary>
     [Flags]
     internal enum WindowStyles {
+      /// <summary>
+      ///   The window is a control that can receive the keyboard focus when the user presses the TAB
+      ///   key. Pressing the TAB key changes the keyboard focus to the next control with the
+      ///   WS_TABSTOP style. You can turn this style on and off to change dialog box navigation. To
+      ///   change this style after a window has been created, use the SetWindowLong function. For
+      ///   user-created windows and modeless dialogs to work with tab stops, alter the message loop
+      ///   to call the IsDialogMessage function.
+      /// </summary>
+      WS_TABSTOP = 0x10000,
+
       /// <summary>
       ///   The window has a maximize button. Cannot be combined with the WS_EX_CONTEXTHELP style.
       ///   The WS_SYSMENU style must also be specified.
@@ -41,9 +87,21 @@ namespace Captain.Application.Native {
       WS_CLIPCHILDREN = 0x2000000,
 
       /// <summary>
+      ///   The window is initially visible. This style can be turned on and off by using the
+      ///   ShowWindow or SetWindowPos function.
+      /// </summary>
+      WS_VISIBLE = 0x10000000,
+
+      /// <summary>
       ///   The window is initially minimized.
       /// </summary>
-      WS_MINIMIZE = 0x20000000
+      WS_MINIMIZE = 0x20000000,
+
+      /// <summary>
+      ///   The window is a child window. A window with this style cannot have a menu bar. This style
+      ///   cannot be used with the WS_POPUP style.
+      /// </summary>
+      WS_CHILD = 0x40000000
     }
 
     [Flags]
@@ -70,11 +128,16 @@ namespace Captain.Application.Native {
     #region Window procedures/messages
 
     /// <summary>
-    /// Windows Messages
-    /// Defined in winuser.h from Windows SDK v6.1
-    /// Documentation pulled from MSDN.
+    ///   Windows Messages
+    ///   Defined in winuser.h from Windows SDK v6.1
+    ///   Documentation pulled from MSDN.
     /// </summary>
     internal enum WindowMessage : int {
+      /// <summary>
+      ///   Sent to a window if the mouse causes the cursor to move within a window and mouse input is not captured.
+      /// </summary>
+      WM_SETCURSOR = 0x0020,
+
       /// <summary>
       ///   The WM_WINDOWPOSCHANGING message is sent to a window whose size, position, or place in the Z order is about
       ///   to change as a result of a call to the SetWindowPos function or another window-management function.
@@ -96,6 +159,11 @@ namespace Captain.Application.Native {
       ///   Notifies an application of a change to the hardware configuration of a device or the computer.
       /// </summary>
       WM_DEVICECHANGE = 0x0219,
+
+      /// <summary>
+      ///   Sent when the effective dots per inch (dpi) for a window has changed.
+      /// </summary>
+      WM_DPICHANGED = 0x02E0,
 
       /// <summary>
       ///   The WM_APP constant is used by applications to help define private messages, usually of the form WM_APP+X,
@@ -136,6 +204,7 @@ namespace Captain.Application.Native {
     /// </returns>
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern IntPtr SendMessage(IntPtr hWnd, uint uiMsg, IntPtr wParam, IntPtr lParam);
+
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern IntPtr SendMessage(IntPtr hWnd,
                                               uint uiMsg,
@@ -242,33 +311,6 @@ namespace Captain.Application.Native {
 
     #endregion
 
-    internal enum HitTestValues {
-      /// <summary>
-      ///   In a window currently covered by another window in the same thread (the message will be sent to underlying
-      ///   windows in the same thread until one of them returns a code that is not HTTRANSPARENT).
-      /// </summary>
-      HTTRANSPARENT = -1
-    }
-
-    [Flags]
-    internal enum SetWindowPosFlags {
-      /// <summary>
-      ///   Retains the current size (ignores the cx and cy parameters).
-      /// </summary>
-      SWP_NOSIZE = 0x0001,
-
-      /// <summary>
-      ///   Retains the current position (ignores X and Y parameters).
-      /// </summary>
-      SWP_NOMOVE = 0x0002,
-
-      /// <summary>
-      ///   Does not activate the window. If this flag is not set, the window is activated and moved to the top of
-      ///   either the topmost or non-topmost group (depending on the setting of the hwndInsertAfter member).
-      /// </summary>
-      SWP_NOACTIVATE = 0x0010
-    }
-
     /// <summary>
     /// Retrieves a handle to the window that contains the specified point.
     /// </summary>
@@ -345,6 +387,59 @@ namespace Captain.Application.Native {
     internal static extern int GetClassName(IntPtr hWnd, IntPtr lpClassName, int nMaxCount);
 
     /// <summary>
+    ///   Retrieves a handle to the desktop window. The desktop window covers the entire screen. The desktop window is
+    ///   the area on top of which other windows are painted.
+    /// </summary>
+    /// <returns>The return value is a handle to the desktop window.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr GetDesktopWindow();
+
+    /// <summary>
+    ///   Retrieves a handle to the top-level window whose class name and window name match the specified strings.
+    ///   This function does not search child windows. This function does not perform a case-sensitive search.
+    /// </summary>
+    /// <param name="lpClassName">
+    ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
+    /// </param>
+    /// <param name="lpWindowName">
+    /// The window name (the window's title). If this parameter is NULL, all window names match.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is a handle to the window that has the specified class name and
+    ///   window name.
+    /// </returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr FindWindow([In] [Optional] string lpClassName, [In] [Optional] string lpWindowName);
+
+    /// <summary>
+    ///   Retrieves a handle to a window whose class name and window name match the specified strings.
+    ///   The function searches child windows, beginning with the one following the specified child window.
+    ///   This function does not perform a case-sensitive search. 
+    /// </summary>
+    /// <param name="hwndParent">A handle to the parent window whose child windows are to be searched.</param>
+    /// <param name="hwndChildAfter">
+    ///   A handle to a child window. The search begins with the next child window in the Z order.
+    ///   The child window must be a direct child window of hwndParent, not just a descendant window. 
+    /// </param>
+    /// <param name="lpszClass">
+    ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
+    /// </param>
+    /// <param name="lpszWindow">
+    /// The window name (the window's title). If this parameter is NULL, all window names match.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is a handle to the window that has the specified class and window
+    ///   names.
+    /// </returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr FindWindowEx([In] [Optional] IntPtr hwndParent,
+                                               [In] [Optional] IntPtr hwndChildAfter,
+                                               [In] [Optional] string lpszClass,
+                                               [In] [Optional] string lpszWindow);
+    #endregion
+
+    #region Drawing contexts
+    /// <summary>
     ///   The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect
     ///   of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on
     ///   class or private DCs.
@@ -379,11 +474,50 @@ namespace Captain.Application.Native {
     internal static extern IntPtr GetWindowDC([In] IntPtr hWnd);
 
     /// <summary>
-    ///   Retrieves a handle to the desktop window. The desktop window covers the entire screen. The desktop window is
-    ///   the area on top of which other windows are painted.
+    ///   The <see cref="GetDC"/> function retrieves a handle to a device context (DC) for the client area of a
+    ///   specified window or for the entire screen. You can use the returned handle in subsequent GDI functions to
+    ///   draw in the DC. The device context is an opaque data structure, whose values are used internally by GDI.
+    ///   The GetDCEx function is an extension to <see cref="GetDC"/>, which gives an application more control over
+    ///   how and whether clipping occurs in the client area.
     /// </summary>
-    /// <returns>The return value is a handle to the desktop window.</returns>
+    /// <param name="hWnd">
+    ///   A handle to the window whose DC is to be retrieved. If this value is NULL, <see cref="GetDC"/> retrieves the
+    ///   DC for the entire screen.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is a handle to the DC for the specified window's client area.
+    ///   If the function fails, the return value is <see cref="IntPtr.Zero"/>.
+    /// </returns>
+    [DllImport(nameof(User32), SetLastError = false)]
+    internal static extern IntPtr GetDC(IntPtr hWnd);
+    #endregion
+
+    #region DPI
+    /// <summary>
+    ///   Returns the dots per inch (dpi) value for the associated window.
+    /// </summary>
+    /// <param name="hWnd">The window you want to get information about.</param>
+    /// <returns>
+    ///   The DPI for the window which depends on the DPI_AWARENESS of the window. See the Remarks for more
+    ///   information. An invalid hwnd value will result in a return value of 0.
+    /// </returns>
     [DllImport(nameof(User32))]
-    internal static extern IntPtr GetDesktopWindow();
+    internal static extern int GetDpiForWindow(IntPtr hWnd);
+
+    /// <summary>
+    ///   Returns the system DPI.
+    /// </summary>
+    /// <returns>The return value will be dependent based upon the calling context.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern int GetDpiForSystem();
+    #endregion
+
+    #region Cursors
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr LoadCursor(IntPtr hInstance, IntPtr lpCursorName);
+
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr SetCursor(IntPtr hCursor);
+    #endregion
   }
 }

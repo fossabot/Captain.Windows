@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Captain.Application {
   /// <summary>
@@ -103,11 +104,13 @@ namespace Captain.Application {
       // ReSharper disable once InconsistentlySynchronizedField
       singleInstanceMutex = new Mutex(true, SingleInstanceMutexName);
 
+      System.Windows.Forms.Application.EnableVisualStyles();
+      System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+
       FsManager = new FsManager();
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
       TrayIcon = new TrayIcon();
-      TrayIcon.Show();
 
       try {
         ToastProvider = new ToastNotificationProvider();
@@ -121,7 +124,7 @@ namespace Captain.Application {
         if (exclusive) {
           action.Start(new CaptureIntent(ActionType.Screenshot));
         } else {
-          action.BindGrabberUi(new Grabber(action.ActionTypes));
+          action.BindGrabberUi(Grabber.Create(action.ActionTypes));
         }
       }
 

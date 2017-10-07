@@ -35,7 +35,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Toolbar UI padding
     /// </summary>
-    private Padding ToolBarPadding => new Padding(8);
+    private static Padding ToolBarPadding => new Padding(8);
 
     /// <summary>
     ///   UI padding
@@ -111,11 +111,6 @@ namespace Captain.Application {
     }
 
     /// <summary>
-    ///   Class destructor
-    /// </summary>
-    ~GrabberWindow() => Display.UnregisterChangeNotifications(this.devNotify);
-
-    /// <summary>
     ///   Adjusts window properties and sets hooks
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
@@ -148,14 +143,21 @@ namespace Captain.Application {
     }
 
     /// <summary>
+    ///   Triggered when the window is closed
+    /// </summary>
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnClosed(EventArgs eventArgs) {
+      Display.UnregisterChangeNotifications(this.devNotify);
+      base.OnClosed(eventArgs);
+    }
+
+    /// <summary>
     ///   Updates the window geometry according to the acceptable capture bounds
     /// </summary>
     private void UpdateWindowGeometry() {
       // update displays' bounds
       this.acceptableRectangles = DisplayHelper.GetOutputInfo().Select(i => i.Bounds).ToArray();
-
-      // HACK! Trigger window position change mechanisms
-      User32.MoveWindow(Handle, (int)Left, (int)Top, (int)Width, (int)Height, true);
+      UpdatePosition();
     }
 
     /// <summary>
@@ -183,7 +185,7 @@ namespace Captain.Application {
           //       a small part of the window will remain onscreen). Hack this down so the user can completely cover
           //       the screen
           // TODO: reduce flicker somehow! The larger the window gets, the more noticeable the flicker is!
-          var pos = (WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(WINDOWPOS));
+          var pos = (User32.WINDOWPOS)Marshal.PtrToStructure(lParam, typeof(User32.WINDOWPOS));
           var rect = new Rectangle(pos.x,
                                    pos.y,
                                    pos.cx,
@@ -221,13 +223,18 @@ namespace Captain.Application {
                          ? maxRight - pos.cx + Padding.Right
                          : pos.x);
 
-          pos.y = pos.y + Padding.Top < maxTop
-                    ? maxTop - Padding.Top
-                    : (pos.y + pos.cy - Padding.Bottom > minBottom
-                         ? minBottom - pos.cy + Padding.Bottom
-                         : pos.y);
+          pos.y = Math.Min(minBottom - maxTop,
+                           Math.Max(maxTop,
+                                    pos.y + Padding.Top < maxTop
+                                      ? maxTop - Padding.Top
+                                      : (pos.y + pos.cy - Padding.Bottom > minBottom
+                                           ? minBottom - pos.cy + Padding.Bottom
+                                           : pos.y)));
 
-          if (pos.x != 0 && pos.y != 0 && pos.hwnd != IntPtr.Zero) {
+          pos.cx = Math.Min(maxRight - minLeft, pos.cx);
+          pos.cy = Math.Min(minBottom - maxTop, pos.cy);
+
+          if ((pos.flags & (int)User32.SetWindowPosFlags.SWP_NOMOVE) == 0) {
             if (!this.grabber.ToolBar.IsVisible) {
               this.grabber.ToolBar.Show();
             }
@@ -286,5 +293,28 @@ namespace Captain.Application {
         DragMove();
       }
     }
+
+    /// <summary>
+    ///   Triggers window position update mechanisms
+    /// </summary>
+    /// <param name="handle">Target window handle</param>
+    /// <remarks>
+    ///   When the <c>handle</c> parameter is set, the UI will adopt the bounds of the window with the specified handle
+    /// </remarks>
+    internal void UpdatePosition(IntPtr? handle = null) {
+      if (handle.HasValue && handle != Handle && handle != IntPtr.Zero) {
+        // HACK!
+        RECT bounds = WindowHelper.GetWindowBounds(handle.Value);
+        User32.MoveWindow(handle.Value,
+                          bounds.left - Padding.Left,
+                          bounds.top - Padding.Top,
+                          bounds.right - bounds.left + Padding.Left + Padding.Right,
+                          bounds.bottom - bounds.top + Padding.Top + Padding.Bottom,
+                          true);
+      } else {
+        User32.MoveWindow(Handle, (int)Left, (int)Top, (int)Width, (int)Height, true);
+      }
+    }
+
   }
 }

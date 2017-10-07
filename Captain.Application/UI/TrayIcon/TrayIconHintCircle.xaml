@@ -1,0 +1,51 @@
+﻿<Window x:Class="Captain.Application.TrayIconHintCircle"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Captain.Application"
+        mc:Ignorable="d"
+        AllowsTransparency="true"
+        Topmost="True"
+        WindowStyle="None"
+        Background="{x:Null}"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Width="32"
+        Height="32">
+  <Border Name="OuterBorder" CornerRadius="64" BorderBrush="#7FFFFFFF" BorderThickness="4">
+    <Border.Triggers>
+      <EventTrigger RoutedEvent="Ellipse.Loaded">
+        <BeginStoryboard>
+          <Storyboard>
+            <ColorAnimation From="#7F44C2C2"
+                            To="#7F4343C2"
+                            Duration="0:0:2"
+                            RepeatBehavior="Forever"
+                            AutoReverse="True"
+                            Storyboard.TargetName="OuterBorder"
+                            Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" />
+          </Storyboard>
+        </BeginStoryboard>
+      </EventTrigger>
+    </Border.Triggers>
+
+    <Border Name="InnerBorder" CornerRadius="64" BorderBrush="#EEFFFFFF" BorderThickness="2">
+      <Border.Triggers>
+        <EventTrigger RoutedEvent="Ellipse.Loaded">
+          <BeginStoryboard>
+            <Storyboard>
+              <ColorAnimation From="#FF44C2C2"
+                              To="#FF4343C2"
+                              Duration="0:0:2"
+                              RepeatBehavior="Forever"
+                              AutoReverse="True"
+                              Storyboard.TargetName="InnerBorder"
+                              Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)" />
+            </Storyboard>
+          </BeginStoryboard>
+        </EventTrigger>
+      </Border.Triggers>
+    </Border>
+  </Border>
+</Window>

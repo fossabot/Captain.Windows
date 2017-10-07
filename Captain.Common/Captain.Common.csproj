@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Source\Attributes\DisplayName.cs" />
+    <Compile Include="Source\Attributes\ThreadApartmentState.cs" />
     <Compile Include="Source\Capture\Encoder\EncoderInfo.cs" />
     <Compile Include="Source\Capture\Encoder\IEncoderBase.cs" />
     <Compile Include="Source\Capture\Encoder\IStaticEncoder.cs" />

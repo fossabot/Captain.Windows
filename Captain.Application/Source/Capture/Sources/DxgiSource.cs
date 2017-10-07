@@ -1,18 +1,20 @@
-﻿using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Captain.Common;
+using SharpDX;
+using SharpDX.Direct3D11;
+using SharpDX.DXGI;
+using Device = SharpDX.Direct3D11.Device;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
+using Resource = SharpDX.DXGI.Resource;
 
 namespace Captain.Application {
   internal class DxgiSource : CaptureSource {
     /// <summary>
     ///   Direct3D device for the selected output
     /// </summary>
-    private readonly SharpDX.Direct3D11.Device device;
+    private readonly Device device;
 
     /// <summary>
     ///   Contains information about the desktop textire
@@ -45,7 +47,7 @@ namespace Captain.Application {
     /// <param name="initialArea">Initial screen region</param>
     /// <param name="adapterIndex">Adapter index</param>
     /// <param name="outputIndex">Output index</param>
-    public DxgiSource(System.Drawing.Rectangle initialArea, int adapterIndex, int outputIndex) : base(initialArea) {
+    public DxgiSource(Rectangle initialArea, int adapterIndex, int outputIndex) : base(initialArea) {
       Application.Log.WriteLine(LogLevel.Debug, "trying to instantiate DXGI desktop duplication source");
 
       // get adapter
@@ -53,7 +55,7 @@ namespace Captain.Application {
       Application.Log.WriteLine(LogLevel.Debug, $"selected adapter {adapterIndex}");
 
       // create D3D device
-      this.device = new SharpDX.Direct3D11.Device(this.adapter, DeviceCreationFlags.Debug);
+      this.device = new Device(this.adapter);
 
       // get output from adapter
       this.output = this.adapter.GetOutput(outputIndex);
@@ -92,7 +94,7 @@ namespace Captain.Application {
       }
 
       // TODO: use MapDesktopSurface when possible
-      SharpDX.DXGI.Resource desktopResource;
+      Resource desktopResource;
 
       while (true) {
         // HACK !!!
@@ -115,7 +117,7 @@ namespace Captain.Application {
       DataBox map = this.device.ImmediateContext.MapSubresource(this.desktopTexture, 0, MapMode.Read, MapFlags.None);
 
       var bitmap = new Bitmap(Area.Width, Area.Height, PixelFormat.Format32bppRgb);
-      BitmapData bitmapData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, Area.Width, Area.Height),
+      BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, Area.Width, Area.Height),
                                               ImageLockMode.WriteOnly,
                                               bitmap.PixelFormat);
 
