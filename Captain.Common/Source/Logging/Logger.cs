@@ -71,22 +71,27 @@ namespace Captain.Common {
 
       // format message as "[<milliseconds diff> <level> <method>] <message>"
       // ReSharper disable once UseStringInterpolation
-      string msg = String.Format("[{0:00.0000} {1} {2}] {3}",
+      string msg = String.Format("{0:00.0000} {1} {2}",
                                  TimeSpan.FromTicks(this.previousTicks == -1 ? 0 : ticks - this.previousTicks).TotalSeconds,  // zero if no previous tick count is set, otherwise the difference of ticks
                                  level.ToShortString(),
-                                 methodName,
-                                 String.Format(format.ToString(), args)) + Environment.NewLine;
+                                 methodName);
+      ConsoleColor color = level.GetAssociatedConsoleColor();
+
+      Console.BackgroundColor = color;
+      Console.ForegroundColor = ConsoleColor.Black;
+      Console.Write(msg);
+
+      string body = " " + String.Format(format.ToString(), args) + Environment.NewLine;
+      Console.BackgroundColor = ConsoleColor.Black;
+      Console.ForegroundColor = level.GetAssociatedConsoleColor();
+      Console.Write(body);
 
       // update ticks for next message
       this.previousTicks = ticks;
 
-      // write message to console
-      Console.ForegroundColor = level.GetAssociatedConsoleColor();
-      Console.Write(msg);
-
       // write message to each stream
       Streams.ForEach(stream => {
-        stream.Write(Encoding.UTF8.GetBytes(msg), 0, msg.Length);
+        stream.Write(Encoding.UTF8.GetBytes(msg = $"[{msg}] {body}"), 0, msg.Length);
         stream.FlushAsync();
       });
     }

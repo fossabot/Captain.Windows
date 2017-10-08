@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using Captain.Application.Native;
 
 namespace Captain.Application {
-  public sealed class LinkLabel2 : Control {
+  internal sealed class LinkLabel2 : Control {
     private Font hoverFont;
 
     private Image image;

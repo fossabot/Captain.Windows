@@ -59,19 +59,10 @@ namespace Captain.Application {
     /// <summary>
     ///   Actual capture bounds
     /// </summary>
-    internal Rectangle Area {
-      get => new Rectangle((int)Left + Padding.Left,
-                           (int)Top + Padding.Top,
-                           (int)Width - Padding.Left - Padding.Right,
-                           (int)Height - Padding.Top - Padding.Bottom);
-
-      set {
-        value.X -= Padding.Left;
-        value.Y -= Padding.Top;
-        value.Width += Padding.Left + Padding.Right;
-        value.Height += Padding.Top + Padding.Bottom;
-      }
-    }
+    internal Rectangle Area => new Rectangle((int)Left + Padding.Left,
+                                             (int)Top + Padding.Top,
+                                             (int)Width - Padding.Left - Padding.Right,
+                                             (int)Height - Padding.Top - Padding.Bottom);
 
     /// <summary>
     ///   Changes/gets whether the window can be resized

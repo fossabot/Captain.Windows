@@ -57,8 +57,24 @@ namespace Captain.Application {
           Visible = true
         },
         new MenuItem("-"),
-        new MenuItem(Resources.AppMenu_Options),
-        new MenuItem(Resources.AppMenu_About, (_, __) => new AboutWindow().Show()),
+        new MenuItem(Resources.AppMenu_Options,
+                     (_, __) => {
+                       try {
+                         new OptionsWindow().Show();
+                       } catch (InvalidOperationException) {
+                         // perhaps an instance of OptionsWindow has already been created
+                         // TODO: focus existing window - perhaps abstract this kind of behavior?
+                       }
+                     }),
+        new MenuItem(Resources.AppMenu_About,
+                     (_, __) => {
+                       try {
+                         new AboutWindow().Show();
+                       } catch (InvalidOperationException) {
+                         // perhaps an instance of AboutWindow has already been created
+                         // TODO: focus existing window - perhaps abstract this kind of behavior?
+                       }
+                     }),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Exit, (_, __) => Exit())
       });
@@ -80,13 +96,18 @@ namespace Captain.Application {
 
       // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
       if (true) {
-        RECT iconRect = GetIconRect();
+        try {
+          RECT iconRect = GetIconRect();
 
-        this.hintCircle = new TrayIconHintCircle();
-        this.hintCircle.Show();
-        this.hintCircle.Left = iconRect.left;
-        this.hintCircle.Top = iconRect.top;
-        this.hintCircle.Width = this.hintCircle.Height = Math.Max(iconRect.right - iconRect.left, iconRect.bottom - iconRect.top);
+          this.hintCircle = new TrayIconHintCircle();
+          this.hintCircle.Show();
+          this.hintCircle.Left = iconRect.left;
+          this.hintCircle.Top = iconRect.top;
+          this.hintCircle.Width = this.hintCircle.Height =
+                                    Math.Max(iconRect.right - iconRect.left, iconRect.bottom - iconRect.top);
+        } catch (Exception exception) when (exception is InvalidOperationException || exception is Win32Exception) {
+          Log.WriteLine(LogLevel.Error, $"could not place tray icon hint: {exception}");
+        }
       }
     }
 

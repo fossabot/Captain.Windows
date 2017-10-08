@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using Captain.Application.Native;
@@ -163,7 +164,6 @@ namespace Captain.Application {
           };
 
           IntPtr handle = User32.WindowFromPoint(point);
-
           this.window.PassThrough = false;
 
           if (handle == IntPtr.Zero || handle == this.window.Handle || handle == ToolBar.Handle) {
@@ -243,52 +243,65 @@ namespace Captain.Application {
           Marshal.StructureToPtr(attachInfo, attachInfoPtr, true);
 
           // make sure the helper library has not been already injected so we can save some memory! Yay!
-          if (Process.FindModule(pid, helperLibraryName)) {
-            // hell yeah - send re-attachment message
-            Log.WriteLine(LogLevel.Debug, "no need to inject library");
+          new Thread(() => {
+            if (Process.FindModule(pid, helperLibraryName)) {
+              // hell yeah - send re-attachment message
+              Log.WriteLine(LogLevel.Debug, "no need to inject library");
 
-            try {
-              var copydata = new User32.COPYDATASTRUCT {
-                dwData = new IntPtr(WindowMessages.WM_COPYDATA_CAPNSIG),
-                cbData = new IntPtr(Marshal.SizeOf(attachInfo)),
-                lpData = attachInfoPtr
-              };
+              try {
+                var copydata = new User32.COPYDATASTRUCT {
+                  dwData = new IntPtr(WindowMessages.WM_COPYDATA_CAPNSIG),
+                  cbData = new IntPtr(Marshal.SizeOf(attachInfo)),
+                  lpData = attachInfoPtr
+                };
 
-              // send the window message
-              User32.SendMessage(rootHandle, (uint)User32.WindowMessage.WM_COPYDATA, this.window.Handle, ref copydata);
-            } finally {
-              // free resources
-              Marshal.FreeHGlobal(attachInfoPtr);
+                // send the window message
+                User32.SendMessage(rootHandle,
+                                   (uint)User32.WindowMessage.WM_COPYDATA,
+                                   this.window.Handle,
+                                   ref copydata);
+              } finally {
+                // free resources
+                Marshal.FreeHGlobal(attachInfoPtr);
+              }
+            } else {
+              // fuck no
+              try {
+                // try to inject library
+                // TODO: this should not be static. Create one InjectionHelper instance per grabber UI and "release" it
+                //       safely when no longer needed (i.e. killing unresponsive helper processes on close)
+                InjectionHelper.InjectLibrary(pid,
+                                              GetHelperLibraryPath(),
+                                              GetHelperLibraryPath(true),
+                                              attachInfoPtr,
+                                              Marshal.SizeOf(attachInfo));
+                Log.WriteLine(LogLevel.Debug, $"injected remote helper library to process {pid}");
+              } catch (Win32Exception) {
+                ToolBar.Dispatcher.Invoke(() => ToolBar.SetWindowAttachmentStatus(false));
+                return;
+              } finally {
+                Log.WriteLine(LogLevel.Debug, "releasing resources");
+                Marshal.FreeHGlobal(attachInfoPtr);
+              }
             }
-          } else {
-            // fuck no
-            try {
-              // try to inject library
-              InjectionHelper.InjectLibrary(pid,
-                                            GetHelperLibraryPath(),
-                                            GetHelperLibraryPath(true),
-                                            attachInfoPtr,
-                                            Marshal.SizeOf(attachInfo));
-              Log.WriteLine(LogLevel.Debug, $"injected remote helper library to process {pid}");
-            } catch (Win32Exception) {
-              ToolBar.SetWindowAttachmentStatus(false);
-              break;
-            } finally {
-              Log.WriteLine(LogLevel.Debug, "releasing resources");
-              Marshal.FreeHGlobal(attachInfoPtr);
-            }
-          }
 
-          // everything's fine at this point
-          AttachedWindowHandle = rootHandle;
+            // everything's fine at this point
+            AttachedWindowHandle = rootHandle;
 
-          // adjust window to target bounds
-          this.window.Area = new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-          this.window.UpdatePosition(rootHandle);
-          this.window.CanBeResized = false;
-          this.window.Hide();
+            // adjust window to target bounds
+            this.window.Dispatcher.Invoke(() => {
+              this.window.Left = rect.left;
+              this.window.Top = rect.top;
+              this.window.Width = rect.right - rect.left;
+              this.window.Height = rect.bottom - rect.top;
+              //= new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+              this.window.UpdatePosition(rootHandle);
+              this.window.CanBeResized = false;
+              this.window.Opacity = 0;
+            });
 
-          ToolBar.SetWindowAttachmentStatus(true);
+            ToolBar.Dispatcher.Invoke(() => ToolBar.SetWindowAttachmentStatus(true));
+          }).Start();
 
           break;
 
@@ -310,7 +323,7 @@ namespace Captain.Application {
           this.window.Top = this.originalBounds.Top;
           this.window.Width = this.originalBounds.Width;
           this.window.Height = this.originalBounds.Height;
-          this.window.Show();
+          this.window.Opacity = 1;
           this.window.UpdatePosition();
 
           // TODO: if this is a recording CanBeResized must be set to false!

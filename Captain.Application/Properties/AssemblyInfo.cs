@@ -4,19 +4,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Captain")]
-[assembly: AssemblyDescription("The minimal, extensible screen capturer.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("sanlyx")]
 [assembly: AssemblyProduct("Captain")]
-[assembly: AssemblyCopyright("Copyright © 2017 sanlyx. All rights reserved")]
-[assembly: AssemblyTrademark("Captain")]
-[assembly: AssemblyCulture("")]
-
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
+[assembly: AssemblyDescription("The minimal, extensible screen capturer.")]
+[assembly: AssemblyCopyright("© 2017 sanlyx")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("7495d12f-ca61-4548-8c8d-59d8feca51f0")]
@@ -30,3 +20,14 @@ using System.Runtime.InteropServices;
 //
 [assembly: AssemblyVersion("0.6.0.0")]
 [assembly: AssemblyFileVersion("0.6.0.0")]
+
+[assembly: AssemblyMetadata("prerelease", "beta")]
+
+#if DEBUG
+[assembly: AssemblyMetadata("debug", "")]
+[assembly: AssemblyTitle("Captain")]
+[assembly: AssemblyCompany("sanlyx")]
+[assembly: AssemblyTrademark("Captain")]
+[assembly: ComVisible(false)]
+
+#endif

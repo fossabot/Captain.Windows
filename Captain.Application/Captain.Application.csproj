@@ -158,6 +158,7 @@
     <Compile Include="Source\Native\Capture.cs" />
     <Compile Include="Source\Native\Display.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
+    <Compile Include="Source\Native\DwmApi\DWMCOLORIZATIONPARAMS.cs" />
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
     <Compile Include="Source\Native\Gdi32\DeviceCaps.cs" />
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
@@ -184,6 +185,20 @@
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="Source\WindowHelper.cs" />
+    <Compile Include="UI\ColorExtensions.cs" />
+    <Compile Include="UI\Window.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Options\OptionsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Options\OptionsWindow.Designer.cs">
+      <DependentUpon>OptionsWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Options\ToolBarControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\StyleHelper.cs" />
     <Compile Include="UI\TrayIcon\TrayIconHintCircle.xaml.cs">
       <DependentUpon>TrayIconHintCircle.xaml</DependentUpon>
     </Compile>
@@ -220,6 +235,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\About\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Options\OptionsWindow.resx">
+      <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

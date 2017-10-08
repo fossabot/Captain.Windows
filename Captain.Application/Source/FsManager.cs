@@ -19,6 +19,11 @@ namespace Captain.Application {
     internal const string TemporaryPath = "Temporary";
 
     /// <summary>
+    ///   Logger path
+    /// </summary>
+    internal const string LogsPath = "Logs";
+
+    /// <summary>
     ///   Root application data directory
     /// </summary>
     private string RootDirectoryPath { get; }
@@ -40,6 +45,19 @@ namespace Captain.Application {
     }
 
     /// <summary>
+    ///   Cleanups filesystem
+    /// </summary>
+    ~FsManager() {
+      try {
+        Directory.Delete(Path.Combine(RootDirectoryPath, TemporaryPath), true);
+      } catch (DirectoryNotFoundException) {
+      } catch (Exception exception) when (
+        !(exception is DirectoryNotFoundException)) {
+        Log.WriteLine(LogLevel.Error, $"could not clean up filesystem: {exception}");
+      }
+    }
+
+    /// <summary>
     ///   Returns a directory path that is almost-certainly guaranteed to be writable
     /// </summary>
     /// <remarks>If the user doesn't have write permissions to the temporary directory, this may fail</remarks>
@@ -51,19 +69,6 @@ namespace Captain.Application {
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Error, $"requested path could not be created: {exception}");
         return Path.GetTempPath();
-      }
-    }
-
-    /// <summary>
-    ///   Cleanups filesystem
-    /// </summary>
-    ~FsManager() {
-      try {
-        Directory.Delete(Path.Combine(RootDirectoryPath, TemporaryPath), true);
-      } catch (DirectoryNotFoundException) {
-      } catch (Exception exception) when (
-        !(exception is DirectoryNotFoundException)) {
-        Log.WriteLine(LogLevel.Error, $"could not clean up filesystem: {exception}");
       }
     }
   }

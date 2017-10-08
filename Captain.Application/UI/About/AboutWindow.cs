@@ -1,54 +1,57 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using Captain.Application.Native;
 
 namespace Captain.Application {
   /// <summary>
   ///   Displays information about the application
   /// </summary>
-  public partial class AboutWindow : Form {
-    private float lastDpi = 96.0f;
+  internal sealed partial class AboutWindow : Window {
+    /// <summary>
+    ///   Whether an About window has already been opened before
+    /// </summary>
+    private static bool isOpen;
 
     /// <summary>
     ///   Class constructor
     /// </summary>
     public AboutWindow() {
+      if (isOpen) { throw new InvalidOperationException("Creating multiple instances of this window is not allowed"); }
       InitializeComponent();
 
+      // set dialog icon and logo resource
       Icon = Resources.AppIcon;
       this.logoPictureBox.Image = Resources.Logo;
+
+      // format text labels
+      Text = String.Format(Text, Application.VersionInfo.ProductName);
+      this.versionLabel.Text = String.Format(this.versionLabel.Text, Application.VersionString);
+
+      // set support URI text and center it!
+      this.supportUriLinkLabel.Text = String.Format(this.supportUriLinkLabel.Text, Resources.AboutWindow_URI);
+      this.supportUriLinkLabel.Left = (Width - this.supportUriLinkLabel.Width) / 2;
+
+      // set tool tips
+      this.toolTip.SetToolTip(this.versionLabel, this.versionLabel.Text);
     }
 
     /// <summary>
-    ///   Updates the DPI setting for the current form
+    ///   Triggered when the window is first shown
     /// </summary>
-    /// <param name="dpi"></param>
-    private void UpdateDpi(float dpi) {
-      Font = new Font(Font.FontFamily, Font.Size * (dpi / this.lastDpi));
-      this.lastDpi = dpi;
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnShown(EventArgs eventArgs) {
+      isOpen = true;
+      base.OnShown(eventArgs);
     }
 
     /// <summary>
-    ///   Triggered when the form is loaded
+    ///   Triggered when the window is closed
     /// </summary>
-    /// <param name="eventArgs">Arguments passed to this event</param>
-    protected override void OnLoad(EventArgs eventArgs) {
-      base.OnLoad(eventArgs);
-      UpdateDpi(DisplayHelper.GetScreenDpi(Handle));
-    }
-
-    /// <summary>
-    ///   Window procedure
-    /// </summary>
-    /// <param name="msg">Message</param>
-    protected override void WndProc(ref Message msg) {
-      base.WndProc(ref msg);
-
-      if (msg.Msg == (int)User32.WindowMessage.WM_DPICHANGED) {
-        float dpi = msg.WParam.ToInt64() >> 16 & 0xFFFF;
-        UpdateDpi(dpi);
-      }
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnClosed(EventArgs eventArgs) {
+      isOpen = false;
+      base.OnClosed(eventArgs);
     }
 
     /// <summary>
@@ -58,15 +61,14 @@ namespace Captain.Application {
     /// <param name="eventArgs">Event arguments</param>
     private void OnLabelPaint(object sender, PaintEventArgs eventArgs) {
       var label = (Label)sender;
-
       eventArgs.Graphics.Clear(label.BackColor);
 
       // label parameters
-      var labelRect = new Rectangle(0, 0, label.Width / 2, label.Height);
+      var labelRect = new Rectangle(0, 0, label.Width / 3, label.Height);
       const TextFormatFlags labelFlags = TextFormatFlags.EndEllipsis;
 
       // value parameters
-      var valueRect = new Rectangle(label.Width / 2, 0, label.Width / 2, label.Height);
+      var valueRect = new Rectangle(label.Width / 3, 0, 2 * label.Width / 3, label.Height);
       const TextFormatFlags valueFlags = TextFormatFlags.EndEllipsis |
                                          TextFormatFlags.Right |
                                          TextFormatFlags.LeftAndRightPadding;
@@ -82,6 +84,7 @@ namespace Captain.Application {
       Size valueSize = TextRenderer.MeasureText(eventArgs.Graphics, label.Text, label.Font, valueRect.Size, valueFlags);
 
       // render label and value
+      // TODO: don't hardcode color values, add support for high-contrast themes
       TextRenderer.DrawText(eventArgs.Graphics,
                             (string)label.Tag,
                             label.Font,
@@ -109,5 +112,15 @@ namespace Captain.Application {
     /// <param name="sender">Button object</param>
     /// <param name="eventArgs">Event arguments</param>
     private void OnCloseButtonClick(object sender, EventArgs eventArgs) => Close();
+
+    /// <summary>
+    ///   Triggered when the support URI link label is clicked
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    /// <remarks>
+    ///   XXX: I'm not saying this is wrong, but it certainly *feels* wrong... idk it works at least
+    /// </remarks>
+    private void OnSupportLinkClick(object sender, EventArgs eventArgs) => Process.Start(this.supportUriLinkLabel.Text);
   }
 }

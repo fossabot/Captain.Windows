@@ -81,7 +81,8 @@ static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lPara
       // make sure width and height are not nil
       if (pos->cx && pos->cy) {
         // move/resize grabber UI, then let it resize us
-        MoveWindow(LongToPtr(g_attachinfo.uiGrabberHandle), pos->x, pos->y, pos->cx, pos->cy, FALSE);
+        SetWindowPos(LongToPtr(g_attachinfo.uiGrabberHandle), NULL, pos->x, pos->y, pos->cx, pos->cy,
+          SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS | SWP_NOREDRAW);
       }
 
       break;

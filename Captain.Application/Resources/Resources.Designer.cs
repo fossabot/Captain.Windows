@@ -61,6 +61,15 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://git.io/captain.
+        /// </summary>
+        public static string AboutWindow_URI {
+            get {
+                return ResourceManager.GetString("AboutWindow_URI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Some tasks failed..
         /// </summary>
         public static string ActionErrorDialog_PartialFailureCaption {

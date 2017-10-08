@@ -31,5 +31,19 @@ namespace Captain.Application.Native {
                                                      DwmWindowAttribute dwAttribute,
                                                      out RECT pvAttribute,
                                                      int cbAttribute);
+
+    /// <summary>
+    ///   Obtains a value that indicates whether Desktop Window Manager (DWM) composition is enabled.
+    /// </summary>
+    /// <param name="pfEnabed">
+    ///   A pointer to a value that, when this function returns successfully, receives TRUE if DWM composition is
+    ///   enabled; otherwise, FALSE. 
+    /// </param>
+    /// <returns>If this function succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code.</returns>
+    [DllImport(nameof(DwmApi))]
+    internal static extern int DwmIsCompositionEnabled(out bool pfEnabed);
+
+    [DllImport(nameof(DwmApi), EntryPoint = "#127")]
+    internal static extern void DwmGetColorizationParameters(ref DWMCOLORIZATIONPARAMS dp);
   }
 }

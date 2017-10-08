@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
-using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
 
@@ -31,10 +29,8 @@ namespace Captain.Application {
       using (Bitmap indicatorStrip = Resources.FluentIndicatorStrip) {
         int iconCount = indicatorStrip.Width / iconSize;
 
-        float dpi = DisplayHelper.GetScreenDpi();
-
         // crop the icon strip for the current DPI setting
-        if (dpi > 96) { /* 96 = 100% scaling */
+        if (DisplayHelper.GetScreenDpi() > 96) { /* 96 = 100% scaling */
           // use 24x24
           iconSize = 24;
           yOffset += 32; // skip 32x32 row

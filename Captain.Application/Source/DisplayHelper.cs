@@ -3,6 +3,8 @@ using SharpDX.DXGI;
 using System.Collections.Generic;
 using System.Drawing;
 using Captain.Application.Native;
+using Captain.Common;
+using static Captain.Application.Application;
 
 namespace Captain.Application {
   /// <summary>
@@ -32,6 +34,9 @@ namespace Captain.Application {
                                          output.Description.DesktopBounds.Left,
                                          output.Description.DesktopBounds.Bottom -
                                          output.Description.DesktopBounds.Top);
+          Log.WriteLine(LogLevel.Debug,
+                        $"{adapter.Description.Description} // {output.Description.DeviceName} " +
+                        outputRect.ToString().Trim('{', '}'));
           triples.Add((adapterIndex, outputIndex, outputRect));
           outputIndex++;
         }
@@ -73,6 +78,9 @@ namespace Captain.Application {
           if (intersection != Rectangle.Empty) {
             // make sure the rectangles intersect
             triples.Add((adapterIndex, outputIndex, intersection));
+            Log.WriteLine(LogLevel.Debug,
+                          $"{adapter.Description.Description} // {output.Description.DeviceName} " +
+                          outputRect.ToString().Trim('{', '}'));
           }
 
           outputIndex++;

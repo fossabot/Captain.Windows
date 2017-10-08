@@ -33,7 +33,7 @@ namespace Captain.Application {
                                                data,
                                                dataLength);
 
-      if (status == NativeAPI.STATUS_WOW_ASSERTION) {
+      if (status == NativeAPI.STATUS_WOW_ASSERTION || status == NativeAPI.STATUS_NOT_SUPPORTED) {
         // can't hook through WoW64 barrier! 
         Log.WriteLine(LogLevel.Warning, "WoW64 bridge is required in order to perform injection");
 

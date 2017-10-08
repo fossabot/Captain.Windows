@@ -6,7 +6,7 @@ namespace Captain.Application {
   /// </summary>
   public class WindowPositionMap : SerializableDictionary<string, Point> {
     protected override string ItemName => "WindowPosition";
-    protected override string KeyName => "TypeFullName";
+    protected override string KeyName => "Name";
     protected override string ValueName => "Location";
   }
 }

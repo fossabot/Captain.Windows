@@ -166,6 +166,16 @@ namespace Captain.Application.Native {
       WM_DPICHANGED = 0x02E0,
 
       /// <summary>
+      ///   Informs all top-level windows that Desktop Window Manager (DWM) composition has been enabled or disabled.
+      /// </summary>
+      WM_DWMCOMPOSITIONCHANGED = 0x31E,
+
+      /// <summary>
+      ///   Informs all top-level windows that the colorization color has changed.
+      /// </summary>
+      WM_DWMCOLORIZATIONCHANGED = 0x320,
+
+      /// <summary>
       ///   The WM_APP constant is used by applications to help define private messages, usually of the form WM_APP+X,
       ///   where X is an integer value.
       /// </summary>
