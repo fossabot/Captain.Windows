@@ -9,9 +9,6 @@ namespace Captain.Application {
   internal sealed class LinkLabel2 : Control {
     private Font hoverFont;
 
-    private Image image;
-    private int imageRightPad = 8;
-
     private bool isHovered;
     private bool keyAlreadyProcessed;
     private Rectangle textRect;
@@ -38,36 +35,14 @@ namespace Captain.Application {
       }
     }
 
-    [DefaultValue(8)]
-    public int ImageRightPad {
-      get => this.imageRightPad;
-      set {
-        this.imageRightPad = value;
-
-        RefreshTextRect();
-        Invalidate();
-      }
-    }
-
-    [DefaultValue(null)]
-    public Image Image {
-      get => this.image;
-      set {
-        this.image = value;
-
-        RefreshTextRect();
-        Invalidate();
-      }
-    }
+    [DefaultValue(true)]
+    private bool HoverUnderline { get; }
 
     [DefaultValue(true)]
-    public bool HoverUnderline { get; set; }
+    public bool UseSystemColor { private get; set; }
 
-    [DefaultValue(true)]
-    public bool UseSystemColor { get; set; }
-
-    public Color RegularColor { get; set; }
-    public Color HoverColor { get; set; }
+    public Color RegularColor { private get; set; }
+    public Color HoverColor { private get; set; }
 
     public override string Text {
       get => base.Text;
@@ -102,16 +77,15 @@ namespace Captain.Application {
 
     protected override void OnMouseMove(MouseEventArgs mevent) {
       base.OnMouseMove(mevent);
-      if (mevent.Button != MouseButtons.None) {
-        if (!ClientRectangle.Contains(mevent.Location)) {
-          if (this.isHovered) {
-            this.isHovered = false;
-            Invalidate();
-          }
-        } else if (!this.isHovered) {
-          this.isHovered = true;
-          Invalidate();
-        }
+      if (mevent.Button == MouseButtons.None) { return; }
+      if (!ClientRectangle.Contains(mevent.Location)) {
+        if (!this.isHovered) { return; }
+
+        this.isHovered = false;
+        Invalidate();
+      } else if (!this.isHovered) {
+        this.isHovered = true;
+        Invalidate();
       }
     }
 
@@ -155,15 +129,7 @@ namespace Captain.Application {
       e.Graphics.CompositingQuality = CompositingQuality.HighSpeed;
       e.Graphics.InterpolationMode = InterpolationMode.Low;
 
-      // image
-      if (this.image != null) {
-        e.Graphics.DrawImage(this.image,
-                             new Rectangle(0, 0, this.image.Width, this.image.Height),
-                             new Rectangle(0, 0, this.image.Width, this.image.Height),
-                             GraphicsUnit.Pixel);
-      }
-
-      //text
+      // text
       TextRenderer.DrawText(e.Graphics,
                             Text,
                             this.isHovered && HoverUnderline ? this.hoverFont : Font,
@@ -171,7 +137,7 @@ namespace Captain.Application {
                             UseSystemColor ? ForeColor : (this.isHovered ? HoverColor : RegularColor),
                             TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
 
-      // draw the focus rectangle.
+      // draw the focus rectangle
       if (Focused && ShowFocusCues) {
         ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
       }
@@ -184,33 +150,10 @@ namespace Captain.Application {
       base.OnFontChanged(e);
     }
 
-    private void RefreshTextRect() {
+    private void RefreshTextRect() =>
       this.textRect = new Rectangle(Point.Empty,
-                                    TextRenderer.MeasureText(Text,
-                                                             Font,
-                                                             Size,
-                                                             TextFormatFlags.SingleLine |
-                                                             TextFormatFlags.NoPrefix |
-                                                             TextFormatFlags.VerticalCenter));
-      int width = this.textRect.Width + 1,
-          height = this.textRect.Height + 1;
-
-      if (this.image != null) {
-        width = this.textRect.Width + 1 + this.image.Width + this.imageRightPad;
-
-        //adjust the x position of the text
-        this.textRect.X += this.image.Width + this.imageRightPad;
-
-        if (this.image.Height > this.textRect.Height) {
-          height = this.image.Height + 1;
-
-          // adjust the y-position of the text
-          this.textRect.Y += (this.image.Height - this.textRect.Height) / 2;
-        }
-      }
-
-      Size = new Size(width, height);
-    }
+                                    Size = Size.Add(TextRenderer.MeasureText(Text, this.hoverFont, Size),
+                                                    new Size(1, 1)));
 
     protected override void WndProc(ref Message m) {
       if (!DesignMode) {

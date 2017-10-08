@@ -155,7 +155,6 @@
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
     <Compile Include="Source\DisplayHelper.cs" />
     <Compile Include="Source\InjectionHelper.cs" />
-    <Compile Include="Source\Native\Capture.cs" />
     <Compile Include="Source\Native\Display.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
     <Compile Include="Source\Native\DwmApi\DWMCOLORIZATIONPARAMS.cs" />

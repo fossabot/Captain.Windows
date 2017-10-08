@@ -18,11 +18,6 @@ namespace Captain.Common {
     public string ToastContent { get; set; }
 
     /// <summary>
-    /// Thumbnail to be shown on the toast notification (may be unavailable on older platforms)
-    /// </summary>
-    public Bitmap ToastPreview { get; set; }
-
-    /// <summary>
     /// URL to be open upon toast activation
     /// </summary>
     public Uri ToastUri { get; set; }

@@ -31,8 +31,7 @@ namespace Captain.Plugins.BuiltIn {
 
       var result = new CaptureResult {
         ToastTitle = "Screenshot copied!",
-        ToastContent = "The screenshot has been copied to your clipboard.",
-        ToastPreview = EncoderInfo.PreviewBitmap
+        ToastContent = "The screenshot has been copied to your clipboard."
       };
 
       return result;

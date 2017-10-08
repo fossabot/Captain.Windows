@@ -10,7 +10,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Current screen area
     /// </summary>
-    internal Rectangle Area { get; set; }
+    internal Rectangle Area { get; }
 
     /// <summary>
     ///   Instantiates this class

@@ -15,7 +15,10 @@ static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lPara
 /// ChangeWindowMessageFilterEx()
 typedef BOOL(WINAPI *CWMFEPROC)(HWND, UINT, DWORD, PCHANGEFILTERSTRUCT);
 
-/// detaches the specified window
+/// <summary>
+///   Detaches the specified window
+/// </summary>
+/// <param name="hwnd">Window handle</param>
 static void DetachWindow(HWND hwnd) {
 #if 0
   // restore original window procedure
@@ -37,7 +40,10 @@ static void DetachWindow(HWND hwnd) {
   ZeroMemory(&g_attachinfo, sizeof(WINATTACHINFO));
 }
 
-/// performs window attachment
+/// <summary>
+///   Attaches a window
+/// </summary>
+/// <param name="pInfo">Window attachment information, usually passed by the injector process</param>
 void RtAttachWindow(PWINATTACHINFO pInfo) {
   memcpy(&g_attachinfo, pInfo, sizeof(WINATTACHINFO));
 
@@ -66,7 +72,14 @@ void RtAttachWindow(PWINATTACHINFO pInfo) {
   SetWindowLongPtr(LongToPtr(pInfo->uiToolbarHandle), GWLP_HWNDPARENT, pInfo->uiTargetHandle);
 }
 
-/// replacement window procedure
+/// <summary>
+///   Window procedure hook
+/// </summary>
+/// <param name="hwnd">Window handle</param>
+/// <param name="uiMsg">Message</param>
+/// <param name="wParam">Message-dependant value</param>
+/// <param name="lParam">Message-dependant value</param>
+/// <returns>Calls the original window procedure and returns its result</returns>
 static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam) {
   if (g_attachinfo.uiTargetHandle == PtrToLong(hwnd)) {
     // this window is attached

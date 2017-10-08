@@ -56,8 +56,7 @@ namespace Captain.Plugins.BuiltIn {
       var result = new CaptureResult {
         ToastTitle = "Capture saved!",
         ToastContent = "The file has been saved to your Captures folder.",
-        ToastUri = new Uri(this.fileName),
-        ToastPreview = EncoderInfo.PreviewBitmap
+        ToastUri = new Uri(this.fileName)
       };
 
       return result;

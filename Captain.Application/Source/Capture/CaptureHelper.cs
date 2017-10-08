@@ -27,7 +27,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Attached window handle
     /// </summary>
-    internal IntPtr WindowHandle { get; set; }
+    internal IntPtr WindowHandle { private get; set; }
 
     /// <summary>
     ///   Captures the attached window

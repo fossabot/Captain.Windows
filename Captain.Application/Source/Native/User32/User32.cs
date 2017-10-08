@@ -418,7 +418,7 @@ namespace Captain.Application.Native {
     ///   If the function succeeds, the return value is a handle to the window that has the specified class name and
     ///   window name.
     /// </returns>
-    [DllImport(nameof(User32))]
+    [DllImport(nameof(User32), CharSet = CharSet.Unicode)]
     internal static extern IntPtr FindWindow([In] [Optional] string lpClassName, [In] [Optional] string lpWindowName);
 
     /// <summary>
@@ -441,7 +441,7 @@ namespace Captain.Application.Native {
     ///   If the function succeeds, the return value is a handle to the window that has the specified class and window
     ///   names.
     /// </returns>
-    [DllImport(nameof(User32))]
+    [DllImport(nameof(User32), CharSet = CharSet.Unicode)]
     internal static extern IntPtr FindWindowEx([In] [Optional] IntPtr hwndParent,
                                                [In] [Optional] IntPtr hwndChildAfter,
                                                [In] [Optional] string lpszClass,

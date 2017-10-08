@@ -4,7 +4,12 @@
 #include <Psapi.h>
 #include <TlHelp32.h>
 
-/// looks for a specific module in a remote process
+/// <summary>
+///   Looks for a specific module in a remote process
+/// </summary>
+/// <param name="dwProcessId">Process ID</param>
+/// <param name="szModuleBase">Module base name</param>
+/// <returns><c>TRUE</c> if the process loaded a module which a base name starting with the specified string</returns>
 BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
   HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
   if (!hProcess) {
@@ -19,7 +24,7 @@ BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBa
   // enumerate modules loaded by process
   if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded)) {
     for (DWORD dwIdx = 0; dwIdx < cbNeeded / sizeof(HMODULE); dwIdx++) {
-      if (GetModuleBaseNameW(hProcess, hModules[dwIdx], szCurModuleBase, sizeof(szCurModuleBase))) {
+      if (GetModuleBaseNameW(hProcess, hModules[dwIdx], szCurModuleBase, sizeof(szCurModuleBase) / sizeof(WCHAR))) {
         // if the module starts with this name - go ahead
         if (wcsstr(szCurModuleBase, szModuleBase) == szCurModuleBase) {
           CloseHandle(hProcess);
@@ -36,7 +41,11 @@ BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBa
   return FALSE;
 }
 
-/// find the parent process ID for the specified process
+/// <summary>
+///   Find the parent process ID for the specified process
+/// </summary>
+/// <param name="dwProcessId">Process ID</param>
+/// <returns>0 on error, otherwise the process ID</returns>
 DWORD WINAPI CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
   HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, dwProcessId);
   if (hSnapshot == INVALID_HANDLE_VALUE) {

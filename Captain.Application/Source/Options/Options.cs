@@ -15,12 +15,12 @@ namespace Captain.Application {
     /// <summary>
     ///   Saved position for windows
     /// </summary>
-    public WindowPositionMap WindowPositions { get; set; } = new WindowPositionMap();
+    public WindowPositionMap WindowPositions { get; } = new WindowPositionMap();
 
     /// <summary>
     ///   Current Options dialog tab index
     /// </summary>
-    public uint OptionsDialogTab { get; set; } = 0;
+    public uint OptionsDialogTab { get; set; }
 
     /// <summary>
     ///   Loads an <see cref="Options"/> instance from file

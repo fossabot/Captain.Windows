@@ -1,5 +1,8 @@
 ﻿#pragma once
 #include <cn2/winattachinfo.h>
 
-/// performs window attachment
+/// <summary>
+///   Attaches a window
+/// </summary>
+/// <param name="pInfo">Window attachment information, usually passed by the injector process</param>
 void RtAttachWindow(PWINATTACHINFO pInfo);

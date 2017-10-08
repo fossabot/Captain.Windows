@@ -55,6 +55,15 @@ namespace Captain.Application {
     }
 
     /// <summary>
+    ///   Processes font changes and updates some controls accordingly
+    /// </summary>
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnFontChanged(EventArgs eventArgs) {
+      this.notificationsTitleLabel.Font = this.startupTitleLabel.Font = new Font(Font, FontStyle.Bold);
+      base.OnFontChanged(eventArgs);
+    }
+
+    /// <summary>
     ///   Triggered when the window size has changed
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>

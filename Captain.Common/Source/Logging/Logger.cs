@@ -16,11 +16,6 @@ namespace Captain.Common {
     private const uint SkipFrames = 1;
 
     /// <summary>
-    ///   Default logger instance
-    /// </summary>
-    private static Logger defaultLoggerInstance;
-
-    /// <summary>
     ///   Number of ticks transcurred before the current log message
     /// </summary>
     private long previousTicks = -1;
@@ -28,18 +23,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Provides a list of streams where each log message is to be forwarded
     /// </summary>
-    public List<Stream> Streams { get; set; } = new List<Stream>();
-
-    /// <summary>
-    ///   Gets the default instance of Logger for the current process
-    /// </summary>
-    /// <returns></returns>
-    public static Logger GetDefault() => defaultLoggerInstance;
-
-    /// <summary>
-    ///   Sets this as the default logger instance for this process
-    /// </summary>
-    public void SetDefault() => defaultLoggerInstance = this;
+    public List<Stream> Streams { get; } = new List<Stream>();
 
     /// <summary>
     ///   Writes a message to the logger

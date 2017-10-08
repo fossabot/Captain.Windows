@@ -13,9 +13,9 @@ namespace Captain.Application {
     /// <remarks>
     ///   This extension method is taken from https://stackoverflow.com/a/3722337
     /// </remarks>
-    internal static Color Blend(this Color color, Color backColor, double amount) =>
-      Color.FromArgb((byte)((color.R * amount) + backColor.R * (1 - amount)),
-                     (byte)((color.G * amount) + backColor.G * (1 - amount)),
-                     (byte)((color.B * amount) + backColor.B * (1 - amount)));
+    internal static Color Blend(this Color color, Color backColor, double amount = 0.5) =>
+      Color.FromArgb((byte)(color.R * amount + backColor.R * (1 - amount)),
+                     (byte)(color.G * amount + backColor.G * (1 - amount)),
+                     (byte)(color.B * amount + backColor.B * (1 - amount)));
   }
 }

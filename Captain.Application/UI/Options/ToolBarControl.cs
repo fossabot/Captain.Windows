@@ -7,7 +7,12 @@ namespace Captain.Application {
   /// <summary>
   ///   macOS-like toolbar for preference ("option") dialogs
   /// </summary>
-  internal class ToolBarControl : TabControl {
+  internal sealed class ToolBarControl : TabControl {
+    /// <summary>
+    ///   Reference font size for 1x scale
+    /// </summary>
+    private float referenceFontSize;
+
     /// <summary>
     ///   Whether to expand tabs to fill horizontal space
     /// </summary>
@@ -88,6 +93,23 @@ namespace Captain.Application {
                true);
       UpdateAccentColor();
       UpdateItemSize();
+
+      this.referenceFontSize = Font.Size;
+    }
+
+    /// <summary>
+    ///   Scale tabs accordingly when font changes
+    /// </summary>
+    /// <param name="eventArgs"></param>
+    protected override void OnFontChanged(EventArgs eventArgs) {
+      if (!DesignMode) {
+        decimal scale = (decimal)Font.Size / (decimal)this.referenceFontSize;
+        this.referenceFontSize = Font.Size;
+        ItemSize = new Size((int)Math.Floor(ItemSize.Width * scale), (int)Math.Floor(ItemSize.Height * scale));
+        UpdateItemSize();
+      }
+
+      base.OnFontChanged(eventArgs);
     }
 
     /// <summary>
@@ -96,7 +118,7 @@ namespace Captain.Application {
     internal void UpdateAccentColor() {
       // set accent color
       SelectedTabBorderPen = new Pen(StyleHelper.GetAccentColor() ?? Color.FromArgb(0x40, Color.Black));
-      SelectedTabForeColor = SelectedTabBorderPen.Color.Blend(Color.Black, 0.33);
+      SelectedTabForeColor = SelectedTabBorderPen.Color.Blend(Color.Black);
       Invalidate(true);
     }
 
@@ -105,7 +127,8 @@ namespace Captain.Application {
     /// </summary>
     internal void UpdateItemSize() {
       if (ExtendTabs) {
-        ItemSize = new Size(Width / TabCount, ItemSize.Height);
+        ItemSize = new Size(Width / TabCount - 1, ItemSize.Height);
+        Invalidate(true);
       }
     }
 
@@ -118,8 +141,8 @@ namespace Captain.Application {
       var bounds = new Rectangle(ItemSize.Width * index, 0, ItemSize.Width, ItemSize.Height);
 
       if (ExtendTabs && index == TabCount - 1) {
-        // HACK: extend last tab to fill uneven space
-        bounds.Width = Width - bounds.Left;
+        // HACK: adjust last tab
+        bounds.Width = Width - bounds.X;
       }
 
       return bounds;

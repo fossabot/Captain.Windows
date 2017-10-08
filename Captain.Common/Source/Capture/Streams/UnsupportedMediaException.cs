@@ -6,5 +6,6 @@ namespace Captain.Common {
   ///   For instance, an output stream that streams live video won't support still screenshots; throwing this exception
   ///   will let Captain know the given media is not supported and won't display an error dialog
   /// </summary>
+  [Serializable]
   public class UnsupportedMediaException : Exception { }
 }

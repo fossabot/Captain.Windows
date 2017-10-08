@@ -72,9 +72,9 @@
       this.licensingLinkLabel.Location = new System.Drawing.Point(12, 14);
       this.licensingLinkLabel.Name = "licensingLinkLabel";
       this.licensingLinkLabel.RegularColor = System.Drawing.Color.FromArgb(((int)(((byte)(65)))), ((int)(((byte)(103)))), ((int)(((byte)(141)))));
-      this.licensingLinkLabel.Size = new System.Drawing.Size(119, 16);
+      this.licensingLinkLabel.Size = new System.Drawing.Size(124, 16);
       this.licensingLinkLabel.TabIndex = 5;
-      this.licensingLinkLabel.Text = "Open source licenses";
+      this.licensingLinkLabel.Text = "Licensing information";
       this.licensingLinkLabel.UseSystemColor = false;
       // 
       // closeButton
@@ -93,7 +93,7 @@
       // 
       this.supportUriLinkLabel.ForeColor = System.Drawing.SystemColors.HotTrack;
       this.supportUriLinkLabel.HoverColor = System.Drawing.Color.Empty;
-      this.supportUriLinkLabel.Location = new System.Drawing.Point(113, 128);
+      this.supportUriLinkLabel.Location = new System.Drawing.Point(141, 128);
       this.supportUriLinkLabel.Name = "supportUriLinkLabel";
       this.supportUriLinkLabel.RegularColor = System.Drawing.Color.Empty;
       this.supportUriLinkLabel.Size = new System.Drawing.Size(22, 16);
@@ -120,7 +120,6 @@
       this.MinimumSize = new System.Drawing.Size(320, 360);
       this.Name = "AboutWindow";
       this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-      this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
       this.Text = "About {0}";
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).EndInit();
       this.panel1.ResumeLayout(false);

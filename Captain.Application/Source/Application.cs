@@ -78,7 +78,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Application <see cref="Options"/> instance
     /// </summary>
-    internal static Options Options { get; set; }
+    internal static Options Options { get; private set; }
 
     /// <summary>
     ///   Terminates the program gracefully
@@ -106,7 +106,6 @@ namespace Captain.Application {
       VersionString = GetVersionString();
 
       Log = new Logger();
-      Log.SetDefault();
       Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionString}");
 
       if (Mutex.TryOpenExisting(SingleInstanceMutexName, out Mutex _)) {
