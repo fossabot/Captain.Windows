@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using System.Windows.Threading;
 using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
@@ -49,7 +50,10 @@ namespace Captain.Application {
     internal TrayIcon() {
       var contextMenu = new ContextMenu();
       NotifyIcon = new NotifyIcon { ContextMenu = contextMenu };
-      NotifyIcon.MouseDown += (_, __) => this.hintCircle?.Close();
+      NotifyIcon.MouseDown += (_, __) => this.hintCircle?.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                                                                                 new System.Action(() => {
+                                                                                   this.hintCircle.Close();
+                                                                                 }));
 
       contextMenu.MenuItems.AddRange(new[] {
         new MenuItem(Resources.AppMenu_Capture) {

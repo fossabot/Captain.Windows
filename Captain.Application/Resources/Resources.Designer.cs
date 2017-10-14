@@ -61,6 +61,42 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Applying updates.
+        /// </summary>
+        public static string AboutWindow_UpdateStatusApplying {
+            get {
+                return ResourceManager.GetString("AboutWindow_UpdateStatusApplying", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for updates.
+        /// </summary>
+        public static string AboutWindow_UpdateStatusChecking {
+            get {
+                return ResourceManager.GetString("AboutWindow_UpdateStatusChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading updates.
+        /// </summary>
+        public static string AboutWindow_UpdateStatusDownloading {
+            get {
+                return ResourceManager.GetString("AboutWindow_UpdateStatusDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restart {0} to finish installing updates.
+        /// </summary>
+        public static string AboutWindow_UpdateStatusReadyToRestart {
+            get {
+                return ResourceManager.GetString("AboutWindow_UpdateStatusReadyToRestart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://git.io/captain.
         /// </summary>
         public static string AboutWindow_URI {
@@ -439,6 +475,70 @@ namespace Captain.Application {
         public static string Toast_ViewResultsActionText {
             get {
                 return ResourceManager.GetString("Toast_ViewResultsActionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update {0}.
+        /// </summary>
+        public static string UpdaterUI_DialogCaption {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide release &amp;notes.
+        /// </summary>
+        public static string UpdaterUI_DialogReleaseNotesCollapse {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogReleaseNotesCollapse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show release &amp;notes.
+        /// </summary>
+        public static string UpdaterUI_DialogReleaseNotesExpand {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogReleaseNotesExpand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Remind me later.
+        /// </summary>
+        public static string UpdaterUI_DialogRemindLaterButton {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogRemindLaterButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Skip this version.
+        /// </summary>
+        public static string UpdaterUI_DialogSkipVersionButton {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogSkipVersionButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A new version of {0} ({1}) is available.
+        ///Yours is {2}..
+        /// </summary>
+        public static string UpdaterUI_DialogText {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Update.
+        /// </summary>
+        public static string UpdaterUI_DialogUpdateButton {
+            get {
+                return ResourceManager.GetString("UpdaterUI_DialogUpdateButton", resourceCulture);
             }
         }
     }

@@ -31,6 +31,7 @@
       this.closeButton = new System.Windows.Forms.Button();
       this.supportUriLinkLabel = new Captain.Application.LinkLabel2();
       this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+      this.updateStatusLabel = new Captain.Application.EllipsisProgressLabel();
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
       this.panel1.SuspendLayout();
       this.SuspendLayout();
@@ -101,6 +102,19 @@
       this.supportUriLinkLabel.Text = "{0}";
       this.supportUriLinkLabel.Click += new System.EventHandler(this.OnSupportLinkClick);
       // 
+      // updateStatusLabel
+      // 
+      this.updateStatusLabel.Animated = false;
+      this.updateStatusLabel.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+      this.updateStatusLabel.Location = new System.Drawing.Point(12, 248);
+      this.updateStatusLabel.Name = "updateStatusLabel";
+      this.updateStatusLabel.Prefix = "";
+      this.updateStatusLabel.ShowEllipsis = false;
+      this.updateStatusLabel.Size = new System.Drawing.Size(280, 15);
+      this.updateStatusLabel.Suffix = "";
+      this.updateStatusLabel.TabIndex = 5;
+      this.updateStatusLabel.Text = "...";
+      // 
       // AboutWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -108,6 +122,7 @@
       this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.CancelButton = this.closeButton;
       this.ClientSize = new System.Drawing.Size(304, 321);
+      this.Controls.Add(this.updateStatusLabel);
       this.Controls.Add(this.supportUriLinkLabel);
       this.Controls.Add(this.panel1);
       this.Controls.Add(this.versionLabel);
@@ -136,5 +151,6 @@
     private LinkLabel2 supportUriLinkLabel;
     private LinkLabel2 licensingLinkLabel;
     private System.Windows.Forms.ToolTip toolTip;
+    private EllipsisProgressLabel updateStatusLabel;
   }
 }

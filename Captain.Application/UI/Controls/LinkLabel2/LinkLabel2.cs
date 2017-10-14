@@ -39,10 +39,10 @@ namespace Captain.Application {
     private bool HoverUnderline { get; }
 
     [DefaultValue(true)]
-    public bool UseSystemColor { private get; set; }
+    public bool UseSystemColor { get; set; }
 
-    public Color RegularColor { private get; set; }
-    public Color HoverColor { private get; set; }
+    public Color RegularColor { get; set; }
+    public Color HoverColor { get; set; }
 
     public override string Text {
       get => base.Text;

@@ -5,6 +5,14 @@ using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
+  /// <summary>
+  ///   Class representing application options.
+  /// </summary>
+  /// <remarks>
+  ///   Instances of this class will be serialized and written to the options file. Make sure to keep this class
+  ///   backwards-compatible! A single change may render the application unresponsive when upgrading to a different
+  ///   version.
+  /// </remarks>
   [Serializable]
   public class Options {
     /// <summary>
@@ -21,6 +29,21 @@ namespace Captain.Application {
     ///   Current Options dialog tab index
     /// </summary>
     public uint OptionsDialogTab { get; set; }
+
+    /// <summary>
+    ///   Notification display options
+    /// </summary>
+    public NotificationDisplayOptions NotificationOptions { get; set; } = NotificationDisplayOptions.ExceptProgress;
+
+    /// <summary>
+    ///   Use legacy notification provider
+    /// </summary>
+    public bool UseLegacyNotificationProvider { get; set; }
+
+    /// <summary>
+    ///   Adjusts the behavior of the update manager
+    /// </summary>
+    public UpdatePolicy UpdatePolicy { get; set; } = UpdatePolicy.CheckOnly;
 
     /// <summary>
     ///   Loads an <see cref="Options"/> instance from file

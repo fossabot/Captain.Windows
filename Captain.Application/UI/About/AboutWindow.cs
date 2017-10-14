@@ -34,8 +34,52 @@ namespace Captain.Application {
 
       // set tool tips
       this.toolTip.SetToolTip(this.versionLabel, this.versionLabel.Text);
+
+      // bind updater events
+      SetUpdateStatus(Application.UpdateManager.Status);
+      Application.UpdateManager.OnUpdateStatusChanged += (_, s) => SetUpdateStatus(s);
+      Application.UpdateManager.OnUpdateProgressChanged += (_, s, p) => SetUpdateStatus(s, p);
     }
 
+    /// <summary>
+    ///   Changes the update status label
+    /// </summary>
+    /// <param name="status">Update status</param>
+    /// <param name="progress">Optional progress value</param>
+    private void SetUpdateStatus(UpdateStatus status, int? progress = null) {
+      this.updateStatusLabel.Suffix = "";
+
+      switch (status) {
+        case UpdateStatus.Idle:
+          this.updateStatusLabel.Prefix = "";
+          this.updateStatusLabel.Animated = false;
+          break;
+
+        case UpdateStatus.CheckingForUpdates:
+          this.updateStatusLabel.Prefix = Resources.AboutWindow_UpdateStatusChecking;
+          this.updateStatusLabel.Animated = true;
+          break;
+
+        case UpdateStatus.DownloadingUpdates:
+          this.updateStatusLabel.Prefix = Resources.AboutWindow_UpdateStatusDownloading;
+          break;
+
+        case UpdateStatus.ApplyingUpdates:
+          this.updateStatusLabel.Prefix = Resources.AboutWindow_UpdateStatusApplying;
+          this.updateStatusLabel.Animated = true;
+          break;
+
+        case UpdateStatus.ReadyToRestart:
+          this.updateStatusLabel.Prefix = String.Format(Resources.AboutWindow_UpdateStatusReadyToRestart,
+                                                        Application.VersionInfo.ProductName);
+          this.updateStatusLabel.Animated = false;
+          break;
+      }
+
+      this.updateStatusLabel.Suffix = progress.HasValue ? $"({progress}%)" : "";
+    }
+
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the window is first shown
     /// </summary>

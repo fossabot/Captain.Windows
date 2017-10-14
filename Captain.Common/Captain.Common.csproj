@@ -60,7 +60,6 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Source\Attributes\DisplayName.cs" />
     <Compile Include="Source\Attributes\ThreadApartmentState.cs" />
     <Compile Include="Source\Capture\Encoder\EncoderInfo.cs" />

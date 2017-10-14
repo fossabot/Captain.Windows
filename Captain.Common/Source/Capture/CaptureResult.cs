@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 
 // ReSharper disable once CheckNamespace
 namespace Captain.Common {

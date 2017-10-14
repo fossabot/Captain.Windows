@@ -117,10 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="_separator2.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
+  <metadata name="_separator1.GenerateMember" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>False</value>
+  </metadata>
   <metadata name="helpTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <data name="radioButton2.ToolTip" xml:space="preserve">
+  <data name="checkUpdatesRadioButton.ToolTip" xml:space="preserve">
     <value>The application will periodically check for updates online.
 When a new version is available, we'll ask you before downloading it.
 The next time you start the application, the update will be installed for you.
@@ -129,14 +135,14 @@ This option is recommended if you don't want the application to download
 data without your consent.
 </value>
   </data>
-  <data name="radioButton3.ToolTip" xml:space="preserve">
+  <data name="disableUpdatesRadioButton.ToolTip" xml:space="preserve">
     <value>The application will never check for updates, and you
 will have to manually download and install them.
 
 This option is not recommended, as updates may provide
 important fixes such as security patches.</value>
   </data>
-  <data name="radioButton1.ToolTip" xml:space="preserve">
+  <data name="automaticUpdatesRadioButton.ToolTip" xml:space="preserve">
     <value>The application will periodically check for updates online.
 When an update is available, it will be silently downloaded.
 The next time you start Captain, the update will be installed for you.

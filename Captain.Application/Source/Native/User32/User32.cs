@@ -13,7 +13,12 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   Hand cursor
       /// </summary>
-      IDC_HAND = 32649
+      IDC_HAND = 32649,
+
+      /// <summary>
+      ///   Default application icon
+      /// </summary>
+      IDI_APPLICATION = 32512,
     }
 
     internal enum HitTestValues {

@@ -2,12 +2,19 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Captain.Application.Native;
+using Captain.Common;
+using static Captain.Application.Application;
 
 namespace Captain.Application {
   /// <summary>
   ///   Displays a user interface for adjusting the application settings and behavior
   /// </summary>
   internal sealed partial class OptionsWindow : Window {
+    /// <summary>
+    ///   Property name for triggering page initialization on layout events
+    /// </summary>
+    private const string PageInitTriggerProperty = "OptionsPageInitialization";
+
     /// <summary>
     ///   Whether an About window has already been opened before
     /// </summary>
@@ -29,11 +36,15 @@ namespace Captain.Application {
       Icon = Resources.AppIcon;
 
       // format and save original window title
-      this.originalTitle = Text = String.Format(Text, Application.VersionInfo.ProductName);
+      this.originalTitle = Text = String.Format(Text, VersionInfo.ProductName);
 
       // initial setup
       this.toolBar.SelectedIndex = (int)Application.Options.OptionsDialogTab;
-      OnPageChanged(this, new EventArgs());
+      OnSelectingPage(this,
+                      new TabControlCancelEventArgs(this.toolBar.SelectedTab,
+                                                    this.toolBar.SelectedIndex,
+                                                    false,
+                                                    TabControlAction.Selecting));
       OnSizeChanged(new EventArgs());
     }
 
@@ -54,12 +65,16 @@ namespace Captain.Application {
       base.WndProc(ref msg);
     }
 
+    #region Common window logic
+
     /// <summary>
     ///   Processes font changes and updates some controls accordingly
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnFontChanged(EventArgs eventArgs) {
-      this.notificationsTitleLabel.Font = this.startupTitleLabel.Font = new Font(Font, FontStyle.Bold);
+      this.notificationsTitleLabel.Font =
+        this.startupTitleLabel.Font =
+          this.updatesTitleLabel.Font = new Font(Font, FontStyle.Bold);
       base.OnFontChanged(eventArgs);
     }
 
@@ -94,12 +109,24 @@ namespace Captain.Application {
     }
 
     /// <summary>
-    ///   Triggered when the selected tab index has changed
+    ///   Triggered before the selected tab index changes
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnPageChanged(object sender, EventArgs eventArgs) =>
-      Text = this.toolBar.SelectedTab.Text.Replace("&", "") + @" – " + this.originalTitle;
+    private void OnSelectingPage(object sender, TabControlCancelEventArgs eventArgs) {
+      Text = eventArgs.TabPage.Text.Replace("&", "") + @" – " + this.originalTitle;
+
+      if (eventArgs.TabPage.Tag == null) {
+        // page not initialized
+        eventArgs.TabPage.Tag = true;
+
+        // is this a hack? We abuse the Layout event so we don't have to implement logic for each page
+        Log.WriteLine(LogLevel.Debug, $"initializing \"{eventArgs.TabPage.Name}\" page");
+        eventArgs.TabPage.PerformLayout(eventArgs.TabPage, PageInitTriggerProperty);
+      }
+    }
+
+    #region Help tool tip
 
     /// <summary>
     ///   Draws help tool tips
@@ -128,5 +155,102 @@ namespace Captain.Application {
       Size textSize = TextRenderer.MeasureText(this.helpTip.GetToolTip(eventArgs.AssociatedControl).Trim(), Font);
       eventArgs.ToolTipSize = new Size(textSize.Width + 24, textSize.Height + 24);
     }
+
+    #endregion
+
+    #endregion
+
+    #region "General" page logic
+
+    /// <summary>
+    ///   Initializes the "General" page
+    /// </summary>
+    /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
+    /// <param name="eventArgs"></param>
+    private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty) {
+        // no need to initalize the page
+        return;
+      }
+
+      // auto-start options
+      var autoStartManager = new AutoStartManager();
+
+      this.autoStartCheckBox.Enabled = autoStartManager.IsFeatureAvailable;
+      this.autoStartCheckBox.Checked = autoStartManager.GetAutoStartPolicy() == AutoStartPolicy.Approved;
+      this.autoStartCheckBox.CheckStateChanged += (_, __) =>
+        this.autoStartCheckBox.Checked = autoStartManager.ToggleAutoStart(this.autoStartCheckBox.Checked
+                                                                            ? AutoStartPolicy.Approved
+                                                                            : AutoStartPolicy.Disapproved,
+                                                                          (ModifierKeys & Keys.Shift) != 0)
+                                                         .Equals(AutoStartPolicy.Approved);
+
+      // tray icon display options
+      // TODO: implement this feature - also, make sure the check box is disabled when no hot keys for accessing the
+      //       application UI have been set
+      this.displayTrayIconCheckBox.Enabled = false;
+      this.displayTrayIconCheckBox.Checked = true;
+
+      // notification options
+      if (Application.Options.NotificationOptions == NotificationDisplayOptions.Never) {
+        this.showNotificationsCheckBox.Checked = this.notificationOptionsComboBox.Enabled = false;
+        this.notificationOptionsComboBox.Text = "";
+        this.notificationOptionsComboBox.SelectedIndex = -1;
+      } else {
+        this.showNotificationsCheckBox.Checked = true;
+        this.notificationOptionsComboBox.SelectedIndex = (int)Application.Options.NotificationOptions - 1;
+
+        if (this.notificationOptionsComboBox.SelectedIndex == -1) {
+          this.notificationOptionsComboBox.SelectedIndex += (int)NotificationDisplayOptions.Always;
+        }
+      }
+
+      // only show legacy notifications check box if this platform supports any other kind of notification provider
+      this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
+      this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
+      this.legacyNotificationsCheckBox.CheckedChanged += (_, __) =>
+        Application.Options.UseLegacyNotificationProvider = this.legacyNotificationsCheckBox.Checked;
+
+      // application update options
+      this.automaticUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Automatic;
+      this.checkUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.CheckOnly;
+      this.disableUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Disabled;
+
+      this.automaticUpdatesRadioButton.CheckedChanged += (_, __) => {
+        if (this.automaticUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Automatic; }
+      };
+
+      this.checkUpdatesRadioButton.CheckedChanged += (_, __) => {
+        if (this.checkUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.CheckOnly; }
+      };
+
+      this.disableUpdatesRadioButton.CheckedChanged += (_, __) => {
+        if (this.disableUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Disabled; }
+      };
+
+      // make sure the feature is available
+      this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+                                                       this.checkUpdatesRadioButton.Enabled =
+                                                         this.disableUpdatesRadioButton.Enabled =
+                                                           Application.UpdateManager.IsFeatureAvailable &&
+                                                           Application.UpdateManager.Status == UpdateStatus.Idle);
+
+      // track changes on the update manager
+      Application.UpdateManager.OnUpdateStatusChanged += (manager, status) => {
+        this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+                                                         this.checkUpdatesRadioButton.Enabled =
+                                                           this.disableUpdatesRadioButton.Enabled =
+                                                             status == UpdateStatus.Idle);
+      };
+
+      Application.UpdateManager.OnAvailabilityChanged += (manager, available) => {
+        this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+                                                         this.checkUpdatesRadioButton.Enabled =
+                                                           this.disableUpdatesRadioButton.Enabled =
+                                                             available && manager.Status == UpdateStatus.Idle);
+      };
+    }
+
+    #endregion
   }
 }

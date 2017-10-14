@@ -81,6 +81,16 @@ namespace Captain.Application {
     internal static Options Options { get; private set; }
 
     /// <summary>
+    ///   Whether or not toast notifications are supported on this platform
+    /// </summary>
+    internal static bool AreToastNotificationsSupported { get; private set; }
+
+    /// <summary>
+    ///   Application update manager
+    /// </summary>
+    internal static UpdateManager UpdateManager { get; private set; }
+
+    /// <summary>
     ///   Terminates the program gracefully
     /// </summary>
     /// <param name="exitCode">Optional exit code</param>
@@ -90,9 +100,9 @@ namespace Captain.Application {
 
         TrayIcon?.Hide();
         Options?.Save();
-
-        loggerStream.Dispose();
+        UpdateManager?.Dispose();
       } finally {
+        loggerStream.Dispose();
         application.Shutdown(exitCode);
       }
     }
@@ -133,13 +143,23 @@ namespace Captain.Application {
 
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
-      TrayIcon = new TrayIcon();
+      UpdateManager = new UpdateManager();
 
       try {
         ToastProvider = new ToastNotificationProvider();
+        AreToastNotificationsSupported = true;
+        Log.WriteLine(LogLevel.Verbose, "toast notifications are supported");
       } catch {
-        ToastProvider = new LegacyNotificationProvider();
+        Log.WriteLine(LogLevel.Verbose, "toast notifications are not supported by this platform");
+      } finally {
+        if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
+          ToastProvider = new LegacyNotificationProvider();
+        }
+
+        Log.WriteLine(LogLevel.Verbose, $"initialized {ToastProvider.GetType().Name}");
       }
+
+      TrayIcon = new TrayIcon();
 
       void MyLittleCallback(bool exclusive) {
         Action action = ActionManager.CreateDefault();
@@ -170,7 +190,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Gets a semantic version string for the application
     /// </summary>
-    /// <returns>A string</returns>
+    /// <returns>A string representing the application version</returns>
     private static string GetVersionString() {
       string version =
         $"{VersionInfo.ProductMajorPart}.{VersionInfo.ProductMinorPart}.{VersionInfo.ProductPrivatePart}";
@@ -189,8 +209,28 @@ namespace Captain.Application {
 
       return version +
              '+' +
-             String.Join(".", metadataAttributes.Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : "")))
+             String.Join(".",
+                         metadataAttributes
+                           .Where(a => a.Value.Length == 0)
+                           .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : "")))
                    .TrimEnd('.');
+    }
+
+    /// <summary>
+    ///   Gets a value from the assembly metadata attributes
+    /// </summary>
+    /// <param name="key">Metadata key</param>
+    /// <returns>The requested value, or <c>null</c> if none was present.</returns>
+    internal static string GetMetadataValue(string key) {
+      var assembly = Assembly.GetExecutingAssembly();
+      AssemblyMetadataAttribute[] metadataAttributes = assembly
+        .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
+        .Cast<AssemblyMetadataAttribute>()
+        .Where(a => a.Key == key)
+        .ToArray();
+
+      if (!metadataAttributes.Any()) { return null; }
+      return metadataAttributes.First().Value;
     }
   }
 }

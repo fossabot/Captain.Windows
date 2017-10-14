@@ -100,7 +100,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Scale tabs accordingly when font changes
     /// </summary>
-    /// <param name="eventArgs"></param>
+    /// <param name="eventArgs">Arguments passed to this event handler</param>
     protected override void OnFontChanged(EventArgs eventArgs) {
       if (!DesignMode) {
         decimal scale = (decimal)Font.Size / (decimal)this.referenceFontSize;
@@ -151,23 +151,23 @@ namespace Captain.Application {
     /// <summary>
     ///   Clears background
     /// </summary>
-    /// <param name="e"></param>
-    protected override void OnPaintBackground(PaintEventArgs e) {
+    /// <param name="eventArgs">Arguments passed to this event handler</param>
+    protected override void OnPaintBackground(PaintEventArgs eventArgs) {
       // clear control with the default background color
-      e.Graphics.Clear(Color.WhiteSmoke);
+      eventArgs.Graphics.Clear(Color.WhiteSmoke);
 
       // clear header with darker color
-      e.Graphics.FillRectangle(TabHeaderBrush, new Rectangle(0, 0, Width, ItemSize.Height));
+      eventArgs.Graphics.FillRectangle(TabHeaderBrush, new Rectangle(0, 0, Width, ItemSize.Height));
 
       // draw header border
-      e.Graphics.DrawLine(BorderPen, Left, ItemSize.Height, Right, ItemSize.Height);
+      eventArgs.Graphics.DrawLine(BorderPen, Left, ItemSize.Height, Right, ItemSize.Height);
     }
 
     /// <summary>
     ///   Triggered when the mouse leaves the tab header
     /// </summary>
-    /// <param name="e">Event arguments</param>
-    protected override void OnMouseLeave(EventArgs e) {
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnMouseLeave(EventArgs eventArgs) {
       if (this.hoverIndex != -1) {
         // invalidate the currently hovered tab, if any
         Invalidate(GetTabBounds(this.hoverIndex));
@@ -180,13 +180,13 @@ namespace Captain.Application {
     /// <summary>
     ///   Triggered when the mouse moves around the tab header area
     /// </summary>
-    /// <param name="e"></param>
-    protected override void OnMouseMove(MouseEventArgs e) {
+    /// <param name="eventArgs"></param>
+    protected override void OnMouseMove(MouseEventArgs eventArgs) {
       int previousHoverIndex = this.hoverIndex; // previously hovered tab index
       this.hoverIndex = -1; // reset hover index
 
       // mouse is moving around the tab area, calculate the tab index from its horizontal position
-      this.hoverIndex = e.X / ItemSize.Width;
+      this.hoverIndex = eventArgs.X / ItemSize.Width;
 
       if (this.hoverIndex != previousHoverIndex) {
         // the hovered tab has changed, invalidate previous and current tab regions
@@ -198,10 +198,10 @@ namespace Captain.Application {
     /// <summary>
     ///   Triggered when the user holds the primary mouse button
     /// </summary>
-    /// <param name="e">Event arguments</param>
-    protected override void OnMouseDown(MouseEventArgs e) {
-      if (e.Button == MouseButtons.Left) {
-        this.downIndex = e.X / ItemSize.Width;
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnMouseDown(MouseEventArgs eventArgs) {
+      if (eventArgs.Button == MouseButtons.Left) {
+        this.downIndex = eventArgs.X / ItemSize.Width;
         Invalidate(GetTabBounds(this.downIndex));
       }
     }
@@ -209,8 +209,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Triggered when the user releases the primary mouse button
     /// </summary>
-    /// <param name="e">Event arguments</param>
-    protected override void OnMouseUp(MouseEventArgs e) {
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnMouseUp(MouseEventArgs eventArgs) {
       if (this.downIndex != -1) {
         SelectedIndex = this.downIndex;
         this.downIndex = -1;
@@ -221,31 +221,31 @@ namespace Captain.Application {
     /// <summary>
     ///   Paint procedure
     /// </summary>
-    /// <param name="e">Event arguments</param>
-    protected override void OnPaint(PaintEventArgs e) {
+    /// <param name="eventArgs">Event arguments</param>
+    protected override void OnPaint(PaintEventArgs eventArgs) {
       for (int i = 0; i < TabCount; i++) {
         // get bounds for the tab being rendered
         Rectangle tabBounds = GetTabBounds(i);
 
         if (this.downIndex == i) {
           // this tab is pressed
-          e.Graphics.FillRectangle(PressedTabBrush, tabBounds);
+          eventArgs.Graphics.FillRectangle(PressedTabBrush, tabBounds);
         } else if (this.hoverIndex == i) {
           // this tab is hovered
-          e.Graphics.FillRectangle(HoveredTabBrush, tabBounds);
+          eventArgs.Graphics.FillRectangle(HoveredTabBrush, tabBounds);
         }
 
         if (i != TabCount - 1) {
           // draw tab separator except for the last tab
-          e.Graphics.DrawLine(BorderPen,
-                              tabBounds.Right,
-                              tabBounds.Top + 4,
-                              tabBounds.Right,
-                              tabBounds.Bottom - 4);
+          eventArgs.Graphics.DrawLine(BorderPen,
+                                      tabBounds.Right,
+                                      tabBounds.Top + 4,
+                                      tabBounds.Right,
+                                      tabBounds.Bottom - 4);
         }
 
         // render tab label
-        TextRenderer.DrawText(e.Graphics,
+        TextRenderer.DrawText(eventArgs.Graphics,
                               TabPages[i].Text,
                               Font,
                               new Rectangle(tabBounds.X, tabBounds.Y, tabBounds.Width, tabBounds.Height),
@@ -256,11 +256,11 @@ namespace Captain.Application {
 
         if (SelectedIndex == i) {
           // display a bottom border for selected tabs
-          e.Graphics.DrawLine(SelectedTabBorderPen,
-                              tabBounds.Left,
-                              tabBounds.Bottom,
-                              tabBounds.Right,
-                              tabBounds.Bottom);
+          eventArgs.Graphics.DrawLine(SelectedTabBorderPen,
+                                      tabBounds.Left,
+                                      tabBounds.Bottom,
+                                      tabBounds.Right,
+                                      tabBounds.Bottom);
         }
       }
     }
