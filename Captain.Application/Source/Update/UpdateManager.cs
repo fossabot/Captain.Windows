@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Determines whether or not the update manager is available
     /// </summary>
-    internal bool IsFeatureAvailable => Manager != null && Manager.IsInstalledApp;
+    internal UpdaterAvailability Availability { get; private set; }
 
     /// <summary>
     ///   Current update status
@@ -32,8 +33,8 @@ namespace Captain.Application {
     ///   Triggered when the update manager availability changes
     /// </summary>
     /// <param name="manager">Update manager instance</param>
-    /// <param name="available">Whether or not the update manager is aviailable</param>
-    internal delegate void AvailabilityChangedHandler(UpdateManager manager, bool available);
+    /// <param name="availability">Updater status</param>
+    internal delegate void AvailabilityChangedHandler(UpdateManager manager, UpdaterAvailability availability);
 
     /// <summary>
     ///   Triggered when the update status changes
@@ -72,7 +73,12 @@ namespace Captain.Application {
       if (Application.Options.UpdatePolicy == UpdatePolicy.Disabled) {
         Log.WriteLine(LogLevel.Warning, "automatic updates are not allowed - aborting");
       } else {
-        InitializeUnderlyingManager();
+        try {
+          throw new FileNotFoundException();
+          InitializeUnderlyingManager();
+        } catch (FileNotFoundException) {
+          Log.WriteLine(LogLevel.Warning, "updates are not supported - aborting");
+        }
       }
     }
 
@@ -80,10 +86,13 @@ namespace Captain.Application {
     ///   Restarts the app, launching the newest version
     /// </summary>
     internal void Restart() {
+      Log.WriteLine(LogLevel.Warning, "restarting the application");
+
       try {
         RestartApp();
       } catch {
-        Exit();
+        Log.WriteLine(LogLevel.Warning, "could not restart to latest version - surely in portable mode");
+        Restart();
       }
     }
 
@@ -113,14 +122,15 @@ namespace Captain.Application {
 
           if (Application.Options.UpdatePolicy == UpdatePolicy.Automatic) {
             DownloadUpdates(dispatcher, t.Result);
-          } else if (UpdaterUiHelper.ShowPromptDialog(t.Result)) {
+          } else if (dispatcher.Invoke(() => UpdaterUiHelper.ShowPromptDialog(t.Result))) {
             DownloadUpdates(dispatcher, t.Result);
-            UpdaterUiHelper.ShowProgressDialog();
+            dispatcher.Invoke(UpdaterUiHelper.ShowProgressDialog);
+          } else {
+            Log.WriteLine(LogLevel.Verbose, "operation cancelled by the user");
           }
         }
       });
     }
-
     /// <summary>
     ///   Downloads and installs updates
     /// </summary>
@@ -175,6 +185,7 @@ namespace Captain.Application {
     /// </summary>
     private void InitializeUnderlyingManager() {
       Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+
       var updateManagerHandler = new Action<Task<Squirrel.UpdateManager>>(task => {
         if (task.IsFaulted) {
           Log.WriteLine(LogLevel.Warning, $"could not initialize underlying UpdateManager - {task.Exception}");
@@ -185,11 +196,13 @@ namespace Captain.Application {
 
           if (Manager != null) {
             Manager = null;
-            dispatcher.Invoke(() => OnAvailabilityChanged?.Invoke(this, false));
+            Availability = UpdaterAvailability.NotAvailable;
+            dispatcher.Invoke(() => OnAvailabilityChanged?.Invoke(this, Availability));
           }
         } else {
           Manager = task.Result;
-          dispatcher.Invoke(() => OnAvailabilityChanged?.Invoke(this, true));
+          Availability = UpdaterAvailability.FullyAvailable;
+          dispatcher.Invoke(() => OnAvailabilityChanged?.Invoke(this, Availability));
           CheckForUpdates(dispatcher);
         }
       });
@@ -203,6 +216,7 @@ namespace Captain.Application {
         Manager = new Squirrel.UpdateManager(updateUrl,
                                              VersionInfo.ProductName,
                                              Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+        Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
       } else {
         Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting");

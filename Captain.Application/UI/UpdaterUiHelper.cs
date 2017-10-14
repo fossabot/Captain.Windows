@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Captain.Application.Native;
-using Captain.Common;
-using MyAPKapp.VistaUIFramework;
-using MyAPKapp.VistaUIFramework.TaskDialog;
-using NuGet;
+using Ookii.Dialogs.Wpf;
 using Squirrel;
 using static Captain.Application.Application;
+using ProgressBarStyle = Ookii.Dialogs.Wpf.ProgressBarStyle;
 
 namespace Captain.Application {
   /// <summary>
@@ -23,16 +18,20 @@ namespace Captain.Application {
     /// <returns>The result of the dialog.</returns>
     internal static bool ShowPromptDialog(UpdateInfo update) => new TaskDialog {
       WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, VersionInfo.ProductName),
-      Icon = Resources.UpdateIcon,
+      CustomMainIcon = Resources.UpdateIcon,
       WindowIcon = Resources.AppIcon,
-      AllowDialogCancelation = true,
-      CloseEnabled = true,
-      CommonButtons = TaskDialogCommonButton.Yes | TaskDialogCommonButton.No,
+      AllowDialogCancellation = true,
+      Width = 200,
+      Buttons = {
+        new TaskDialogButton(Resources.UpdaterUI_UpdateButton) { Default = true },
+        new TaskDialogButton(Resources.UpdaterUI_RemindLaterButton)
+      },
+
       Content = String.Format(Resources.UpdaterUI_DialogText,
-                              VersionInfo.ProductName,
-                              update.ReleasesToApply.Last().Version,
-                              VersionString)
-    }.ShowDialog().CommonButton == DialogResult.Yes;
+                                VersionInfo.ProductName,
+                                update.ReleasesToApply.Last().Version,
+                                VersionString)
+    }.ShowDialog().Default;
 
     /// <summary>
     ///   Displays a progress dialog for the update procedure
@@ -40,26 +39,25 @@ namespace Captain.Application {
     internal static void ShowProgressDialog() {
       var dialog = new TaskDialog {
         WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, VersionInfo.ProductName),
-        Icon = Resources.UpdateIcon,
+        CustomMainIcon = Resources.UpdateIcon,
         WindowIcon = Resources.AppIcon,
-        AllowDialogCancelation = false,
-        CloseEnabled = false,
-        CommonButtons = TaskDialogCommonButton.Cancel,
+        AllowDialogCancellation = false,
+        Width = 200,
+        Buttons = { new TaskDialogButton(ButtonType.Cancel) { Enabled = false } },
         Content = Resources.UpdaterUI_DialogProgressText,
-        UseProgressBar = true,
-        ProgressMinimum = 0,
-        ProgressMaximum = 100
+        ProgressBarStyle = ProgressBarStyle.ProgressBar,
+        ProgressBarMinimum = 0,
+        ProgressBarMaximum = 100
       };
 
-      // disable Cancel button, as we can not remove the buttons from a task dialog
-      dialog.ButtonClick += (_, e) => e.Cancel = true;
-
       // bind update manager event handlers
-      Application.UpdateManager.OnUpdateStatusChanged += (_, s) => {
-        dialog.ProgressValue = 0;
+      Application.UpdateManager.OnUpdateProgressChanged += (m, s, p) => dialog.ProgressBarValue = p;
+      Application.UpdateManager.OnUpdateStatusChanged += (m, s) => {
+        dialog.ProgressBarValue = 0;
 
         switch (s) {
           case UpdateStatus.ReadyToRestart:
+            User32.DestroyWindow(dialog.Handle);  // task dialog on main thread is blocking and prevents app shutdown
             Application.UpdateManager.Restart();
             break;
 
@@ -69,7 +67,6 @@ namespace Captain.Application {
         }
       };
 
-      Application.UpdateManager.OnUpdateProgressChanged += (_, s, p) => dialog.ProgressValue = p;
       dialog.ShowDialog();
     }
   }

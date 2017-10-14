@@ -18,12 +18,12 @@ namespace Captain.Application {
     /// <summary>
     ///   Default options file name
     /// </summary>
-    private const string OptionsFileName = "Options.xml";
+    internal const string OptionsFileName = "Options.xml";
 
     /// <summary>
     ///   Saved position for windows
     /// </summary>
-    public WindowPositionMap WindowPositions { get; } = new WindowPositionMap();
+    public WindowPositionMap WindowPositions { get; set; } = new WindowPositionMap();
 
     /// <summary>
     ///   Current Options dialog tab index
@@ -44,6 +44,11 @@ namespace Captain.Application {
     ///   Adjusts the behavior of the update manager
     /// </summary>
     public UpdatePolicy UpdatePolicy { get; set; } = UpdatePolicy.CheckOnly;
+
+    /// <summary>
+    ///   Last version of the application that was ran
+    /// </summary>
+    public string LastVersion { get; set; } = String.Empty;
 
     /// <summary>
     ///   Loads an <see cref="Options"/> instance from file

@@ -267,10 +267,40 @@ Would you like to install it?</value>
   <data name="UpdateIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>UpdateIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="UpdaterUI_DialogProgressText" xml:space="preserve">
+    <value>Downloading update…</value>
+  </data>
+  <data name="UpdaterUI_UpdateButton" xml:space="preserve">
+    <value>&amp;Update</value>
+  </data>
+  <data name="UpdaterUI_RemindLaterButton" xml:space="preserve">
+    <value>&amp;Remind me later</value>
+  </data>
+  <data name="AppxIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>AppxIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="UpdaterUI_DialogInstallProgressText" xml:space="preserve">
     <value>Installing update…</value>
   </data>
-  <data name="UpdaterUI_DialogProgressText" xml:space="preserve">
-    <value>Downloading update…</value>
+  <data name="AboutWindow_DistributionTypeStandalone" xml:space="preserve">
+    <value>Standalone</value>
+  </data>
+  <data name="AboutWindow_DistributionTypeFull" xml:space="preserve">
+    <value>Full</value>
+  </data>
+  <data name="AboutWindow_DistributionType" xml:space="preserve">
+    <value>Distribution type</value>
+  </data>
+  <data name="OptionsWindow_RestoreDialogInstruction" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="OptionsWindow_RestoreDialogContent" xml:space="preserve">
+    <value>Restoring the application will delete all plugins, logs and customizations. We won't touch your captures.</value>
+  </data>
+  <data name="OptionsWindow_RestoreDialogOptionsButton" xml:space="preserve">
+    <value>Restore options only</value>
+  </data>
+  <data name="OptionsWindow_RestoreDialogHardButton" xml:space="preserve">
+    <value>Reset everything</value>
   </data>
 </root>

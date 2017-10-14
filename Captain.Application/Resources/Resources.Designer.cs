@@ -61,6 +61,33 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Distribution type.
+        /// </summary>
+        public static string AboutWindow_DistributionType {
+            get {
+                return ResourceManager.GetString("AboutWindow_DistributionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Full.
+        /// </summary>
+        public static string AboutWindow_DistributionTypeFull {
+            get {
+                return ResourceManager.GetString("AboutWindow_DistributionTypeFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standalone.
+        /// </summary>
+        public static string AboutWindow_DistributionTypeStandalone {
+            get {
+                return ResourceManager.GetString("AboutWindow_DistributionTypeStandalone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying updates.
         /// </summary>
         public static string AboutWindow_UpdateStatusApplying {
@@ -176,6 +203,16 @@ namespace Captain.Application {
         public static string AppMenu_Options {
             get {
                 return ResourceManager.GetString("AppMenu_Options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        public static System.Drawing.Icon AppxIcon {
+            get {
+                object obj = ResourceManager.GetObject("AppxIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
             }
         }
         
@@ -331,6 +368,42 @@ namespace Captain.Application {
             get {
                 object obj = ResourceManager.GetObject("Logo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restoring the application will delete all plugins, logs and customizations. We won&apos;t touch your captures..
+        /// </summary>
+        public static string OptionsWindow_RestoreDialogContent {
+            get {
+                return ResourceManager.GetString("OptionsWindow_RestoreDialogContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset everything.
+        /// </summary>
+        public static string OptionsWindow_RestoreDialogHardButton {
+            get {
+                return ResourceManager.GetString("OptionsWindow_RestoreDialogHardButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        public static string OptionsWindow_RestoreDialogInstruction {
+            get {
+                return ResourceManager.GetString("OptionsWindow_RestoreDialogInstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restore options only.
+        /// </summary>
+        public static string OptionsWindow_RestoreDialogOptionsButton {
+            get {
+                return ResourceManager.GetString("OptionsWindow_RestoreDialogOptionsButton", resourceCulture);
             }
         }
         
@@ -522,6 +595,24 @@ namespace Captain.Application {
         public static string UpdaterUI_DialogText {
             get {
                 return ResourceManager.GetString("UpdaterUI_DialogText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Remind me later.
+        /// </summary>
+        public static string UpdaterUI_RemindLaterButton {
+            get {
+                return ResourceManager.GetString("UpdaterUI_RemindLaterButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Update.
+        /// </summary>
+        public static string UpdaterUI_UpdateButton {
+            get {
+                return ResourceManager.GetString("UpdaterUI_UpdateButton", resourceCulture);
             }
         }
     }

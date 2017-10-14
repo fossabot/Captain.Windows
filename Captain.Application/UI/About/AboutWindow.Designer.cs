@@ -32,6 +32,7 @@
       this.supportUriLinkLabel = new Captain.Application.LinkLabel2();
       this.toolTip = new System.Windows.Forms.ToolTip(this.components);
       this.updateStatusLabel = new Captain.Application.EllipsisProgressLabel();
+      this.distributionLabel = new System.Windows.Forms.Label();
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
       this.panel1.SuspendLayout();
       this.SuspendLayout();
@@ -53,7 +54,6 @@
       this.versionLabel.Size = new System.Drawing.Size(180, 15);
       this.versionLabel.TabIndex = 1;
       this.versionLabel.Tag = "Version";
-      this.versionLabel.Text = "{0}";
       this.versionLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.OnLabelPaint);
       // 
       // panel1
@@ -115,6 +115,15 @@
       this.updateStatusLabel.TabIndex = 5;
       this.updateStatusLabel.Text = "...";
       // 
+      // distributionLabel
+      // 
+      this.distributionLabel.Location = new System.Drawing.Point(62, 185);
+      this.distributionLabel.Name = "distributionLabel";
+      this.distributionLabel.Size = new System.Drawing.Size(180, 15);
+      this.distributionLabel.TabIndex = 6;
+      this.distributionLabel.Tag = "Dist. Type";
+      this.distributionLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.OnLabelPaint);
+      // 
       // AboutWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -122,6 +131,7 @@
       this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.CancelButton = this.closeButton;
       this.ClientSize = new System.Drawing.Size(304, 321);
+      this.Controls.Add(this.distributionLabel);
       this.Controls.Add(this.updateStatusLabel);
       this.Controls.Add(this.supportUriLinkLabel);
       this.Controls.Add(this.panel1);
@@ -152,5 +162,6 @@
     private LinkLabel2 licensingLinkLabel;
     private System.Windows.Forms.ToolTip toolTip;
     private EllipsisProgressLabel updateStatusLabel;
+    private System.Windows.Forms.Label distributionLabel;
   }
 }

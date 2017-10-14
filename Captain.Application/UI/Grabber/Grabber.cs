@@ -95,18 +95,22 @@ namespace Captain.Application {
     /// <param name="eventArgs">Event args</param>
     private void OnWindowClosed(object sender, EventArgs eventArgs) => Dispose();
 
+    /// <inheritdoc />
     /// <summary>
     ///   Disposes resources used by the grabber interface
     /// </summary>
     public void Dispose() {
-      this.window.Closed -= OnWindowClosed;
-      ToolBar.Closed -= OnWindowClosed;
+      if (this.window != null) {
+        this.window.Closed -= OnWindowClosed;
+        this.window.Close();
+        this.window = null;
+      }
 
-      this.window.Close();
-      ToolBar.Close();
-
-      this.window = null;
-      ToolBar = null;
+      if (ToolBar != null) {
+        ToolBar.Closed -= OnWindowClosed;
+        ToolBar.Close();
+        ToolBar = null;
+      }
 
       IsDisposed = true;
     }

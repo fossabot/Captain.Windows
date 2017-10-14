@@ -110,6 +110,7 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <None Include="Resources\AppxIcon.ico" />
     <None Include="Resources\UpdateIcon.ico" />
     <None Include="Resources\Logo.png" />
     <Resource Include="Content\Grabber\Icons\Cancel.png" />
@@ -187,14 +188,14 @@
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="Source\Update\UpdateManager.cs" />
+    <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
     <Compile Include="Source\WindowHelper.cs" />
     <Compile Include="UI\ColorExtensions.cs" />
     <Compile Include="UI\Controls\EllipsisProgressLabel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Updater\UpdaterDialogResult.cs" />
-    <Compile Include="UI\Updater\UpdaterUiHelper.cs" />
+    <Compile Include="UI\UpdaterUiHelper.cs" />
     <Compile Include="UI\Window.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -302,6 +303,9 @@
     <Reference Include="NuGet.Squirrel, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\NuGet.Squirrel.dll</HintPath>
     </Reference>
+    <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="SharpCompress, Version=0.18.2.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
@@ -332,9 +336,6 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
-    <Reference Include="VistaUIFramework, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\VistaUIFramework.2.5.0\lib\VistaUIFramework.dll</HintPath>
-    </Reference>
     <Reference Include="Windows.Data" />
     <Reference Include="Windows.Foundation" />
     <Reference Include="Windows.UI" />

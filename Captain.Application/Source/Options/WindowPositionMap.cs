@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Represents a list of saved window positions
   /// </summary>

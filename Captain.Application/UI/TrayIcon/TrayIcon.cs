@@ -99,7 +99,7 @@ namespace Captain.Application {
       Show();
 
       // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
-      if (true) {
+      if (Application.FirstTime) {
         try {
           RECT iconRect = GetIconRect();
 

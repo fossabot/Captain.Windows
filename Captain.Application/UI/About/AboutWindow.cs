@@ -26,7 +26,10 @@ namespace Captain.Application {
 
       // format text labels
       Text = String.Format(Text, Application.VersionInfo.ProductName);
-      this.versionLabel.Text = String.Format(this.versionLabel.Text, Application.VersionString);
+      this.versionLabel.Text = Application.VersionString;
+      this.distributionLabel.Text = Application.UpdateManager.Availability == UpdaterAvailability.NotSupported
+                                      ? "Standalone"
+                                      : "Full";
 
       // set support URI text and center it!
       this.supportUriLinkLabel.Text = String.Format(this.supportUriLinkLabel.Text, Resources.AboutWindow_URI);
@@ -34,6 +37,7 @@ namespace Captain.Application {
 
       // set tool tips
       this.toolTip.SetToolTip(this.versionLabel, this.versionLabel.Text);
+      this.toolTip.SetToolTip(this.distributionLabel, Resources.AboutWindow_DistributionType);
 
       // bind updater events
       SetUpdateStatus(Application.UpdateManager.Status);

@@ -1,5 +1,6 @@
 ﻿using Captain.Common;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -73,7 +74,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Notification provider
     /// </summary>
-    internal static IToastProvider ToastProvider { get; private set; }
+    internal static IToastProvider ToastProvider { get; set; }
 
     /// <summary>
     ///   Application <see cref="Options"/> instance
@@ -91,10 +92,16 @@ namespace Captain.Application {
     internal static UpdateManager UpdateManager { get; private set; }
 
     /// <summary>
+    ///   Indicates whether or not this is the first time the user opens the current version of the app
+    /// </summary>
+    internal static bool FirstTime { get; private set; }
+
+    /// <summary>
     ///   Terminates the program gracefully
     /// </summary>
     /// <param name="exitCode">Optional exit code</param>
-    internal static void Exit(int exitCode = 0) {
+    /// <param name="exit">Whether to exit or just perform clean up tasks</param>
+    internal static void Exit(int exitCode = 0, bool exit = true) {
       try {
         Log.WriteLine(LogLevel.Warning, "exiting with code {0}", exitCode);
 
@@ -104,16 +111,83 @@ namespace Captain.Application {
 
         GC.WaitForPendingFinalizers();
         loggerStream.Dispose();
+        Log.Streams.Clear();
       } finally {
         application.Shutdown(exitCode);
       }
     }
 
     /// <summary>
+    ///   Restarts the application
+    /// </summary>
+    /// <param name="exitCode">Optional exit code</param>
+    internal static void Restart(int exitCode = 0) {
+      Log.WriteLine(LogLevel.Warning, "restarting the application");
+
+      try {
+        Exit(exit: false);
+        Process.Start(Assembly.GetExecutingAssembly().Location, $"--kill {Process.GetCurrentProcess().Id}");
+      } finally {
+        application.Shutdown(exitCode);
+      }
+    }
+
+    /// <summary>
+    ///   Resets the application options
+    /// </summary>
+    /// <param name="hard">Removes everything under the application directory</param>
+    internal static void Reset(bool hard = false) {
+      var nodes = new List<string> { Path.Combine(FsManager.GetSafePath(), Options.OptionsFileName) };
+
+      if (hard) {
+        Log.WriteLine(LogLevel.Warning, "performing hard reset!");
+        nodes.AddRange(new[] { FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath }.Select(FsManager.GetSafePath));
+      }
+
+      Log.WriteLine(LogLevel.Verbose, $"deleting nodes: {String.Join(";", nodes)}");
+      Exit(0, false);
+      Process.Start(Assembly.GetExecutingAssembly().Location, "--rmnodes \"" + string.Join("\" \"", nodes) + "\"");
+    }
+
+    /// <summary>
     ///   Program entry point
     /// </summary>
+    /// <param name="args">Command-line arguments passed to the program</param>
     [STAThread]
-    private static void Main() {
+    private static void Main(string[] args) {
+      if (Array.IndexOf(args, "--rmnodes") is int i && i != -1) {
+        for (int j = i + 1; j < args.Length; j++) {
+          try {
+            FileAttributes attributes = File.GetAttributes(args[j]);
+
+            if ((attributes & FileAttributes.Directory) != 0) {
+              try {
+                Directory.Delete(args[j], true);
+              } catch {
+                Console.WriteLine(@"Failed to delete tree - {0}", args[j]);
+              }
+            } else {
+              try {
+                File.Delete(args[j]);
+              } catch {
+                Console.WriteLine(@"Failed to delete node - {0}", args[j]);
+              }
+            }
+          } catch {
+            Console.WriteLine(@"Failed to retrieve attributes for node - {0}", args[j]);
+          }
+        }
+
+        Process.Start(Assembly.GetExecutingAssembly().Location);
+        Environment.Exit(0);
+      } else if (Array.IndexOf(args, "--kill") is int k && k != -1 && k + 1 < args.Length && UInt16.TryParse(args[k + 1], out ushort pid)) {
+        try {
+          Process.GetProcessById(pid).Kill();
+        } catch {
+          Console.WriteLine(@"Failed to kill process with ID {0}", pid);
+        }
+      }
+
       VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
       VersionString = GetVersionString();
 
@@ -146,6 +220,14 @@ namespace Captain.Application {
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
       UpdateManager = new UpdateManager();
+
+      // has the application been updated or perhaps is it the first time the user opens it?
+      if (Options.LastVersion != VersionString) {
+        Log.WriteLine(LogLevel.Informational, "this is the first time the user opens the app - welcome!");
+        Options.LastVersion = VersionString;
+        Options.Save();
+        FirstTime = true;
+      }
 
       try {
         ToastProvider = new ToastNotificationProvider();

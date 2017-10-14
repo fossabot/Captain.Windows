@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -10,6 +11,7 @@ namespace Captain.Application {
   /// </summary>
   /// <typeparam name="TKey">Dictionary key type</typeparam>
   /// <typeparam name="TValue">Dictionary value type</typeparam>
+  [Serializable]
   public abstract class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable {
     protected abstract string ItemName { get; }
     protected abstract string KeyName { get; }

@@ -451,6 +451,17 @@ namespace Captain.Application.Native {
                                                [In] [Optional] IntPtr hwndChildAfter,
                                                [In] [Optional] string lpszClass,
                                                [In] [Optional] string lpszWindow);
+
+    /// <summary>
+    ///   Destroys the specified window. The function sends WM_DESTROY and WM_NCDESTROY messages to the window to
+    ///   deactivate it and remove the keyboard focus from it. The function also destroys the window's menu, flushe
+    ///   the thread message queue, destroys timers, removes clipboard ownership, and breaks the clipboard viewer chain
+    ///   (if the window is at the top of the viewer chain).
+    /// </summary>
+    /// <param name="hWnd">A handle to the window to be destroyed.</param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern bool DestroyWindow([In] IntPtr hWnd);
     #endregion
 
     #region Drawing contexts

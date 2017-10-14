@@ -31,16 +31,19 @@
       this.notificationsTitleLabel = new System.Windows.Forms.Label();
       this.toolBar = new Captain.Application.ToolBarControl();
       this.generalPage = new System.Windows.Forms.TabPage();
+      this.upgradeToFullInstallPanel = new System.Windows.Forms.Panel();
+      this.performInstallNoticeLabel = new System.Windows.Forms.Label();
       this.updateManagerUnavailableLabel = new System.Windows.Forms.Label();
-      this.checkUpdatesRadioButton = new System.Windows.Forms.RadioButton();
-      this.disableUpdatesRadioButton = new System.Windows.Forms.RadioButton();
-      this.automaticUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.updatesTitleLabel = new System.Windows.Forms.Label();
       this.legacyNotificationsCheckBox = new System.Windows.Forms.CheckBox();
       this.notificationOptionsComboBox = new System.Windows.Forms.ComboBox();
       this.showNotificationsCheckBox = new System.Windows.Forms.CheckBox();
       this.displayTrayIconCheckBox = new System.Windows.Forms.CheckBox();
       this.autoStartCheckBox = new System.Windows.Forms.CheckBox();
+      this.updateOptionsPanel = new System.Windows.Forms.Panel();
+      this.checkUpdatesRadioButton = new System.Windows.Forms.RadioButton();
+      this.automaticUpdatesRadioButton = new System.Windows.Forms.RadioButton();
+      this.disableUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.streamsPage = new System.Windows.Forms.TabPage();
       this.encodersPage = new System.Windows.Forms.TabPage();
       this.capturePage = new System.Windows.Forms.TabPage();
@@ -50,6 +53,8 @@
       _separator1 = new System.Windows.Forms.Panel();
       this.toolBar.SuspendLayout();
       this.generalPage.SuspendLayout();
+      this.upgradeToFullInstallPanel.SuspendLayout();
+      this.updateOptionsPanel.SuspendLayout();
       this.SuspendLayout();
       // 
       // _separator2
@@ -110,10 +115,8 @@
       // generalPage
       // 
       this.generalPage.BackColor = System.Drawing.Color.WhiteSmoke;
+      this.generalPage.Controls.Add(this.upgradeToFullInstallPanel);
       this.generalPage.Controls.Add(this.updateManagerUnavailableLabel);
-      this.generalPage.Controls.Add(this.checkUpdatesRadioButton);
-      this.generalPage.Controls.Add(this.disableUpdatesRadioButton);
-      this.generalPage.Controls.Add(this.automaticUpdatesRadioButton);
       this.generalPage.Controls.Add(this.updatesTitleLabel);
       this.generalPage.Controls.Add(_separator2);
       this.generalPage.Controls.Add(this.legacyNotificationsCheckBox);
@@ -124,13 +127,33 @@
       this.generalPage.Controls.Add(this.startupTitleLabel);
       this.generalPage.Controls.Add(this.autoStartCheckBox);
       this.generalPage.Controls.Add(_separator1);
+      this.generalPage.Controls.Add(this.updateOptionsPanel);
       this.generalPage.Location = new System.Drawing.Point(4, 36);
       this.generalPage.Name = "generalPage";
       this.generalPage.Padding = new System.Windows.Forms.Padding(3);
       this.generalPage.Size = new System.Drawing.Size(456, 341);
       this.generalPage.TabIndex = 0;
       this.generalPage.Text = "General";
+      this.generalPage.Click += new System.EventHandler(this.generalPage_Click);
       this.generalPage.Layout += new System.Windows.Forms.LayoutEventHandler(this.OnGeneralPageLayout);
+      // 
+      // upgradeToFullInstallPanel
+      // 
+      this.upgradeToFullInstallPanel.Controls.Add(this.performInstallNoticeLabel);
+      this.upgradeToFullInstallPanel.Location = new System.Drawing.Point(76, 235);
+      this.upgradeToFullInstallPanel.Name = "upgradeToFullInstallPanel";
+      this.upgradeToFullInstallPanel.Size = new System.Drawing.Size(304, 98);
+      this.upgradeToFullInstallPanel.TabIndex = 20;
+      this.upgradeToFullInstallPanel.Visible = false;
+      // 
+      // performInstallNoticeLabel
+      // 
+      this.performInstallNoticeLabel.Location = new System.Drawing.Point(-3, 5);
+      this.performInstallNoticeLabel.Margin = new System.Windows.Forms.Padding(0);
+      this.performInstallNoticeLabel.Name = "performInstallNoticeLabel";
+      this.performInstallNoticeLabel.Size = new System.Drawing.Size(304, 32);
+      this.performInstallNoticeLabel.TabIndex = 0;
+      this.performInstallNoticeLabel.Text = "Automatic updates are not available in the standalone version of {0}.";
       // 
       // updateManagerUnavailableLabel
       // 
@@ -144,48 +167,6 @@
       this.helpTip.SetToolTip(this.updateManagerUnavailableLabel, "You can\'t change these options right now.\r\nThe update manager is currently unavai" +
         "lable, busy,\r\nor you are running the application in portable mode.");
       this.updateManagerUnavailableLabel.Visible = false;
-      // 
-      // checkUpdatesRadioButton
-      // 
-      this.checkUpdatesRadioButton.AutoSize = true;
-      this.checkUpdatesRadioButton.Enabled = false;
-      this.checkUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.checkUpdatesRadioButton.Location = new System.Drawing.Point(76, 269);
-      this.checkUpdatesRadioButton.Name = "checkUpdatesRadioButton";
-      this.checkUpdatesRadioButton.Size = new System.Drawing.Size(304, 20);
-      this.checkUpdatesRadioButton.TabIndex = 13;
-      this.checkUpdatesRadioButton.TabStop = true;
-      this.checkUpdatesRadioButton.Text = "Check for updates but let me choose to install them";
-      this.helpTip.SetToolTip(this.checkUpdatesRadioButton, resources.GetString("checkUpdatesRadioButton.ToolTip"));
-      this.checkUpdatesRadioButton.UseVisualStyleBackColor = true;
-      // 
-      // disableUpdatesRadioButton
-      // 
-      this.disableUpdatesRadioButton.AutoSize = true;
-      this.disableUpdatesRadioButton.Enabled = false;
-      this.disableUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.disableUpdatesRadioButton.Location = new System.Drawing.Point(76, 295);
-      this.disableUpdatesRadioButton.Name = "disableUpdatesRadioButton";
-      this.disableUpdatesRadioButton.Size = new System.Drawing.Size(157, 20);
-      this.disableUpdatesRadioButton.TabIndex = 12;
-      this.disableUpdatesRadioButton.TabStop = true;
-      this.disableUpdatesRadioButton.Text = "Don\'t check for updates";
-      this.helpTip.SetToolTip(this.disableUpdatesRadioButton, resources.GetString("disableUpdatesRadioButton.ToolTip"));
-      this.disableUpdatesRadioButton.UseVisualStyleBackColor = true;
-      // 
-      // automaticUpdatesRadioButton
-      // 
-      this.automaticUpdatesRadioButton.AutoSize = true;
-      this.automaticUpdatesRadioButton.Enabled = false;
-      this.automaticUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.automaticUpdatesRadioButton.Location = new System.Drawing.Point(76, 243);
-      this.automaticUpdatesRadioButton.Name = "automaticUpdatesRadioButton";
-      this.automaticUpdatesRadioButton.Size = new System.Drawing.Size(182, 20);
-      this.automaticUpdatesRadioButton.TabIndex = 10;
-      this.automaticUpdatesRadioButton.TabStop = true;
-      this.automaticUpdatesRadioButton.Text = "Install updates automatically";
-      this.helpTip.SetToolTip(this.automaticUpdatesRadioButton, resources.GetString("automaticUpdatesRadioButton.ToolTip"));
-      this.automaticUpdatesRadioButton.UseVisualStyleBackColor = true;
       // 
       // updatesTitleLabel
       // 
@@ -265,6 +246,59 @@
       this.autoStartCheckBox.Text = "Start when you &log into Windows";
       this.autoStartCheckBox.UseVisualStyleBackColor = true;
       // 
+      // updateOptionsPanel
+      // 
+      this.updateOptionsPanel.Controls.Add(this.checkUpdatesRadioButton);
+      this.updateOptionsPanel.Controls.Add(this.automaticUpdatesRadioButton);
+      this.updateOptionsPanel.Controls.Add(this.disableUpdatesRadioButton);
+      this.updateOptionsPanel.Location = new System.Drawing.Point(76, 235);
+      this.updateOptionsPanel.Name = "updateOptionsPanel";
+      this.updateOptionsPanel.Size = new System.Drawing.Size(304, 98);
+      this.updateOptionsPanel.TabIndex = 15;
+      this.updateOptionsPanel.Visible = false;
+      // 
+      // checkUpdatesRadioButton
+      // 
+      this.checkUpdatesRadioButton.AutoSize = true;
+      this.checkUpdatesRadioButton.Enabled = false;
+      this.checkUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
+      this.checkUpdatesRadioButton.Location = new System.Drawing.Point(0, 29);
+      this.checkUpdatesRadioButton.Name = "checkUpdatesRadioButton";
+      this.checkUpdatesRadioButton.Size = new System.Drawing.Size(304, 20);
+      this.checkUpdatesRadioButton.TabIndex = 18;
+      this.checkUpdatesRadioButton.TabStop = true;
+      this.checkUpdatesRadioButton.Text = "Check for updates but let me choose to install them";
+      this.helpTip.SetToolTip(this.checkUpdatesRadioButton, resources.GetString("checkUpdatesRadioButton.ToolTip"));
+      this.checkUpdatesRadioButton.UseVisualStyleBackColor = true;
+      // 
+      // automaticUpdatesRadioButton
+      // 
+      this.automaticUpdatesRadioButton.AutoSize = true;
+      this.automaticUpdatesRadioButton.Enabled = false;
+      this.automaticUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
+      this.automaticUpdatesRadioButton.Location = new System.Drawing.Point(0, 3);
+      this.automaticUpdatesRadioButton.Name = "automaticUpdatesRadioButton";
+      this.automaticUpdatesRadioButton.Size = new System.Drawing.Size(182, 20);
+      this.automaticUpdatesRadioButton.TabIndex = 16;
+      this.automaticUpdatesRadioButton.TabStop = true;
+      this.automaticUpdatesRadioButton.Text = "Install updates automatically";
+      this.helpTip.SetToolTip(this.automaticUpdatesRadioButton, resources.GetString("automaticUpdatesRadioButton.ToolTip"));
+      this.automaticUpdatesRadioButton.UseVisualStyleBackColor = true;
+      // 
+      // disableUpdatesRadioButton
+      // 
+      this.disableUpdatesRadioButton.AutoSize = true;
+      this.disableUpdatesRadioButton.Enabled = false;
+      this.disableUpdatesRadioButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
+      this.disableUpdatesRadioButton.Location = new System.Drawing.Point(0, 55);
+      this.disableUpdatesRadioButton.Name = "disableUpdatesRadioButton";
+      this.disableUpdatesRadioButton.Size = new System.Drawing.Size(157, 20);
+      this.disableUpdatesRadioButton.TabIndex = 17;
+      this.disableUpdatesRadioButton.TabStop = true;
+      this.disableUpdatesRadioButton.Text = "Don\'t check for updates";
+      this.helpTip.SetToolTip(this.disableUpdatesRadioButton, resources.GetString("disableUpdatesRadioButton.ToolTip"));
+      this.disableUpdatesRadioButton.UseVisualStyleBackColor = true;
+      // 
       // streamsPage
       // 
       this.streamsPage.BackColor = System.Drawing.Color.WhiteSmoke;
@@ -324,6 +358,7 @@
       this.Controls.Add(this.toolBar);
       this.Font = new System.Drawing.Font("Segoe UI", 9F);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+      this.KeyPreview = true;
       this.MaximizeBox = false;
       this.MinimumSize = new System.Drawing.Size(480, 420);
       this.Name = "OptionsWindow";
@@ -331,6 +366,9 @@
       this.toolBar.ResumeLayout(false);
       this.generalPage.ResumeLayout(false);
       this.generalPage.PerformLayout();
+      this.upgradeToFullInstallPanel.ResumeLayout(false);
+      this.updateOptionsPanel.ResumeLayout(false);
+      this.updateOptionsPanel.PerformLayout();
       this.ResumeLayout(false);
 
     }
@@ -351,10 +389,13 @@
     private System.Windows.Forms.Label startupTitleLabel;
     private System.Windows.Forms.Label notificationsTitleLabel;
     private System.Windows.Forms.CheckBox legacyNotificationsCheckBox;
-    private System.Windows.Forms.RadioButton disableUpdatesRadioButton;
-    private System.Windows.Forms.RadioButton automaticUpdatesRadioButton;
     private System.Windows.Forms.Label updatesTitleLabel;
-    private System.Windows.Forms.RadioButton checkUpdatesRadioButton;
     private System.Windows.Forms.Label updateManagerUnavailableLabel;
+    private System.Windows.Forms.Panel updateOptionsPanel;
+    private System.Windows.Forms.RadioButton checkUpdatesRadioButton;
+    private System.Windows.Forms.RadioButton automaticUpdatesRadioButton;
+    private System.Windows.Forms.RadioButton disableUpdatesRadioButton;
+    private System.Windows.Forms.Panel upgradeToFullInstallPanel;
+    private System.Windows.Forms.Label performInstallNoticeLabel;
   }
 }

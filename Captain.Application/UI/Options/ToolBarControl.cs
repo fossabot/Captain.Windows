@@ -223,46 +223,48 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnPaint(PaintEventArgs eventArgs) {
-      for (int i = 0; i < TabCount; i++) {
-        // get bounds for the tab being rendered
-        Rectangle tabBounds = GetTabBounds(i);
+      try {
+        for (int i = 0; i < TabCount; i++) {
+          // get bounds for the tab being rendered
+          Rectangle tabBounds = GetTabBounds(i);
 
-        if (this.downIndex == i) {
-          // this tab is pressed
-          eventArgs.Graphics.FillRectangle(PressedTabBrush, tabBounds);
-        } else if (this.hoverIndex == i) {
-          // this tab is hovered
-          eventArgs.Graphics.FillRectangle(HoveredTabBrush, tabBounds);
+          if (this.downIndex == i) {
+            // this tab is pressed
+            eventArgs.Graphics.FillRectangle(PressedTabBrush, tabBounds);
+          } else if (this.hoverIndex == i) {
+            // this tab is hovered
+            eventArgs.Graphics.FillRectangle(HoveredTabBrush, tabBounds);
+          }
+
+          if (i != TabCount - 1) {
+            // draw tab separator except for the last tab
+            eventArgs.Graphics.DrawLine(BorderPen,
+                                        tabBounds.Right,
+                                        tabBounds.Top + 4,
+                                        tabBounds.Right,
+                                        tabBounds.Bottom - 4);
+          }
+
+          // render tab label
+          TextRenderer.DrawText(eventArgs.Graphics,
+                                TabPages[i].Text,
+                                Font,
+                                new Rectangle(tabBounds.X, tabBounds.Y, tabBounds.Width, tabBounds.Height),
+                                SelectedIndex == i ? SelectedTabForeColor : LabelColor,
+                                TextFormatFlags.EndEllipsis |
+                                TextFormatFlags.HorizontalCenter |
+                                TextFormatFlags.VerticalCenter);
+
+          if (SelectedIndex == i) {
+            // display a bottom border for selected tabs
+            eventArgs.Graphics.DrawLine(SelectedTabBorderPen,
+                                        tabBounds.Left,
+                                        tabBounds.Bottom,
+                                        tabBounds.Right,
+                                        tabBounds.Bottom);
+          }
         }
-
-        if (i != TabCount - 1) {
-          // draw tab separator except for the last tab
-          eventArgs.Graphics.DrawLine(BorderPen,
-                                      tabBounds.Right,
-                                      tabBounds.Top + 4,
-                                      tabBounds.Right,
-                                      tabBounds.Bottom - 4);
-        }
-
-        // render tab label
-        TextRenderer.DrawText(eventArgs.Graphics,
-                              TabPages[i].Text,
-                              Font,
-                              new Rectangle(tabBounds.X, tabBounds.Y, tabBounds.Width, tabBounds.Height),
-                              SelectedIndex == i ? SelectedTabForeColor : LabelColor,
-                              TextFormatFlags.EndEllipsis |
-                              TextFormatFlags.HorizontalCenter |
-                              TextFormatFlags.VerticalCenter);
-
-        if (SelectedIndex == i) {
-          // display a bottom border for selected tabs
-          eventArgs.Graphics.DrawLine(SelectedTabBorderPen,
-                                      tabBounds.Left,
-                                      tabBounds.Bottom,
-                                      tabBounds.Right,
-                                      tabBounds.Bottom);
-        }
-      }
+      } catch (ArgumentException) { }
     }
   }
 }

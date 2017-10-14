@@ -135,18 +135,18 @@ This option is recommended if you don't want the application to download
 data without your consent.
 </value>
   </data>
-  <data name="disableUpdatesRadioButton.ToolTip" xml:space="preserve">
-    <value>The application will never check for updates, and you
-will have to manually download and install them.
-
-This option is not recommended, as updates may provide
-important fixes such as security patches.</value>
-  </data>
   <data name="automaticUpdatesRadioButton.ToolTip" xml:space="preserve">
     <value>The application will periodically check for updates online.
 When an update is available, it will be silently downloaded.
 The next time you start Captain, the update will be installed for you.
 
 This option is recommended as it provides the best user experience.</value>
+  </data>
+  <data name="disableUpdatesRadioButton.ToolTip" xml:space="preserve">
+    <value>The application will never check for updates, and you
+will have to manually download and install them.
+
+This option is not recommended, as updates may provide
+important fixes such as security patches.</value>
   </data>
 </root>

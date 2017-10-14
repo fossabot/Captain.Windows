@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Captain.Application.Native;
 using Captain.Common;
+using Ookii.Dialogs.Wpf;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -26,6 +27,11 @@ namespace Captain.Application {
     private readonly string originalTitle;
 
     /// <summary>
+    ///   Counter for Esc keystrokes.
+    /// </summary>
+    private int escapeStrokeCount;
+
+    /// <summary>
     ///   Class constructor
     /// </summary>
     public OptionsWindow() {
@@ -46,6 +52,41 @@ namespace Captain.Application {
                                                     false,
                                                     TabControlAction.Selecting));
       OnSizeChanged(new EventArgs());
+    }
+
+    /// <inheritdoc />
+    /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.KeyDown" /> event.</summary>
+    /// <param name="eventArgs">A <see cref="T:System.Windows.Forms.KeyEventArgs" /> that contains the event data. </param>
+    protected override void OnKeyDown(KeyEventArgs eventArgs) {
+      if (eventArgs.KeyCode == Keys.Escape) {
+        if (++this.escapeStrokeCount == 3) {
+          this.escapeStrokeCount = 0;
+          Log.WriteLine(LogLevel.Warning, "escape key combo triggered!");
+
+          TaskDialogButton button = new TaskDialog {
+            WindowTitle = VersionInfo.ProductName,
+            MainIcon = TaskDialogIcon.Warning,
+            MainInstruction = Resources.OptionsWindow_RestoreDialogInstruction,
+            Content = Resources.OptionsWindow_RestoreDialogContent,
+            Buttons = {
+              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogOptionsButton) { Default = true },
+              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogHardButton),
+              new TaskDialogButton(ButtonType.Cancel)
+            }
+          }.ShowDialog();
+
+          if (button.ButtonType == ButtonType.Custom) {
+            // if the default button is pressed, only options will be reset
+            Reset(!button.Default);
+          }
+
+          eventArgs.SuppressKeyPress = true;
+        }
+      } else {
+        this.escapeStrokeCount = 0;
+      }
+
+      base.OnKeyDown(eventArgs);
     }
 
     /// <summary>
@@ -208,49 +249,73 @@ namespace Captain.Application {
       // only show legacy notifications check box if this platform supports any other kind of notification provider
       this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
       this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
-      this.legacyNotificationsCheckBox.CheckedChanged += (_, __) =>
+      this.legacyNotificationsCheckBox.CheckedChanged += (_, __) => {
         Application.Options.UseLegacyNotificationProvider = this.legacyNotificationsCheckBox.Checked;
 
+        if (Application.Options.UseLegacyNotificationProvider && ToastProvider is ToastNotificationProvider) {
+          Log.WriteLine(LogLevel.Informational, "downgrading toast provider to legacy notification provider");
+          ToastProvider = new LegacyNotificationProvider();
+        } else {
+          Log.WriteLine(LogLevel.Informational, "upgrading legacy notification provider to toast provider");
+          ToastProvider = new ToastNotificationProvider();
+        }
+      };
+
       // application update options
-      this.automaticUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Automatic;
-      this.checkUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.CheckOnly;
-      this.disableUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Disabled;
+      if (Application.UpdateManager.Availability == UpdaterAvailability.NotSupported) {
+        // unsupported (portable mode?)
+        this.performInstallNoticeLabel.Text = String.Format(this.performInstallNoticeLabel.Text, VersionInfo.ProductName);
+        this.upgradeToFullInstallPanel.Visible = true;
+      } else {
+        // updates are supported
+        this.updateOptionsPanel.Visible = true;
 
-      this.automaticUpdatesRadioButton.CheckedChanged += (_, __) => {
-        if (this.automaticUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Automatic; }
-      };
+        this.automaticUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Automatic;
+        this.checkUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.CheckOnly;
+        this.disableUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Disabled;
 
-      this.checkUpdatesRadioButton.CheckedChanged += (_, __) => {
-        if (this.checkUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.CheckOnly; }
-      };
+        this.automaticUpdatesRadioButton.CheckedChanged += (_, __) => {
+          if (this.automaticUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Automatic; }
+        };
 
-      this.disableUpdatesRadioButton.CheckedChanged += (_, __) => {
-        if (this.disableUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Disabled; }
-      };
+        this.checkUpdatesRadioButton.CheckedChanged += (_, __) => {
+          if (this.checkUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.CheckOnly; }
+        };
 
-      // make sure the feature is available
-      this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
-                                                       this.checkUpdatesRadioButton.Enabled =
-                                                         this.disableUpdatesRadioButton.Enabled =
-                                                           Application.UpdateManager.IsFeatureAvailable &&
-                                                           Application.UpdateManager.Status == UpdateStatus.Idle);
+        this.disableUpdatesRadioButton.CheckedChanged += (_, __) => {
+          if (this.disableUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Disabled; }
+        };
 
-      // track changes on the update manager
-      Application.UpdateManager.OnUpdateStatusChanged += (manager, status) => {
+        // make sure the feature is available
         this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
                                                          this.checkUpdatesRadioButton.Enabled =
                                                            this.disableUpdatesRadioButton.Enabled =
-                                                             status == UpdateStatus.Idle);
-      };
+                                                             Application.UpdateManager.Availability == UpdaterAvailability.FullyAvailable &&
+                                                             Application.UpdateManager.Status == UpdateStatus.Idle);
 
-      Application.UpdateManager.OnAvailabilityChanged += (manager, available) => {
-        this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
-                                                         this.checkUpdatesRadioButton.Enabled =
-                                                           this.disableUpdatesRadioButton.Enabled =
-                                                             available && manager.Status == UpdateStatus.Idle);
-      };
+        // track changes on the update manager
+        Application.UpdateManager.OnUpdateStatusChanged += (m, s) => {
+          this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+                                                           this.checkUpdatesRadioButton.Enabled =
+                                                             this.disableUpdatesRadioButton.Enabled =
+                                                               s == UpdateStatus.Idle);
+        };
+
+        Application.UpdateManager.OnAvailabilityChanged += (m, a) => {
+          this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+                                                           this.checkUpdatesRadioButton.Enabled =
+                                                             this.disableUpdatesRadioButton.Enabled =
+                                                               a == UpdaterAvailability.FullyAvailable &&
+                                                               m.Status == UpdateStatus.Idle);
+        };
+      }
+
     }
 
     #endregion
+
+    private void generalPage_Click(object sender, EventArgs e) {
+
+    }
   }
 }
