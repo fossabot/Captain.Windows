@@ -70,22 +70,17 @@ namespace Captain.Application {
     ///   Initializes the update manager asynchronously
     /// </summary>
     internal UpdateManager() {
-      if (Application.Options.UpdatePolicy == UpdatePolicy.Disabled) {
-        Log.WriteLine(LogLevel.Warning, "automatic updates are not allowed - aborting");
-      } else {
-        try {
-          throw new FileNotFoundException();
-          InitializeUnderlyingManager();
-        } catch (FileNotFoundException) {
-          Log.WriteLine(LogLevel.Warning, "updates are not supported - aborting");
-        }
+      try {
+        InitializeUnderlyingManager();
+      } catch (FileNotFoundException) {
+        Log.WriteLine(LogLevel.Warning, "updates are not supported - aborting");
       }
     }
 
     /// <summary>
     ///   Restarts the app, launching the newest version
     /// </summary>
-    internal void Restart() {
+    internal static void Restart() {
       Log.WriteLine(LogLevel.Warning, "restarting the application");
 
       try {
@@ -184,6 +179,22 @@ namespace Captain.Application {
     ///   Initializes the underlying update manager
     /// </summary>
     private void InitializeUnderlyingManager() {
+      try {
+        new Squirrel.UpdateManager("").Dispose();
+      } catch (FileNotFoundException) {
+        Log.WriteLine(LogLevel.Warning, "operation is not supported - aborting");
+        Availability = UpdaterAvailability.NotSupported;
+        return;
+      } catch {
+        Availability = UpdaterAvailability.NotAvailable;
+      }
+
+      if (Application.Options.UpdatePolicy == UpdatePolicy.Disabled) {
+        Log.WriteLine(LogLevel.Warning, "automatic updates are not allowed - aborting");
+        Availability = UpdaterAvailability.FullyAvailable;
+        return;
+      }
+
       Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
 
       var updateManagerHandler = new Action<Task<Squirrel.UpdateManager>>(task => {
@@ -215,12 +226,14 @@ namespace Captain.Application {
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
                                              VersionInfo.ProductName,
-                                             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+                                             Environment.GetFolderPath(Environment.SpecialFolder
+                                                                                  .LocalApplicationData));
         Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
       } else {
         Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting");
       }
+
     }
 
     /// <summary>

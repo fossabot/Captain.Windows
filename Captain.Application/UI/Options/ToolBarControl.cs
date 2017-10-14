@@ -126,7 +126,7 @@ namespace Captain.Application {
     ///   Updates tab size
     /// </summary>
     internal void UpdateItemSize() {
-      if (ExtendTabs) {
+      if (ExtendTabs && Width > 0 && TabCount > 0) {
         ItemSize = new Size(Width / TabCount - 1, ItemSize.Height);
         Invalidate(true);
       }

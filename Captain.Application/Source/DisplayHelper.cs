@@ -2,6 +2,7 @@
 using SharpDX.DXGI;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
@@ -21,6 +22,18 @@ namespace Captain.Application {
       var factory = new Factory1();
       var triples = new List<(int, int, Rectangle)>();
       int adapterIndex = 0;
+
+      if (factory.GetAdapterCount1() == 0) {
+        // no usable adapters - retrieve virtual desktop information
+        int outputIndex = 0;
+        foreach (Screen screen in Screen.AllScreens) {
+          triples.Add((adapterIndex, outputIndex, screen.Bounds));
+          Log.WriteLine(LogLevel.Debug, $"screen #{outputIndex} " + screen.Bounds.ToString().Trim('{', '}'));
+          outputIndex++;
+        }
+
+        return triples.ToArray();
+      }
 
       // enumerate outputs
       foreach (Adapter1 adapter in factory.Adapters1) {
@@ -59,6 +72,25 @@ namespace Captain.Application {
       var triples = new List<(int, int, Rectangle)>();
       int adapterIndex = 0;
 
+      if (factory.GetAdapterCount1() == 0) {
+        // no usable adapters - retrieve virtual desktop information
+        int outputIndex = 0;
+        foreach (Screen screen in Screen.AllScreens) {
+          // calculate intersection
+          var intersection = Rectangle.Intersect(rect, screen.Bounds);
+
+          // make sure the rectangles intersect
+          if (intersection != Rectangle.Empty) {
+            triples.Add((adapterIndex, outputIndex, intersection));
+            Log.WriteLine(LogLevel.Debug, $"screen #{outputIndex} " + screen.Bounds.ToString().Trim('{', '}'));
+          }
+
+          outputIndex++;
+        }
+
+        return triples.ToArray();
+      }
+
       // enumerate outputs
       foreach (Adapter1 adapter in factory.Adapters1) {
         int outputIndex = 0;
@@ -75,8 +107,8 @@ namespace Captain.Application {
           // calculate intersection
           var intersection = Rectangle.Intersect(rect, outputRect);
 
+          // make sure the rectangles intersect
           if (intersection != Rectangle.Empty) {
-            // make sure the rectangles intersect
             triples.Add((adapterIndex, outputIndex, intersection));
             Log.WriteLine(LogLevel.Debug,
                           $"{adapter.Description.Description} // {output.Description.DeviceName} " +

@@ -408,6 +408,24 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to These are not the droids you are looking for. Move along!.
+        /// </summary>
+        public static string OutputStreamSelectionDialog_EmptyMarkup {
+            get {
+                return ResourceManager.GetString("OutputStreamSelectionDialog_EmptyMarkup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown publisher.
+        /// </summary>
+        public static string Plugin_DefaultPublisherName {
+            get {
+                return ResourceManager.GetString("Plugin_DefaultPublisherName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Capture failed.
         /// </summary>
         public static string Toast_CaptureFailedCaption {

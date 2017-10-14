@@ -30,7 +30,7 @@ namespace Captain.Application {
     /// <param name="handle">Window handle</param>
     /// <param name="initialArea">Initial screen region</param>
     public GdiSource(IntPtr handle, Rectangle initialArea) : base(initialArea) {
-      this.windowHandle = handle == IntPtr.Zero ? User32.GetDesktopWindow() : handle;
+      this.windowHandle = handle;
       this.drawCtx = User32.GetWindowDC(this.windowHandle);
       this.destCtx = Gdi32.CreateCompatibleDC(this.drawCtx);
       this.bitmapHandle = Gdi32.CreateCompatibleBitmap(this.drawCtx, initialArea.Width, initialArea.Height);

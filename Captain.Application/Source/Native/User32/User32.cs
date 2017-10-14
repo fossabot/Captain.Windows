@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using Windows.UI.Composition.Interactions;
 
 namespace Captain.Application.Native {
@@ -125,12 +126,33 @@ namespace Captain.Application.Native {
       ///   displayed on the title bar. However, you can display the system menu by right-clicking or
       ///   by typing ALT+SPACE.
       /// </summary>
-      WS_EX_TOOLWINDOW = 0x00000080
+      WS_EX_TOOLWINDOW = 0x00000080,
+
+      /// <summary>
+      ///   Paints via double-buffering, which reduces flicker. This extended style also enables alpha-blended marquee
+      ///   selection on systems where it is supported.
+      /// </summary>
+      LVS_EX_DOUBLEBUFFER = 0x00010000
     }
 
     #endregion
 
     #region Window procedures/messages
+
+    /// <summary>
+    ///   Represents UI state flags
+    /// </summary>
+    internal enum UIStateFlags : int {
+      /// <summary>
+      ///   The UI state flags specified by the high-order word should be set.
+      /// </summary>
+      UIS_SET = 1,
+
+      /// <summary>
+      ///   Focus indicators are hidden.
+      /// </summary>
+      UISF_HIDEFOCUS = 1
+    }
 
     /// <summary>
     ///   Windows Messages
@@ -155,10 +177,26 @@ namespace Captain.Application.Native {
       WM_COPYDATA = 0x004A,
 
       /// <summary>
+      ///   Sent by a common control to its parent window when an event has occurred or the control requires some
+      ///   information. 
+      /// </summary>
+      WM_NOTIFY = 0x004E,
+
+      /// <summary>
+      ///   The WM_DISPLAYCHANGE message is sent to all windows when the display resolution has changed.
+      /// </summary>
+      WM_DISPLAYCHANGE = 0x007E,
+
+      /// <summary>
       ///   Sent to a window in order to determine what part of the window corresponds to a particular screen
       ///   coordinate.
       /// </summary>
       WM_NCHITTEST = 0x0084,
+
+      /// <summary>
+      ///   An application sends the WM_CHANGEUISTATE message to indicate that the UI state should be changed.
+      /// </summary>
+      WM_CHANGEUISTATE = 0x0127,
 
       /// <summary>
       ///   Notifies an application of a change to the hardware configuration of a device or the computer.
@@ -179,6 +217,17 @@ namespace Captain.Application.Native {
       ///   Informs all top-level windows that the colorization color has changed.
       /// </summary>
       WM_DWMCOLORIZATIONCHANGED = 0x320,
+
+      /// <summary>
+      ///   Sets extended styles in list-view controls.
+      /// </summary>
+      LVM_SETEXTENDEDLISTVIEWSTYLE = 0x1036,
+
+      /// <summary>
+      ///   Sets the HCURSOR value that the list-view control uses when the pointer is over an item while hot tracking
+      ///   is enabled.
+      /// </summary>
+      LVM_SETHOTCURSOR = 0x103E,
 
       /// <summary>
       ///   The WM_APP constant is used by applications to help define private messages, usually of the form WM_APP+X,
@@ -544,6 +593,61 @@ namespace Captain.Application.Native {
 
     [DllImport(nameof(User32))]
     internal static extern IntPtr SetCursor(IntPtr hCursor);
+    #endregion
+
+    #region ListView Empty Markup
+
+    internal const uint LVN_FIRST = unchecked(0u - 100u);
+    internal const uint LVN_GETEMPTYMARKUP = LVN_FIRST - 87;
+    internal const uint L_MAX_URL_LENGTH = 2084;
+
+    /// <summary>
+    ///   Render markup centered in the listview area.
+    /// </summary>
+    internal const uint EMF_CENTERED = 1;
+
+    /// <summary>
+    ///   Contains information about a notification message.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct NMHDR {
+      /// <summary>
+      ///   A window handle to the control sending the message.
+      /// </summary>
+      internal IntPtr hwndFrom;
+
+      /// <summary>
+      ///   An identifier of the control sending the message.
+      /// </summary>
+      internal IntPtr idFrom;
+
+      /// <summary>
+      ///   A notification code.
+      /// </summary>
+      internal int code;
+    }
+
+    /// <summary>
+    ///   Contains information used with the LVN_GETEMPTYMARKUP notification code. 
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    internal struct NMLVEMPTYMARKUP {
+      /// <summary>
+      ///   Info on the notification message.
+      /// </summary>
+      internal NMHDR hdr;
+
+      /// <summary>
+      ///   If NULL, markup is rendered left-justified in the listview area.
+      /// </summary>
+      internal int dwFlags;
+
+      /// <summary>
+      ///   Markup to display.
+      /// </summary>
+      [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)L_MAX_URL_LENGTH)] public string szMarkup;
+    }
+
     #endregion
   }
 }

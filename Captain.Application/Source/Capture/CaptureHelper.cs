@@ -1,11 +1,9 @@
-﻿using System;
+﻿using Captain.Common;
+using SharpDX;
+using System;
 using System.Drawing;
 using System.Linq;
-using Captain.Common;
-using SharpDX;
 using static Captain.Application.Application;
-using Point = System.Drawing.Point;
-using Rectangle = System.Drawing.Rectangle;
 
 namespace Captain.Application {
   /// <summary>

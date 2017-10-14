@@ -303,4 +303,10 @@ Would you like to install it?</value>
   <data name="OptionsWindow_RestoreDialogHardButton" xml:space="preserve">
     <value>Reset everything</value>
   </data>
+  <data name="Plugin_DefaultPublisherName" xml:space="preserve">
+    <value>Unknown publisher</value>
+  </data>
+  <data name="OutputStreamSelectionDialog_EmptyMarkup" xml:space="preserve">
+    <value>These are not the droids you are looking for. Move along!</value>
+  </data>
 </root>

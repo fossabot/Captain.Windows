@@ -28,11 +28,6 @@ namespace Captain.Application {
     private Rectangle[] acceptableRectangles;
 
     /// <summary>
-    ///   Device notification filter handle
-    /// </summary>
-    private IntPtr devNotify;
-
-    /// <summary>
     ///   Toolbar UI padding
     /// </summary>
     private static Padding ToolBarPadding => new Padding(8);
@@ -125,21 +120,10 @@ namespace Captain.Application {
         User32.SetWindowLongPtr(Handle,
                                 (int)User32.WindowLongParam.GWL_EXSTYLE,
                                 new IntPtr(windowExStyle | (long)User32.WindowStylesEx.WS_EX_TOOLWINDOW));
-
-        Display.RegisterChangeNotifications(Handle, out this.devNotify);
         source.AddHook(WndProc);
       }
 
       UpdateWindowGeometry();
-    }
-
-    /// <summary>
-    ///   Triggered when the window is closed
-    /// </summary>
-    /// <param name="eventArgs">Event arguments</param>
-    protected override void OnClosed(EventArgs eventArgs) {
-      Display.UnregisterChangeNotifications(this.devNotify);
-      base.OnClosed(eventArgs);
     }
 
     /// <summary>
@@ -166,8 +150,7 @@ namespace Captain.Application {
           handled = PassThrough;
           return new IntPtr((int)User32.HitTestValues.HTTRANSPARENT);
 
-        case (int)User32.WindowMessage.WM_DEVICECHANGE: // a video adapter device has been removed/added
-          if (wParam.ToInt32() != Dbt.DBT_DEVNODES_CHANGED) { break; }
+        case (int)User32.WindowMessage.WM_DISPLAYCHANGE:  // display count/bounds have changed
           UpdateWindowGeometry();
           break;
 
@@ -260,7 +243,7 @@ namespace Captain.Application {
             }
 
             // move target window, if any
-            if (this.grabber.AttachedWindowHandle != IntPtr.Zero) {
+            if (this.grabber.AttachedWindowHandle != IntPtr.Zero && pos.cx > 0 && pos.cy > 0) {
               User32.MoveWindow(this.grabber.AttachedWindowHandle, pos.x, pos.y, pos.cx, pos.cy, false);
             }
           }

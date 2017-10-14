@@ -25,18 +25,12 @@
     <ClInclude Include="include\cn2helper\shell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cn2helper\display.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\cn2helper\process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\shell.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\display.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\process.c">

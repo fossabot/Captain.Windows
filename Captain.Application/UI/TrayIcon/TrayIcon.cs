@@ -87,9 +87,10 @@ namespace Captain.Application {
       if (Environment.OSVersion.Version.Major > 6) {
         this.iconRenderer = new FluentIndicatorRenderer();
       } else if (Environment.OSVersion.Version.Minor > 2) {
-        throw new NotImplementedException("Icon renderer for Windows 8/8.1");
+        // TODO: create assets for Windows 8/8.1
+        this.iconRenderer = new AeroIndicatorRenderer();
       } else {
-        throw new NotImplementedException("Icon renderer for Windows Vista/7");
+        this.iconRenderer = new AeroIndicatorRenderer();
       }
 
       // set initial icon
@@ -99,7 +100,7 @@ namespace Captain.Application {
       Show();
 
       // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
-      if (Application.FirstTime) {
+      if (FirstTime) {
         try {
           RECT iconRect = GetIconRect();
 
@@ -158,7 +159,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="status">Indicator status</param>
     /// <param name="frameTtl">Animation frame lifetime</param>
-    internal void AnimateIndicator(IndicatorStatus status, int frameTtl = 100) {
+    internal void AnimateIndicator(IndicatorStatus status, int frameTtl = 60) {
       StopIndicatorAnimation();
       SetIndicator(status);
 

@@ -59,16 +59,9 @@ namespace Captain.Common {
                                  TimeSpan.FromTicks(this.previousTicks == -1 ? 0 : ticks - this.previousTicks).TotalSeconds,  // zero if no previous tick count is set, otherwise the difference of ticks
                                  level.ToShortString(),
                                  methodName);
-      ConsoleColor color = level.GetAssociatedConsoleColor();
-
-      Console.BackgroundColor = color;
-      Console.ForegroundColor = ConsoleColor.Black;
-      Console.Write(msg);
-
-      string body = " " + String.Format(format.ToString(), args) + Environment.NewLine;
-      Console.BackgroundColor = ConsoleColor.Black;
+      string body = String.Format(format.ToString(), args) + Environment.NewLine;
       Console.ForegroundColor = level.GetAssociatedConsoleColor();
-      Console.Write(body);
+      Console.Write($"[{msg}] {body}");
 
       // update ticks for next message
       this.previousTicks = ticks;

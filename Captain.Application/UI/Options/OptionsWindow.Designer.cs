@@ -134,7 +134,6 @@
       this.generalPage.Size = new System.Drawing.Size(456, 341);
       this.generalPage.TabIndex = 0;
       this.generalPage.Text = "General";
-      this.generalPage.Click += new System.EventHandler(this.generalPage_Click);
       this.generalPage.Layout += new System.Windows.Forms.LayoutEventHandler(this.OnGeneralPageLayout);
       // 
       // upgradeToFullInstallPanel

@@ -56,7 +56,9 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.KeyDown" /> event.</summary>
-    /// <param name="eventArgs">A <see cref="T:System.Windows.Forms.KeyEventArgs" /> that contains the event data. </param>
+    /// <param name="eventArgs">
+    ///   A <see cref="T:System.Windows.Forms.KeyEventArgs" /> that contains the event data.
+    /// </param>
     protected override void OnKeyDown(KeyEventArgs eventArgs) {
       if (eventArgs.KeyCode == Keys.Escape) {
         if (++this.escapeStrokeCount == 3) {
@@ -246,6 +248,9 @@ namespace Captain.Application {
         }
       }
 
+      this.notificationOptionsComboBox.SelectionChangeCommitted += (_, __) =>
+        Application.Options.NotificationOptions = (NotificationDisplayOptions)(this.notificationOptionsComboBox.SelectedIndex + 1);
+
       // only show legacy notifications check box if this platform supports any other kind of notification provider
       this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
       this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
@@ -313,9 +318,5 @@ namespace Captain.Application {
     }
 
     #endregion
-
-    private void generalPage_Click(object sender, EventArgs e) {
-
-    }
   }
 }

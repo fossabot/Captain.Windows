@@ -1,4 +1,5 @@
 ﻿#include <Windows.h>
+#include <commctrl.h>
 
 /// <summary>
 ///   Dummy DLL entry point

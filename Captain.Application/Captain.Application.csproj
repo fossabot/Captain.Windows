@@ -105,7 +105,7 @@
     </None>
     <None Include="README.md" />
     <None Include="Source\Native\README.md" />
-    <None Include="UI\Controls\LinkLabel2\LICENSE.md" />
+    <None Include="UI\CommonControls\LinkLabel2\LICENSE.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitattributes" />
@@ -149,6 +149,7 @@
     <Compile Include="Source\Actions\Action.cs" />
     <Compile Include="Source\Actions\ActionManager.cs" />
     <Compile Include="Source\Actions\ActionType.cs" />
+    <Compile Include="Source\BitHelper.cs" />
     <Compile Include="Source\Capture\CaptureHelper.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
     <Compile Include="Source\Capture\Sources\CaptureSource.cs" />
@@ -157,7 +158,6 @@
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
     <Compile Include="Source\DisplayHelper.cs" />
     <Compile Include="Source\InjectionHelper.cs" />
-    <Compile Include="Source\Native\Display.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
     <Compile Include="Source\Native\DwmApi\DWMCOLORIZATIONPARAMS.cs" />
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
@@ -169,9 +169,9 @@
     <Compile Include="Source\Native\Shell32\NOTIFYICONIDENTIFIER.cs" />
     <Compile Include="Source\Native\Shell32\Shell32.cs" />
     <Compile Include="Source\Native\User32\COPYDATASTRUCT.cs" />
+    <Compile Include="Source\Native\UxTheme\UxTheme.cs" />
     <Compile Include="Source\Native\WINATTACHINFO.cs" />
     <Compile Include="Source\Native\WindowMessages.cs" />
-    <Compile Include="Source\Native\Windows.Core\Dbt.cs" />
     <Compile Include="Source\Native\Windows.Core\POINT.cs" />
     <Compile Include="Source\Native\Windows.Core\RECT.cs" />
     <Compile Include="Source\Native\User32\User32.cs" />
@@ -192,9 +192,19 @@
     <Compile Include="Source\Update\UpdateStatus.cs" />
     <Compile Include="Source\WindowHelper.cs" />
     <Compile Include="UI\ColorExtensions.cs" />
-    <Compile Include="UI\Controls\EllipsisProgressLabel.cs">
+    <Compile Include="UI\CommonControls\EllipsisProgressLabel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UI\CommonControls\ListViewEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Options\OutputStreamSelectionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Options\OutputStreamSelectionDialog.Designer.cs">
+      <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TrayIcon\Renderers\AeroIndicatorRenderer.cs" />
     <Compile Include="UI\UpdaterUiHelper.cs" />
     <Compile Include="UI\Window.cs">
       <SubType>Form</SubType>
@@ -218,7 +228,7 @@
     <Compile Include="UI\About\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Controls\LinkLabel2\LinkLabel2.cs">
+    <Compile Include="UI\CommonControls\LinkLabel2\LinkLabel2.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\Grabber\Grabber.cs" />
@@ -248,6 +258,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Options\OptionsWindow.resx">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Options\OutputStreamSelectionDialog.resx">
+      <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -327,6 +340,7 @@
       <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\Squirrel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">

@@ -58,7 +58,7 @@ namespace Captain.Application {
         switch (s) {
           case UpdateStatus.ReadyToRestart:
             User32.DestroyWindow(dialog.Handle);  // task dialog on main thread is blocking and prevents app shutdown
-            Application.UpdateManager.Restart();
+            UpdateManager.Restart();
             break;
 
           case UpdateStatus.ApplyingUpdates:

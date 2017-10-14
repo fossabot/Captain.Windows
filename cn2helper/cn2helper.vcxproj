@@ -26,12 +26,10 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\display.c" />
     <ClCompile Include="src\process.c" />
     <ClCompile Include="src\shell.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\cn2helper\display.h" />
     <ClInclude Include="include\cn2helper\shell.h" />
     <ClInclude Include="include\cn2helper\process.h" />
   </ItemGroup>

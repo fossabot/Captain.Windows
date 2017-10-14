@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using Windows.UI.Notifications;
+using Ookii.Dialogs.Wpf;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -170,18 +171,22 @@ namespace Captain.Application {
                             new UriBuilder(results.First().ToastUri) { Query = "select" }.Uri);
               }
 
-              ToastProvider.PushObject(results.First().ToastTitle,
-                                       results.First().ToastContent,
-                                       previewUri: results.First().ToastUri.IsFile ? results.First().ToastUri : null,
-                                       previewImage: bmp,
-                                       actions: actions,
-                                       handler: (sender, data) => {
-                                         if (data is ToastActivatedEventArgs eventArgs) {
-                                           Shell.RevealInFileExplorer(eventArgs.Arguments);
-                                         } else {
-                                           Shell.RevealInFileExplorer(results.First().ToastUri.ToString());
-                                         }
-                                       });
+              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+                ToastProvider.PushObject(results.First().ToastTitle,
+                                         results.First().ToastContent,
+                                         previewUri: results.First().ToastUri.IsFile ? results.First().ToastUri : null,
+                                         previewImage: bmp,
+                                         actions: actions,
+                                         handler: (sender, data) => {
+                                           if (data is ToastActivatedEventArgs eventArgs) {
+                                             Shell.RevealInFileExplorer(eventArgs.Arguments);
+                                           } else {
+                                             Shell.RevealInFileExplorer(results.First().ToastUri.ToString());
+                                           }
+                                         });
+              }
             } else if (results.Count > 0 && results.Count == failedCount) {
               /* WTF! everything crashed and burnt */
               // What a Terrible Failure
@@ -196,47 +201,57 @@ namespace Captain.Application {
             } else if (failedCount > 0) {
               /* some failed, some not */
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-              ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
-                                       Resources.Toast_StaticDonePartialSuccessContent,
-                                       Resources.Toast_StaticDonePartialSuccessSubtext,
 
-                                       previewUri: previewUri,
-                                       previewImage: bmp,
+              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+                ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
+                                         Resources.Toast_StaticDonePartialSuccessContent,
+                                         Resources.Toast_StaticDonePartialSuccessSubtext,
 
-                                       // build toast actions
-                                       actions: new Dictionary<string, Uri> {
-                                         { Resources.Toast_ViewResultsActionText, ToastViewResultsUri },
-                                         { Resources.Toast_ViewErrorsActionText, ToastViewErrorsUri }
-                                       },
+                                         previewUri: previewUri,
+                                         previewImage: bmp,
 
-                                       handler: (sender, data) => {
-                                         if (data as ToastActivatedEventArgs is null) {
-                                           return; // go fuck thyself
-                                         }
+                                         // build toast actions
+                                         actions: new Dictionary<string, Uri> {
+                                           { Resources.Toast_ViewResultsActionText, ToastViewResultsUri },
+                                           { Resources.Toast_ViewErrorsActionText, ToastViewErrorsUri }
+                                         },
 
-                                         var eventArgs = data as ToastActivatedEventArgs;
-                                         // ReSharper disable PossibleNullReferenceException
-                                         if (eventArgs.Arguments == ToastViewResultsUri.ToString()) {
-                                           DisplayResultsDialog(results);
-                                         } else if (eventArgs.Arguments == ToastViewErrorsUri.ToString()) {
-                                           DisplayErrorDialog(Resources.ActionErrorDialog_PartialFailureCaption,
-                                                              Resources.ActionErrorDialog_PartialFailureContent,
-                                                              results.Where(r => r is UnsuccessfulCaptureResult)
-                                                                     .Select(r => ((UnsuccessfulCaptureResult)r)
-                                                                               .Exception));
-                                         }
-                                       });
+                                         handler: (sender, data) => {
+                                           if (data as ToastActivatedEventArgs is null) {
+                                             return; // go fuck thyself
+                                           }
+
+                                           var eventArgs = data as ToastActivatedEventArgs;
+                                           // ReSharper disable PossibleNullReferenceException
+                                           if (eventArgs.Arguments == ToastViewResultsUri.ToString()) {
+                                             DisplayResultsDialog(results);
+                                           } else if (eventArgs.Arguments == ToastViewErrorsUri.ToString()) {
+                                             DisplayErrorDialog(Resources.ActionErrorDialog_PartialFailureCaption,
+                                                                Resources.ActionErrorDialog_PartialFailureContent,
+                                                                results.Where(r => r is UnsuccessfulCaptureResult)
+                                                                       .Select(r => ((UnsuccessfulCaptureResult)r)
+                                                                                 .Exception));
+                                           }
+                                         });
+              }
             } else {
               // everything worked! Fireworks! Green lights! Yay I'm so sick of handling errors
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
-              ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
-                                       Resources.Toast_StaticDoneContent,
-                                       results.Any() ? Resources.Toast_StaticDoneDetailsSubtext : null,
 
-                                       previewUri: previewUri,
-                                       previewImage: bmp,
+              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
+                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+                ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
+                                         Resources.Toast_StaticDoneContent,
+                                         results.Any() ? Resources.Toast_StaticDoneDetailsSubtext : null,
 
-                                       handler: (_, __) => DisplayResultsDialog(results));
+                                         previewUri: previewUri,
+                                         previewImage: bmp,
+
+                                         handler: (_, __) => DisplayResultsDialog(results));
+              }
             }
           } else {
             throw new InvalidOperationException("Static encoder activation yielded a nil result.");
@@ -462,27 +477,22 @@ namespace Captain.Application {
     /// <param name="body">Dialog body</param>
     /// <param name="exceptions">Exception list</param>
     private static void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions) {
-      // TODO
-      throw new NotImplementedException();
-      /*var dialog = new TaskDialog {
-        Caption = VersionInfo.ProductName,
-        InstructionText = caption,
-        Text = body,
-        StandardButtons = TaskDialogStandardButtons.Close,
+      var dialog = new TaskDialog {
+        WindowTitle = VersionInfo.ProductName,
+        MainIcon = TaskDialogIcon.Warning,
+        MainInstruction = caption,
+        Content = body,
+        Buttons = { new TaskDialogButton(ButtonType.Close) },
 
-        ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandFooter,
-        DetailsExpanded = false,
-        DetailsExpandedLabel = Resources.GenericActionErrorDialog_HideDetails,
-        DetailsCollapsedLabel = Resources.GenericActionErrorDialog_ShowDetails,
-        DetailsExpandedText = String.Join(Environment.NewLine, exceptions.Select(e => e.Message))
+        ExpandFooterArea = true,
+        ExpandedByDefault = false,
+        ExpandedControlText = Resources.GenericActionErrorDialog_HideDetails,
+        CollapsedControlText = Resources.GenericActionErrorDialog_ShowDetails,
+        ExpandedInformation = String.Join(Environment.NewLine, exceptions.Select(e => e.Message))
       };
 
-      // NOTE: setting the Icon property before the TaskDialog has been open has no effect
-      dialog.Opened += (_, __) => dialog.Icon = TaskDialogStandardIcon.Warning;
-
-      // reset indicator
-      dialog.Closing += (_, __) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
-      dialog.Show();*/
+      dialog.Destroyed += (_, __) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
+      dialog.Show();
     }
 
     /// <summary>
@@ -491,13 +501,18 @@ namespace Captain.Application {
     /// <param name="caption">Toast title</param>
     /// <param name="body">Toast content</param>
     /// <param name="exceptions">Underlying exceptions</param>
-    private static void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) =>
-      LegacyNotificationProvider.PushMessage(caption,
-                                             body,
-                                             ToolTipIcon.Warning,
-                                             handler: (_, __) => DisplayErrorDialog(caption, body, exceptions),
-                                             closeHandler: (_, __) =>
-                                               Application.TrayIcon.SetIndicator(IndicatorStatus.Idle));
+    private static void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) {
+      if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnFailure ||
+          Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
+          Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+        LegacyNotificationProvider.PushMessage(caption,
+                                               body,
+                                               ToolTipIcon.Warning,
+                                               handler: (_, __) => DisplayErrorDialog(caption, body, exceptions),
+                                               closeHandler: (_, __) =>
+                                                 Application.TrayIcon.SetIndicator(IndicatorStatus.Idle));
+      }
+    }
 
     /// <summary>
     ///   Displays a dialog containing all the result information for each output stream
