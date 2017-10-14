@@ -1,6 +1,5 @@
 ﻿using Captain.Application.Native;
 using Captain.Common;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -463,7 +462,9 @@ namespace Captain.Application {
     /// <param name="body">Dialog body</param>
     /// <param name="exceptions">Exception list</param>
     private static void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions) {
-      var dialog = new TaskDialog {
+      // TODO
+      throw new NotImplementedException();
+      /*var dialog = new TaskDialog {
         Caption = VersionInfo.ProductName,
         InstructionText = caption,
         Text = body,
@@ -481,7 +482,7 @@ namespace Captain.Application {
 
       // reset indicator
       dialog.Closing += (_, __) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
-      dialog.Show();
+      dialog.Show();*/
     }
 
     /// <summary>

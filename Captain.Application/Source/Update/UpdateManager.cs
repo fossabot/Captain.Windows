@@ -77,6 +77,17 @@ namespace Captain.Application {
     }
 
     /// <summary>
+    ///   Restarts the app, launching the newest version
+    /// </summary>
+    internal void Restart() {
+      try {
+        RestartApp();
+      } catch {
+        Exit();
+      }
+    }
+
+    /// <summary>
     ///   Silently checks for updates if we are allowed to
     /// </summary>
     /// <param name="dispatcher"></param>
@@ -102,6 +113,9 @@ namespace Captain.Application {
 
           if (Application.Options.UpdatePolicy == UpdatePolicy.Automatic) {
             DownloadUpdates(dispatcher, t.Result);
+          } else if (UpdaterUiHelper.ShowPromptDialog(t.Result)) {
+            DownloadUpdates(dispatcher, t.Result);
+            UpdaterUiHelper.ShowProgressDialog();
           }
         }
       });
@@ -183,12 +197,12 @@ namespace Captain.Application {
       if (GetMetadataValue("githubRepo") is string githubUrl) {
         GitHubUpdateManager(githubUrl,
                             VersionInfo.ProductName,
-                            Application.FsManager.GetSafePath(FsManager.ApplicationPath))
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
           .ContinueWith(updateManagerHandler);
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
                                              VersionInfo.ProductName,
-                                             Application.FsManager.GetSafePath(FsManager.ApplicationPath));
+                                             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         CheckForUpdates(dispatcher);
       } else {
         Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting");

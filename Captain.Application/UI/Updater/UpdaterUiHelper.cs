@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Captain.Application.Native;
 using Captain.Common;
-using Microsoft.WindowsAPICodePack.Dialogs;
+using MyAPKapp.VistaUIFramework;
+using MyAPKapp.VistaUIFramework.TaskDialog;
 using NuGet;
 using Squirrel;
 using static Captain.Application.Application;
@@ -18,46 +21,56 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="update">Update information</param>
     /// <returns>The result of the dialog.</returns>
-    internal static UpdaterDialogResult ShowDialog(UpdateInfo update) {
-      Log.WriteLine(LogLevel.Verbose, "fetching release notes");
-      Dictionary<ReleaseEntry, string> releases = update.FetchReleaseNotes();
+    internal static bool ShowPromptDialog(UpdateInfo update) => new TaskDialog {
+      WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, VersionInfo.ProductName),
+      Icon = Resources.UpdateIcon,
+      WindowIcon = Resources.AppIcon,
+      AllowDialogCancelation = true,
+      CloseEnabled = true,
+      CommonButtons = TaskDialogCommonButton.Yes | TaskDialogCommonButton.No,
+      Content = String.Format(Resources.UpdaterUI_DialogText,
+                              VersionInfo.ProductName,
+                              update.ReleasesToApply.Last().Version,
+                              VersionString)
+    }.ShowDialog().CommonButton == DialogResult.Yes;
 
-      // create dialog
+    /// <summary>
+    ///   Displays a progress dialog for the update procedure
+    /// </summary>
+    internal static void ShowProgressDialog() {
       var dialog = new TaskDialog {
-        Caption = String.Format(Resources.UpdaterUI_DialogCaption, VersionInfo.ProductName),
-        Icon = (TaskDialogStandardIcon)User32.SystemResources.IDI_APPLICATION,
-        Text = String.Format(Resources.UpdaterUI_DialogText,
-                             VersionInfo.ProductName,
-                             releases.Last().Key.Version,
-                             VersionString),
-
-        ExpansionMode = TaskDialogExpandedDetailsLocation.ExpandContent,
-        DetailsExpanded = false,
-
-        DetailsExpandedLabel = Resources.UpdaterUI_DialogReleaseNotesCollapse,
-        DetailsCollapsedLabel = Resources.UpdaterUI_DialogReleaseNotesExpand,
-        DetailsExpandedText = releases.Last().Value,
-
-        Cancelable = true
+        WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, VersionInfo.ProductName),
+        Icon = Resources.UpdateIcon,
+        WindowIcon = Resources.AppIcon,
+        AllowDialogCancelation = false,
+        CloseEnabled = false,
+        CommonButtons = TaskDialogCommonButton.Cancel,
+        Content = Resources.UpdaterUI_DialogProgressText,
+        UseProgressBar = true,
+        ProgressMinimum = 0,
+        ProgressMaximum = 100
       };
 
-      // create buttons
-      var updateButton = new TaskDialogButton(null, Resources.UpdaterUI_DialogUpdateButton);
-      var remindLaterButton = new TaskDialogButton(null, Resources.UpdaterUI_DialogRemindLaterButton);
-      var skipVersionButton = new TaskDialogButton(null, Resources.UpdaterUI_DialogSkipVersionButton);
+      // disable Cancel button, as we can not remove the buttons from a task dialog
+      dialog.ButtonClick += (_, e) => e.Cancel = true;
 
-      // bind button event handlers
-      updateButton.Click += (_, __) => dialog.Close((TaskDialogResult)UpdaterDialogResult.Update);
-      remindLaterButton.Click += (_, __) => dialog.Close((TaskDialogResult)UpdaterDialogResult.RemindLater);
-      skipVersionButton.Click += (_, __) => dialog.Close((TaskDialogResult)UpdaterDialogResult.SkipVersion);
+      // bind update manager event handlers
+      Application.UpdateManager.OnUpdateStatusChanged += (_, s) => {
+        dialog.ProgressValue = 0;
 
-      // add buttons to the dialog
-      dialog.Controls.AddRange(new[] { updateButton, remindLaterButton, skipVersionButton });
+        switch (s) {
+          case UpdateStatus.ReadyToRestart:
+            Application.UpdateManager.Restart();
+            break;
 
-      // set icon on dialog open
-      //dialog.Opened += (_, __) => dialog.Icon = (TaskDialogStandardIcon)User32.SystemResources.IDI_APPLICATION;
+          case UpdateStatus.ApplyingUpdates:
+            dialog.Content = Resources.UpdaterUI_DialogInstallProgressText;
+            break;
+        }
+      };
 
-      return (UpdaterDialogResult)dialog.Show();
+      Application.UpdateManager.OnUpdateProgressChanged += (_, s, p) => dialog.ProgressValue = p;
+      dialog.ShowDialog();
     }
   }
 }

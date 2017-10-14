@@ -161,7 +161,7 @@
     <value>The capture could not be processed</value>
   </data>
   <data name="Toast_OutputStreamFailedContent" xml:space="preserve">
-    <value>An error occured while handling this capture</value>
+    <value>An error occured while handling this capture.</value>
   </data>
   <data name="Toast_CaptureFailedCaption" xml:space="preserve">
     <value>Capture failed</value>
@@ -185,13 +185,13 @@
     <value>View errors…</value>
   </data>
   <data name="ActionErrorDialog_PartialFailureCaption" xml:space="preserve">
-    <value>Some tasks failed.</value>
+    <value>Some tasks failed</value>
   </data>
   <data name="ActionErrorDialog_PartialFailureContent" xml:space="preserve">
     <value>Not all output streams could process your capture. Refer to the application log for technical information.</value>
   </data>
   <data name="Toast_StaticDoneContent" xml:space="preserve">
-    <value>All tasks were completed.</value>
+    <value>All tasks have been completed.</value>
   </data>
   <data name="Toast_StaticDoneDetailsSubtext" xml:space="preserve">
     <value>Tap here to see details.</value>
@@ -249,23 +249,8 @@
     <value>Update {0}</value>
   </data>
   <data name="UpdaterUI_DialogText" xml:space="preserve">
-    <value>A new version of {0} ({1}) is available.
-Yours is {2}.</value>
-  </data>
-  <data name="UpdaterUI_DialogReleaseNotesCollapse" xml:space="preserve">
-    <value>Hide release &amp;notes</value>
-  </data>
-  <data name="UpdaterUI_DialogReleaseNotesExpand" xml:space="preserve">
-    <value>Show release &amp;notes</value>
-  </data>
-  <data name="UpdaterUI_DialogUpdateButton" xml:space="preserve">
-    <value>&amp;Update</value>
-  </data>
-  <data name="UpdaterUI_DialogRemindLaterButton" xml:space="preserve">
-    <value>&amp;Remind me later</value>
-  </data>
-  <data name="UpdaterUI_DialogSkipVersionButton" xml:space="preserve">
-    <value>&amp;Skip this version</value>
+    <value>A new version of {0} ({1}) is available—yours is {2}.
+Would you like to install it?</value>
   </data>
   <data name="AboutWindow_UpdateStatusChecking" xml:space="preserve">
     <value>Checking for updates</value>
@@ -277,6 +262,15 @@ Yours is {2}.</value>
     <value>Applying updates</value>
   </data>
   <data name="AboutWindow_UpdateStatusReadyToRestart" xml:space="preserve">
-    <value>Restart {0} to finish installing updates</value>
+    <value>Restart {0} to complete the update</value>
+  </data>
+  <data name="UpdateIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>UpdateIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="UpdaterUI_DialogInstallProgressText" xml:space="preserve">
+    <value>Installing update…</value>
+  </data>
+  <data name="UpdaterUI_DialogProgressText" xml:space="preserve">
+    <value>Downloading update…</value>
   </data>
 </root>

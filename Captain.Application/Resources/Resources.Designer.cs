@@ -88,7 +88,7 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Restart {0} to finish installing updates.
+        ///   Looks up a localized string similar to Restart {0} to complete the update.
         /// </summary>
         public static string AboutWindow_UpdateStatusReadyToRestart {
             get {
@@ -106,7 +106,7 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Some tasks failed..
+        ///   Looks up a localized string similar to Some tasks failed.
         /// </summary>
         public static string ActionErrorDialog_PartialFailureCaption {
             get {
@@ -398,7 +398,7 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured while handling this capture.
+        ///   Looks up a localized string similar to An error occured while handling this capture..
         /// </summary>
         public static string Toast_OutputStreamFailedContent {
             get {
@@ -416,7 +416,7 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All tasks were completed..
+        ///   Looks up a localized string similar to All tasks have been completed..
         /// </summary>
         public static string Toast_StaticDoneContent {
             get {
@@ -479,6 +479,16 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        public static System.Drawing.Icon UpdateIcon {
+            get {
+                object obj = ResourceManager.GetObject("UpdateIcon", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Update {0}.
         /// </summary>
         public static string UpdaterUI_DialogCaption {
@@ -488,57 +498,30 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hide release &amp;notes.
+        ///   Looks up a localized string similar to Installing update….
         /// </summary>
-        public static string UpdaterUI_DialogReleaseNotesCollapse {
+        public static string UpdaterUI_DialogInstallProgressText {
             get {
-                return ResourceManager.GetString("UpdaterUI_DialogReleaseNotesCollapse", resourceCulture);
+                return ResourceManager.GetString("UpdaterUI_DialogInstallProgressText", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show release &amp;notes.
+        ///   Looks up a localized string similar to Downloading update….
         /// </summary>
-        public static string UpdaterUI_DialogReleaseNotesExpand {
+        public static string UpdaterUI_DialogProgressText {
             get {
-                return ResourceManager.GetString("UpdaterUI_DialogReleaseNotesExpand", resourceCulture);
+                return ResourceManager.GetString("UpdaterUI_DialogProgressText", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &amp;Remind me later.
-        /// </summary>
-        public static string UpdaterUI_DialogRemindLaterButton {
-            get {
-                return ResourceManager.GetString("UpdaterUI_DialogRemindLaterButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Skip this version.
-        /// </summary>
-        public static string UpdaterUI_DialogSkipVersionButton {
-            get {
-                return ResourceManager.GetString("UpdaterUI_DialogSkipVersionButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A new version of {0} ({1}) is available.
-        ///Yours is {2}..
+        ///   Looks up a localized string similar to A new version of {0} ({1}) is available—yours is {2}.
+        ///Would you like to install it?.
         /// </summary>
         public static string UpdaterUI_DialogText {
             get {
                 return ResourceManager.GetString("UpdaterUI_DialogText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Update.
-        /// </summary>
-        public static string UpdaterUI_DialogUpdateButton {
-            get {
-                return ResourceManager.GetString("UpdaterUI_DialogUpdateButton", resourceCulture);
             }
         }
     }

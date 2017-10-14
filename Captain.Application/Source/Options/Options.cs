@@ -50,33 +50,39 @@ namespace Captain.Application {
     /// </summary>
     /// <returns>An instance of the <see cref="Options"/> class</returns>
     internal static Options Load() {
-      using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
-                                             FileMode.OpenOrCreate)) {
-        if (fileStream.Length == 0) {
-          Log.WriteLine(LogLevel.Warning, "stream is empty");
-          return null;
-        }
+      try {
+        using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
+                                               FileMode.OpenOrCreate)) {
+          if (fileStream.Length == 0) {
+            Log.WriteLine(LogLevel.Warning, "stream is empty");
+            return null;
+          }
 
-        try {
           if (new XmlSerializer(typeof(Options)).Deserialize(fileStream) is Options opts) {
             return opts;
           }
-        } catch (Exception exception) {
-          Log.WriteLine(LogLevel.Error, $"could not deserialize Options: {exception}");
         }
-
-        return null;
+      } catch (Exception exception) {
+        Log.WriteLine(LogLevel.Warning, $"could not load options - {exception}");
       }
+
+      return null;
     }
 
     /// <summary>
     ///   Saves these options to the stream they were loaded from
     /// </summary>
     internal void Save() {
-      using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
-                                             FileMode.OpenOrCreate)) {
-        fileStream.SetLength(0);
-        new XmlSerializer(GetType()).Serialize(fileStream, this);
+      Log.WriteLine(LogLevel.Verbose, "saving options");
+
+      try {
+        using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
+                                               FileMode.OpenOrCreate)) {
+          fileStream.SetLength(0);
+          new XmlSerializer(GetType()).Serialize(fileStream, this);
+        }
+      } catch (Exception exception) {
+        Log.WriteLine(LogLevel.Warning, $"could not save options - {exception}");
       }
     }
   }

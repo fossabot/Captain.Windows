@@ -101,8 +101,10 @@ namespace Captain.Application {
         TrayIcon?.Hide();
         Options?.Save();
         UpdateManager?.Dispose();
-      } finally {
+
+        GC.WaitForPendingFinalizers();
         loggerStream.Dispose();
+      } finally {
         application.Shutdown(exitCode);
       }
     }
@@ -207,13 +209,13 @@ namespace Captain.Application {
         metadataAttributes.Remove(attribute);
       }
 
-      return version +
+      return (version +
              '+' +
              String.Join(".",
                          metadataAttributes
                            .Where(a => a.Value.Length == 0)
-                           .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : "")))
-                   .TrimEnd('.');
+                           .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))))
+                   .TrimEnd('.', '+');
     }
 
     /// <summary>

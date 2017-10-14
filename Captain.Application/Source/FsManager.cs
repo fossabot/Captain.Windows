@@ -24,11 +24,6 @@ namespace Captain.Application {
     internal const string LogsPath = "Logs";
 
     /// <summary>
-    ///   Application install path
-    /// </summary>
-    internal const string ApplicationPath = "Application";
-
-    /// <summary>
     ///   Root application data directory
     /// </summary>
     private string RootDirectoryPath { get; }

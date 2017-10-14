@@ -110,6 +110,7 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <None Include="Resources\UpdateIcon.ico" />
     <None Include="Resources\Logo.png" />
     <Resource Include="Content\Grabber\Icons\Cancel.png" />
     <Resource Include="Content\Grabber\Icons\Pin.png" />
@@ -286,9 +287,6 @@
     <Reference Include="Microsoft.Toolkit.Uwp.Notifications, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Toolkit.Uwp.Notifications.2.0.0\lib\dotnet\Microsoft.Toolkit.Uwp.Notifications.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAPICodePack-Core.1.1.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -334,6 +332,9 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
+    <Reference Include="VistaUIFramework, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\VistaUIFramework.2.5.0\lib\VistaUIFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Windows.Data" />
     <Reference Include="Windows.Foundation" />
     <Reference Include="Windows.UI" />
