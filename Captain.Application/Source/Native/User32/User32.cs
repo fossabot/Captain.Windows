@@ -132,7 +132,12 @@ namespace Captain.Application.Native {
       ///   Paints via double-buffering, which reduces flicker. This extended style also enables alpha-blended marquee
       ///   selection on systems where it is supported.
       /// </summary>
-      LVS_EX_DOUBLEBUFFER = 0x00010000
+      LVS_EX_DOUBLEBUFFER = 0x00010000,
+
+      /// <summary>
+      ///   Paints all descendants of a window in bottom-to-top painting order using double-buffering.
+      /// </summary>
+      WS_EX_COMPOSITED = 0x02000000
     }
 
     #endregion
@@ -228,6 +233,12 @@ namespace Captain.Application.Native {
       ///   is enabled.
       /// </summary>
       LVM_SETHOTCURSOR = 0x103E,
+
+      /// <summary>
+      ///   Calculates a tab control's display area given a window rectangle, or calculates the window rectangle that
+      ///   would correspond to a specified display area.
+      /// </summary>
+      TCM_ADJUSTRECT = 0x1328,
 
       /// <summary>
       ///   The WM_APP constant is used by applications to help define private messages, usually of the form WM_APP+X,

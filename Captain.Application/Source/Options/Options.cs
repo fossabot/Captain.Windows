@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 using Captain.Common;
@@ -49,6 +50,8 @@ namespace Captain.Application {
     ///   Last version of the application that was ran
     /// </summary>
     public string LastVersion { get; set; } = String.Empty;
+
+    public List<Task> Tasks { get; set; } = new List<Task>();
 
     /// <summary>
     ///   Loads an <see cref="Options"/> instance from file

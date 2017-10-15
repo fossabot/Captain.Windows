@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Captain.Application.Native;
 
 namespace Captain.Application {
   /// <summary>
@@ -88,6 +90,7 @@ namespace Captain.Application {
       SetStyle(ControlStyles.UserPaint |
                ControlStyles.UserMouse |
                ControlStyles.AllPaintingInWmPaint |
+               ControlStyles.DoubleBuffer |
                ControlStyles.OptimizedDoubleBuffer |
                ControlStyles.ResizeRedraw,
                true);
@@ -97,6 +100,27 @@ namespace Captain.Application {
       this.referenceFontSize = Font.Size;
     }
 
+    /// <inheritdoc />
+    /// <summary>
+    ///   This member overrides <see cref="M:System.Windows.Forms.Control.WndProc(System.Windows.Forms.Message@)" />.
+    /// </summary>
+    /// <param name="m">A Windows Message Object. </param>
+    protected override void WndProc(ref Message m) {
+      if (m.Msg == (int)User32.WindowMessage.TCM_ADJUSTRECT) {
+        var rect = (RECT)m.GetLParam(typeof(RECT));
+
+        rect.top -= 3;
+        rect.right += 4;
+        rect.bottom += 4;
+        rect.left -= 4;
+
+        Marshal.StructureToPtr(rect, m.LParam, true);
+      }
+
+      base.WndProc(ref m);
+    }
+
+    /// <inheritdoc />
     /// <summary>
     ///   Scale tabs accordingly when font changes
     /// </summary>
@@ -148,6 +172,7 @@ namespace Captain.Application {
       return bounds;
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Clears background
     /// </summary>
@@ -163,6 +188,7 @@ namespace Captain.Application {
       eventArgs.Graphics.DrawLine(BorderPen, Left, ItemSize.Height, Right, ItemSize.Height);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the mouse leaves the tab header
     /// </summary>
@@ -177,6 +203,7 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the mouse moves around the tab header area
     /// </summary>
@@ -195,6 +222,7 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the user holds the primary mouse button
     /// </summary>
@@ -206,6 +234,7 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the user releases the primary mouse button
     /// </summary>
@@ -218,6 +247,7 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Paint procedure
     /// </summary>

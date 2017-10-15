@@ -110,6 +110,14 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <None Include="Resources\TaskAdd.png" />
+    <None Include="Resources\TaskTypeScreenshot.png" />
+    <None Include="Resources\TaskTypeRecording.png" />
+    <None Include="Resources\TaskRegionGrab.png" />
+    <None Include="Resources\TaskRegionFullScreen.png" />
+    <None Include="Resources\TaskRegionFixed.png" />
+    <None Include="Resources\TaskEdit.png" />
+    <None Include="Resources\TaskDelete.png" />
     <None Include="Resources\AppxIcon.ico" />
     <None Include="Resources\UpdateIcon.ico" />
     <None Include="Resources\Logo.png" />
@@ -187,12 +195,25 @@
     <Compile Include="Source\Options\Options.cs" />
     <Compile Include="Source\Options\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
+    <Compile Include="Source\Tasks\Task.cs" />
+    <Compile Include="Source\Tasks\TaskParameters.cs" />
+    <Compile Include="Source\Tasks\TaskRegionType.cs" />
+    <Compile Include="Source\Tasks\TaskType.cs" />
     <Compile Include="Source\Update\UpdateManager.cs" />
     <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
     <Compile Include="Source\WindowHelper.cs" />
+    <Compile Include="UI\Options\TaskControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Options\TaskControl.Designer.cs">
+      <DependentUpon>TaskControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\ColorExtensions.cs" />
     <Compile Include="UI\CommonControls\EllipsisProgressLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\CommonControls\LinkButton.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\CommonControls\ListViewEx.cs">
@@ -261,6 +282,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Options\OutputStreamSelectionDialog.resx">
       <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Options\TaskControl.resx">
+      <DependentUpon>TaskControl.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

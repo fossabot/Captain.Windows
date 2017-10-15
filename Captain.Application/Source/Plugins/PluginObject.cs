@@ -8,6 +8,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Plugin object (can be a capture handler, encoder, etc.)
   /// </summary>
+  [Serializable]
   internal class PluginObject {
     /// <summary>
     ///   Display name

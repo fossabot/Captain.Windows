@@ -45,7 +45,7 @@
       cancelButton.TabIndex = 3;
       cancelButton.Text = "&Cancel";
       cancelButton.UseVisualStyleBackColor = true;
-      cancelButton.Click += new System.EventHandler(OnButtonClick);
+      cancelButton.Click += new System.EventHandler(this.OnButtonClick);
       // 
       // okButton
       // 
@@ -58,13 +58,13 @@
       this.okButton.TabIndex = 4;
       this.okButton.Text = "&OK";
       this.okButton.UseVisualStyleBackColor = true;
-      this.okButton.Click += new System.EventHandler(OnButtonClick);
+      this.okButton.Click += new System.EventHandler(this.OnButtonClick);
       // 
       // streamIconList
       // 
       this.streamIconList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("streamIconList.ImageStream")));
       this.streamIconList.TransparentColor = System.Drawing.Color.Transparent;
-      this.streamIconList.Images.SetKeyName(0, "FileLogoExtensions.targetsize-32.png");
+      this.streamIconList.Images.SetKeyName(0, "");
       // 
       // panel1
       // 

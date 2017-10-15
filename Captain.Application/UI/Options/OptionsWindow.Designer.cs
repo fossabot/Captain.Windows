@@ -26,7 +26,9 @@
       this.components = new System.ComponentModel.Container();
       System.Windows.Forms.Panel _separator2;
       System.Windows.Forms.Panel _separator1;
+      System.Windows.Forms.Panel taskToolBarPanel;
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OptionsWindow));
+      this.createTaskLinkButton = new Captain.Application.LinkButton();
       this.startupTitleLabel = new System.Windows.Forms.Label();
       this.notificationsTitleLabel = new System.Windows.Forms.Label();
       this.toolBar = new Captain.Application.ToolBarControl();
@@ -44,17 +46,22 @@
       this.checkUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.automaticUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.disableUpdatesRadioButton = new System.Windows.Forms.RadioButton();
-      this.streamsPage = new System.Windows.Forms.TabPage();
+      this.tasksPage = new System.Windows.Forms.TabPage();
+      this.taskContainerPanel = new System.Windows.Forms.Panel();
       this.encodersPage = new System.Windows.Forms.TabPage();
       this.capturePage = new System.Windows.Forms.TabPage();
       this.shortcutsPage = new System.Windows.Forms.TabPage();
       this.helpTip = new System.Windows.Forms.ToolTip(this.components);
+      this.panel1 = new System.Windows.Forms.Panel();
       _separator2 = new System.Windows.Forms.Panel();
       _separator1 = new System.Windows.Forms.Panel();
+      taskToolBarPanel = new System.Windows.Forms.Panel();
+      taskToolBarPanel.SuspendLayout();
       this.toolBar.SuspendLayout();
       this.generalPage.SuspendLayout();
       this.upgradeToFullInstallPanel.SuspendLayout();
       this.updateOptionsPanel.SuspendLayout();
+      this.tasksPage.SuspendLayout();
       this.SuspendLayout();
       // 
       // _separator2
@@ -72,6 +79,27 @@
       _separator1.Name = "_separator1";
       _separator1.Size = new System.Drawing.Size(304, 1);
       _separator1.TabIndex = 5;
+      // 
+      // taskToolBarPanel
+      // 
+      taskToolBarPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+      taskToolBarPanel.Controls.Add(this.panel1);
+      taskToolBarPanel.Controls.Add(this.createTaskLinkButton);
+      taskToolBarPanel.Dock = System.Windows.Forms.DockStyle.Top;
+      taskToolBarPanel.Location = new System.Drawing.Point(0, 0);
+      taskToolBarPanel.Name = "taskToolBarPanel";
+      taskToolBarPanel.Size = new System.Drawing.Size(464, 33);
+      taskToolBarPanel.TabIndex = 1;
+      // 
+      // createTaskLinkButton
+      // 
+      this.createTaskLinkButton.Image = null;
+      this.createTaskLinkButton.Location = new System.Drawing.Point(4, 4);
+      this.createTaskLinkButton.Name = "createTaskLinkButton";
+      this.createTaskLinkButton.Size = new System.Drawing.Size(96, 24);
+      this.createTaskLinkButton.TabIndex = 0;
+      this.createTaskLinkButton.Text = "Create task";
+      this.createTaskLinkButton.TintColor = System.Drawing.Color.SeaGreen;
       // 
       // startupTitleLabel
       // 
@@ -96,14 +124,17 @@
       // toolBar
       // 
       this.toolBar.Controls.Add(this.generalPage);
-      this.toolBar.Controls.Add(this.streamsPage);
+      this.toolBar.Controls.Add(this.tasksPage);
       this.toolBar.Controls.Add(this.encodersPage);
       this.toolBar.Controls.Add(this.capturePage);
       this.toolBar.Controls.Add(this.shortcutsPage);
       this.toolBar.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.toolBar.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
       this.toolBar.ExtendTabs = true;
+      this.toolBar.HotTrack = true;
       this.toolBar.ItemSize = new System.Drawing.Size(91, 32);
       this.toolBar.Location = new System.Drawing.Point(0, 0);
+      this.toolBar.Margin = new System.Windows.Forms.Padding(0);
       this.toolBar.Name = "toolBar";
       this.toolBar.Padding = new System.Drawing.Point(0, 0);
       this.toolBar.SelectedIndex = 0;
@@ -128,10 +159,10 @@
       this.generalPage.Controls.Add(this.autoStartCheckBox);
       this.generalPage.Controls.Add(_separator1);
       this.generalPage.Controls.Add(this.updateOptionsPanel);
-      this.generalPage.Location = new System.Drawing.Point(4, 36);
+      this.generalPage.Location = new System.Drawing.Point(0, 33);
       this.generalPage.Name = "generalPage";
       this.generalPage.Padding = new System.Windows.Forms.Padding(3);
-      this.generalPage.Size = new System.Drawing.Size(456, 341);
+      this.generalPage.Size = new System.Drawing.Size(464, 348);
       this.generalPage.TabIndex = 0;
       this.generalPage.Text = "General";
       this.generalPage.Layout += new System.Windows.Forms.LayoutEventHandler(this.OnGeneralPageLayout);
@@ -298,43 +329,55 @@
       this.helpTip.SetToolTip(this.disableUpdatesRadioButton, resources.GetString("disableUpdatesRadioButton.ToolTip"));
       this.disableUpdatesRadioButton.UseVisualStyleBackColor = true;
       // 
-      // streamsPage
+      // tasksPage
       // 
-      this.streamsPage.BackColor = System.Drawing.Color.WhiteSmoke;
-      this.streamsPage.Location = new System.Drawing.Point(4, 36);
-      this.streamsPage.Name = "streamsPage";
-      this.streamsPage.Padding = new System.Windows.Forms.Padding(3);
-      this.streamsPage.Size = new System.Drawing.Size(456, 341);
-      this.streamsPage.TabIndex = 1;
-      this.streamsPage.Text = "Streams";
+      this.tasksPage.BackColor = System.Drawing.Color.WhiteSmoke;
+      this.tasksPage.Controls.Add(this.taskContainerPanel);
+      this.tasksPage.Controls.Add(taskToolBarPanel);
+      this.tasksPage.Location = new System.Drawing.Point(0, 33);
+      this.tasksPage.Margin = new System.Windows.Forms.Padding(0);
+      this.tasksPage.Name = "tasksPage";
+      this.tasksPage.Size = new System.Drawing.Size(464, 348);
+      this.tasksPage.TabIndex = 1;
+      this.tasksPage.Text = "Tasks";
+      this.tasksPage.Layout += new System.Windows.Forms.LayoutEventHandler(this.OnTasksPageLayout);
+      // 
+      // taskContainerPanel
+      // 
+      this.taskContainerPanel.AutoScroll = true;
+      this.taskContainerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.taskContainerPanel.Location = new System.Drawing.Point(0, 33);
+      this.taskContainerPanel.Name = "taskContainerPanel";
+      this.taskContainerPanel.Size = new System.Drawing.Size(464, 315);
+      this.taskContainerPanel.TabIndex = 2;
       // 
       // encodersPage
       // 
       this.encodersPage.BackColor = System.Drawing.Color.WhiteSmoke;
-      this.encodersPage.Location = new System.Drawing.Point(4, 36);
+      this.encodersPage.Location = new System.Drawing.Point(0, 33);
       this.encodersPage.Name = "encodersPage";
       this.encodersPage.Padding = new System.Windows.Forms.Padding(3);
-      this.encodersPage.Size = new System.Drawing.Size(456, 341);
+      this.encodersPage.Size = new System.Drawing.Size(464, 348);
       this.encodersPage.TabIndex = 2;
       this.encodersPage.Text = "Encoders";
       // 
       // capturePage
       // 
       this.capturePage.BackColor = System.Drawing.Color.WhiteSmoke;
-      this.capturePage.Location = new System.Drawing.Point(4, 36);
+      this.capturePage.Location = new System.Drawing.Point(0, 33);
       this.capturePage.Name = "capturePage";
       this.capturePage.Padding = new System.Windows.Forms.Padding(3);
-      this.capturePage.Size = new System.Drawing.Size(456, 341);
+      this.capturePage.Size = new System.Drawing.Size(464, 348);
       this.capturePage.TabIndex = 3;
       this.capturePage.Text = "Capture";
       // 
       // shortcutsPage
       // 
       this.shortcutsPage.BackColor = System.Drawing.Color.WhiteSmoke;
-      this.shortcutsPage.Location = new System.Drawing.Point(4, 36);
+      this.shortcutsPage.Location = new System.Drawing.Point(0, 33);
       this.shortcutsPage.Name = "shortcutsPage";
       this.shortcutsPage.Padding = new System.Windows.Forms.Padding(3);
-      this.shortcutsPage.Size = new System.Drawing.Size(456, 341);
+      this.shortcutsPage.Size = new System.Drawing.Size(464, 348);
       this.shortcutsPage.TabIndex = 4;
       this.shortcutsPage.Text = "Shortcuts";
       // 
@@ -348,6 +391,15 @@
       this.helpTip.Draw += new System.Windows.Forms.DrawToolTipEventHandler(this.OnHelpTipDraw);
       this.helpTip.Popup += new System.Windows.Forms.PopupEventHandler(this.OnHelpTipPopup);
       // 
+      // panel1
+      // 
+      this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+      this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+      this.panel1.Location = new System.Drawing.Point(0, 32);
+      this.panel1.Name = "panel1";
+      this.panel1.Size = new System.Drawing.Size(464, 1);
+      this.panel1.TabIndex = 1;
+      // 
       // OptionsWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -355,6 +407,7 @@
       this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.ClientSize = new System.Drawing.Size(464, 381);
       this.Controls.Add(this.toolBar);
+      this.DoubleBuffered = true;
       this.Font = new System.Drawing.Font("Segoe UI", 9F);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
       this.KeyPreview = true;
@@ -362,12 +415,14 @@
       this.MinimumSize = new System.Drawing.Size(480, 420);
       this.Name = "OptionsWindow";
       this.Text = "{0} Options";
+      taskToolBarPanel.ResumeLayout(false);
       this.toolBar.ResumeLayout(false);
       this.generalPage.ResumeLayout(false);
       this.generalPage.PerformLayout();
       this.upgradeToFullInstallPanel.ResumeLayout(false);
       this.updateOptionsPanel.ResumeLayout(false);
       this.updateOptionsPanel.PerformLayout();
+      this.tasksPage.ResumeLayout(false);
       this.ResumeLayout(false);
 
     }
@@ -376,7 +431,6 @@
 
     private ToolBarControl toolBar;
     private System.Windows.Forms.TabPage generalPage;
-    private System.Windows.Forms.TabPage streamsPage;
     private System.Windows.Forms.TabPage encodersPage;
     private System.Windows.Forms.TabPage capturePage;
     private System.Windows.Forms.TabPage shortcutsPage;
@@ -396,5 +450,9 @@
     private System.Windows.Forms.RadioButton disableUpdatesRadioButton;
     private System.Windows.Forms.Panel upgradeToFullInstallPanel;
     private System.Windows.Forms.Label performInstallNoticeLabel;
+    private System.Windows.Forms.TabPage tasksPage;
+    private LinkButton createTaskLinkButton;
+    private System.Windows.Forms.Panel taskContainerPanel;
+    private System.Windows.Forms.Panel panel1;
   }
 }

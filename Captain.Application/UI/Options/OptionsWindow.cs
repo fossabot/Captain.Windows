@@ -160,9 +160,6 @@ namespace Captain.Application {
       Text = eventArgs.TabPage.Text.Replace("&", "") + @" – " + this.originalTitle;
 
       if (eventArgs.TabPage.Tag == null) {
-        // page not initialized
-        eventArgs.TabPage.Tag = true;
-
         // is this a hack? We abuse the Layout event so we don't have to implement logic for each page
         Log.WriteLine(LogLevel.Debug, $"initializing \"{eventArgs.TabPage.Name}\" page");
         eventArgs.TabPage.PerformLayout(eventArgs.TabPage, PageInitTriggerProperty);
@@ -211,10 +208,12 @@ namespace Captain.Application {
     /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
     /// <param name="eventArgs"></param>
     private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty) {
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) {
         // no need to initalize the page
         return;
       }
+
+      this.generalPage.Tag = new object();
 
       // auto-start options
       var autoStartManager = new AutoStartManager();
@@ -315,6 +314,43 @@ namespace Captain.Application {
         };
       }
 
+    }
+
+    #endregion
+
+    #region "Tasks" page logic
+
+    /// <summary>
+    ///   Initializes the "Tasks" page
+    /// </summary>
+    /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
+    /// <param name="eventArgs"></param>
+    private void OnTasksPageLayout(object sender, LayoutEventArgs eventArgs) {
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.tasksPage.Tag != null) {
+        // no need to initalize the page
+        return;
+      }
+
+      this.tasksPage.Tag = new object();
+      this.taskContainerPanel.Scroll += (_, e) => {
+        if (e.ScrollOrientation == ScrollOrientation.VerticalScroll) {
+          this.tasksPage.VerticalScroll.Value = e.NewValue;
+        }
+      };
+
+      this.createTaskLinkButton.Image = Resources.TaskAdd;
+      UpdateTaskList();
+    }
+
+    /// <summary>
+    ///   Updates the list of tasks
+    /// </summary>
+    private void UpdateTaskList() {
+      this.taskContainerPanel.Controls.Clear();
+
+      foreach (Task task in Application.Options.Tasks) {
+        this.taskContainerPanel.Controls.Add(new TaskControl(task) { Dock = DockStyle.Top });
+      }
     }
 
     #endregion

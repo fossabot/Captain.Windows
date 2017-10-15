@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +10,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Represents a dialog in which the user can pick one or more output streams
   /// </summary>
-  internal partial class OutputStreamSelectionDialog : Form {
+  internal partial class OutputStreamSelectionDialog : Window {
     /// <summary>
     ///   Contains all the streams that have been selected
     /// </summary>

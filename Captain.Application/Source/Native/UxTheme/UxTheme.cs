@@ -9,7 +9,7 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   Causes a window to use a different set of visual style information than its class normally uses.
     /// </summary>
-    /// <param name="hwnd">Handle to the window whose visual style information is to be changed.<param>
+    /// <param name="hwnd">Handle to the window whose visual style information is to be changed.</param>
     /// <param name="pszSubAppName">
     ///   Pointer to a string that contains the application name to use in place of the calling application's name. If
     ///   this parameter is NULL, the calling application's name is used.

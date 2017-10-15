@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
-using Captain.Application.Native;
 using Process = System.Diagnostics.Process;
 
 namespace Captain.Application {
@@ -222,7 +221,6 @@ namespace Captain.Application {
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
       UpdateManager = new UpdateManager();
-
 
       // has the application been updated or perhaps is it the first time the user opens it?
       if (Options.LastVersion != VersionString) {

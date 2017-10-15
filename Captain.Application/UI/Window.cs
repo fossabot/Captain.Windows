@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Captain.Application.Native;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Contains code for abstracting application window features
   /// </summary>
@@ -13,6 +14,18 @@ namespace Captain.Application {
     /// </summary>
     private float lastDpi = 96;
 
+    /// <inheritdoc />
+    /// <summary>Gets the required creation parameters when the control handle is created.</summary>
+    /// <returns>A <see cref="T:System.Windows.Forms.CreateParams" /> that contains the required creation parameters when the handle to the control is created.</returns>
+    protected override CreateParams CreateParams {
+      get {
+        CreateParams createParams = base.CreateParams;
+        if (!DesignMode) { createParams.ExStyle |= (int)User32.WindowStylesEx.WS_EX_COMPOSITED; }
+        return createParams;
+      }
+    }
+
+    /// <inheritdoc />
     /// <summary>
     ///   Class constructor
     /// </summary>
@@ -30,6 +43,7 @@ namespace Captain.Application {
       this.lastDpi = dpi;
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Sets the initial DPI for this form
     /// </summary>
@@ -53,6 +67,7 @@ namespace Captain.Application {
       base.OnLoad(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Save window position
     /// </summary>
@@ -63,6 +78,7 @@ namespace Captain.Application {
       base.OnClosed(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Window procedure override for handling DPI changes
     /// </summary>
