@@ -70,6 +70,11 @@ namespace Captain.Application {
     ///   Initializes the update manager asynchronously
     /// </summary>
     internal UpdateManager() {
+      if (!Application.FsManager.IsFeatureAvailable) {
+        Log.WriteLine(LogLevel.Warning, "application directory unavailable - aborting");
+        return;
+      }
+
       try {
         InitializeUnderlyingManager();
       } catch (FileNotFoundException) {

@@ -5,6 +5,7 @@ namespace Captain.Application {
   /// Interaction logic for TrayIconHintCircle.xaml
   /// </summary>
   public partial class TrayIconHintCircle {
+    /// <inheritdoc />
     /// <summary>
     ///   Class constructor
     /// </summary>

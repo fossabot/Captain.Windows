@@ -6,8 +6,8 @@ using System.Xml.Serialization;
 
 namespace Captain.Application {
   /// <summary>
-  ///   Hüseyin Tüfekçilerli's XML-serializable Dictionary
-  ///   (see http://huseyint.com/2007/12/xml-serializable-generic-dictionary-tipi)
+  ///   XML-serializable Dictionary
+  ///   TODO: add documentation for this file
   /// </summary>
   /// <typeparam name="TKey">Dictionary key type</typeparam>
   /// <typeparam name="TValue">Dictionary value type</typeparam>

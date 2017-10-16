@@ -16,7 +16,10 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>Gets the required creation parameters when the control handle is created.</summary>
-    /// <returns>A <see cref="T:System.Windows.Forms.CreateParams" /> that contains the required creation parameters when the handle to the control is created.</returns>
+    /// <returns>
+    ///   A <see cref="T:System.Windows.Forms.CreateParams" /> that contains the required creation parameters when the
+    ///   handle to the control is created.
+    /// </returns>
     protected override CreateParams CreateParams {
       get {
         CreateParams createParams = base.CreateParams;

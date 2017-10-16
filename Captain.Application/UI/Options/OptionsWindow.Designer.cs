@@ -28,6 +28,7 @@
       System.Windows.Forms.Panel _separator1;
       System.Windows.Forms.Panel taskToolBarPanel;
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OptionsWindow));
+      this.panel1 = new System.Windows.Forms.Panel();
       this.createTaskLinkButton = new Captain.Application.LinkButton();
       this.startupTitleLabel = new System.Windows.Forms.Label();
       this.notificationsTitleLabel = new System.Windows.Forms.Label();
@@ -52,7 +53,7 @@
       this.capturePage = new System.Windows.Forms.TabPage();
       this.shortcutsPage = new System.Windows.Forms.TabPage();
       this.helpTip = new System.Windows.Forms.ToolTip(this.components);
-      this.panel1 = new System.Windows.Forms.Panel();
+      this.emptyTaskListLabel = new System.Windows.Forms.Label();
       _separator2 = new System.Windows.Forms.Panel();
       _separator1 = new System.Windows.Forms.Panel();
       taskToolBarPanel = new System.Windows.Forms.Panel();
@@ -90,6 +91,15 @@
       taskToolBarPanel.Name = "taskToolBarPanel";
       taskToolBarPanel.Size = new System.Drawing.Size(464, 33);
       taskToolBarPanel.TabIndex = 1;
+      // 
+      // panel1
+      // 
+      this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+      this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+      this.panel1.Location = new System.Drawing.Point(0, 32);
+      this.panel1.Name = "panel1";
+      this.panel1.Size = new System.Drawing.Size(464, 1);
+      this.panel1.TabIndex = 1;
       // 
       // createTaskLinkButton
       // 
@@ -332,6 +342,7 @@
       // tasksPage
       // 
       this.tasksPage.BackColor = System.Drawing.Color.WhiteSmoke;
+      this.tasksPage.Controls.Add(this.emptyTaskListLabel);
       this.tasksPage.Controls.Add(this.taskContainerPanel);
       this.tasksPage.Controls.Add(taskToolBarPanel);
       this.tasksPage.Location = new System.Drawing.Point(0, 33);
@@ -391,14 +402,17 @@
       this.helpTip.Draw += new System.Windows.Forms.DrawToolTipEventHandler(this.OnHelpTipDraw);
       this.helpTip.Popup += new System.Windows.Forms.PopupEventHandler(this.OnHelpTipPopup);
       // 
-      // panel1
+      // emptyTaskListLabel
       // 
-      this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-      this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.panel1.Location = new System.Drawing.Point(0, 32);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(464, 1);
-      this.panel1.TabIndex = 1;
+      this.emptyTaskListLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.emptyTaskListLabel.ForeColor = System.Drawing.SystemColors.GrayText;
+      this.emptyTaskListLabel.Location = new System.Drawing.Point(0, 33);
+      this.emptyTaskListLabel.Name = "emptyTaskListLabel";
+      this.emptyTaskListLabel.Size = new System.Drawing.Size(464, 315);
+      this.emptyTaskListLabel.TabIndex = 3;
+      this.emptyTaskListLabel.Text = "Create a task for handling your captures.";
+      this.emptyTaskListLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+      this.emptyTaskListLabel.Visible = false;
       // 
       // OptionsWindow
       // 
@@ -454,5 +468,6 @@
     private LinkButton createTaskLinkButton;
     private System.Windows.Forms.Panel taskContainerPanel;
     private System.Windows.Forms.Panel panel1;
+    private System.Windows.Forms.Label emptyTaskListLabel;
   }
 }

@@ -1,6 +1,9 @@
 ﻿using System.Drawing;
 
 namespace Captain.Application {
+  /// <summary>
+  ///   Contains utility methods for the <see cref="System.Drawing.Color" /> framework type.
+  /// </summary>
   internal static class ColorExtensions {
     /// <summary>Blends the specified colors together.</summary>
     /// <param name="color">Color to blend onto the background color.</param>
@@ -11,7 +14,7 @@ namespace Captain.Application {
     /// </param>
     /// <returns>The blended colors.</returns>
     /// <remarks>
-    ///   This extension method is taken from https://stackoverflow.com/a/3722337
+    ///   This extension method is taken from https://stackoverflow.com/a/3722337.
     /// </remarks>
     internal static Color Blend(this Color color, Color backColor, double amount = 0.5) =>
       Color.FromArgb((byte)(color.R * amount + backColor.R * (1 - amount)),

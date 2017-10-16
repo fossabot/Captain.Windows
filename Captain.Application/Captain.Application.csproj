@@ -98,14 +98,18 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Content\Grabber\Icons\README.md" />
     <None Include="LICENSE.md" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest">
       <SubType>Designer</SubType>
     </None>
     <None Include="README.md" />
+    <None Include="Resources\README.md" />
     <None Include="Source\Native\README.md" />
+    <None Include="Source\Options\SerializableDictionary\README.md" />
     <None Include="UI\CommonControls\LinkLabel2\LICENSE.md" />
+    <None Include="UI\CommonControls\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitattributes" />
@@ -180,8 +184,8 @@
     <Compile Include="Source\Native\UxTheme\UxTheme.cs" />
     <Compile Include="Source\Native\WINATTACHINFO.cs" />
     <Compile Include="Source\Native\WindowMessages.cs" />
-    <Compile Include="Source\Native\Windows.Core\POINT.cs" />
-    <Compile Include="Source\Native\Windows.Core\RECT.cs" />
+    <Compile Include="Source\Native\User32\POINT.cs" />
+    <Compile Include="Source\Native\User32\RECT.cs" />
     <Compile Include="Source\Native\User32\User32.cs" />
     <Compile Include="Source\Native\User32\WINDOWPOS.cs" />
     <Compile Include="Source\Options\NotificationDisplayOptions.cs" />
@@ -193,7 +197,7 @@
     <Compile Include="Source\Options\AutoStart\AutoStartManager.cs" />
     <Compile Include="Source\Options\AutoStart\AutoStartPolicy.cs" />
     <Compile Include="Source\Options\Options.cs" />
-    <Compile Include="Source\Options\SerializableDictionary.cs" />
+    <Compile Include="Source\Options\SerializableDictionary\SerializableDictionary.cs" />
     <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="Source\Tasks\Task.cs" />
     <Compile Include="Source\Tasks\TaskParameters.cs" />

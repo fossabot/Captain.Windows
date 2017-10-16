@@ -29,6 +29,11 @@ namespace Captain.Application {
     private string RootDirectoryPath { get; }
 
     /// <summary>
+    ///   Whether or not the application directory is usable and permanent.
+    /// </summary>
+    internal bool IsFeatureAvailable { get; }
+
+    /// <summary>
     ///   Instantiates a filesystem manager
     /// </summary>
     internal FsManager() {
@@ -37,6 +42,7 @@ namespace Captain.Application {
 
       try {
         Directory.CreateDirectory(RootDirectoryPath);
+        IsFeatureAvailable = true;
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Error,
                       $"could not bootstrap local application directory - using temporary path: {exception}");

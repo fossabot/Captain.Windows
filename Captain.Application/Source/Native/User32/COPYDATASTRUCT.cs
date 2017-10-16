@@ -23,7 +23,6 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   The data to be passed to the receiving application. This member can be NULL.
       /// </summary>
-      //[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.R8)]
       internal IntPtr lpData;
     }
   }

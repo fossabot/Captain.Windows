@@ -12,10 +12,24 @@ namespace Captain.Application {
   ///   Handles Plugins
   /// </summary>
   internal class PluginManager {
+    /// <summary>
+    ///   Full name of the Captain Common Library assembly
+    /// </summary>
     private const string CommonAssemblyName = "Captain.Common";
 
+    /// <summary>
+    ///   Static capture encoders
+    /// </summary>
     internal List<PluginObject> StaticEncoders { get; }
+
+    /// <summary>
+    ///   Video capture encoders
+    /// </summary>
     internal List<PluginObject> VideoEncoders { get; }
+
+    /// <summary>
+    ///   Output streams
+    /// </summary>
     internal List<PluginObject> OutputStreams { get; }
 
     /// <summary>
@@ -26,6 +40,9 @@ namespace Captain.Application {
       var assemblyLocations = Directory.EnumerateFiles(Application.FsManager.GetSafePath(FsManager.PluginPath))
                                        .ToList();
 
+      // XXX: dead code?
+      // TODO: investigate whether loading plugins from the local application path will work without hooking the
+      //       AssemblyResolve event
       if (Assembly.GetExecutingAssembly().ExportedTypes.Any(type => type.Namespace == CommonAssemblyName)) {
         // the executing assembly was merged with the Captain.Common.dll assembly which contains shared types for
         // Plugins. Because it is unlikely that the DLL exists, hook the intent to load the DLL and resolve to the
@@ -41,7 +58,6 @@ namespace Captain.Application {
       }
 
       var assemblies = new List<Assembly>();
-
       try {
         assemblies.AddRange(assemblyLocations.Select(Assembly.Load));
       } catch (Exception exception) {
@@ -60,7 +76,6 @@ namespace Captain.Application {
         new PluginObject(typeof(ClipboardOutputStream))
       });
 
-
       foreach (Assembly assembly in assemblies) {
         try {
           Type[] types = assembly.GetExportedTypes();
@@ -78,6 +93,8 @@ namespace Captain.Application {
       }
 
       if (!StaticEncoders.Any() && !VideoEncoders.Any() || !OutputStreams.Any()) {
+        // XXX: is this behaviour really appropriate? Consider an alternative to this (i.e. integrate
+        //      Captain.Plugins.BuiltIn into Captain.Application)
         Log.WriteLine(LogLevel.Error, "no encoders or output streams found - aborting program!");
         Exit(1);
       }

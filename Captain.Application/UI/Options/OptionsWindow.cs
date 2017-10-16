@@ -351,6 +351,8 @@ namespace Captain.Application {
       foreach (Task task in Application.Options.Tasks) {
         this.taskContainerPanel.Controls.Add(new TaskControl(task) { Dock = DockStyle.Top });
       }
+
+      this.emptyTaskListLabel.Visible = this.taskContainerPanel.Controls.Count == 0;
     }
 
     #endregion
