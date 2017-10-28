@@ -11,19 +11,15 @@ using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Provides a user interface for handpicking a screen region and using additional tools
   /// </summary>
-  internal class Grabber : IDisposable {
+  internal sealed class Grabber : IDisposable {
     /// <summary>
     ///   Currently instantiated Grabber instance
     /// </summary>
     private static Grabber singleton;
-
-    /// <summary>
-    ///   Grabber window (displays the area rectangle)
-    /// </summary>
-    private GrabberWindow window;
 
     /// <summary>
     ///   Original grabber window bounds
@@ -46,6 +42,11 @@ namespace Captain.Application {
     internal GrabberToolBarWindow ToolBar { get; private set; }
 
     /// <summary>
+    ///   Grabber window
+    /// </summary>
+    internal GrabberWindow Window { get; private set; }
+
+    /// <summary>
     ///   Intent receiving delegate
     /// </summary>
     /// <param name="intent">Capture intent instance</param>
@@ -61,7 +62,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="acceptableActionTypes">Acceptable action types</param>
     internal static Grabber Create(ActionType acceptableActionTypes) {
-      if (singleton != null && !singleton.IsDisposed) {
+      if (!singleton?.IsDisposed == true) {
         return singleton;
       }
 
@@ -73,18 +74,18 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="acceptableActionTypes">Acceptable action types</param>
     private Grabber(ActionType acceptableActionTypes) {
-      this.window = new GrabberWindow(this);
+      Window = new GrabberWindow(this);
       ToolBar = new GrabberToolBarWindow(acceptableActionTypes);
 
       // TODO: restore GrabberWindow bounds
-      this.window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-      this.window.Width = Screen.PrimaryScreen.WorkingArea.Width / 3d;
-      this.window.Height = Screen.PrimaryScreen.WorkingArea.Height / 3d;
+      Window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+      Window.Width = Screen.PrimaryScreen.WorkingArea.Width / 3d;
+      Window.Height = Screen.PrimaryScreen.WorkingArea.Height / 3d;
 
       ToolBar.OnCaptureActionInitiated += OnCaptureActionInitiated;
       ToolBar.OnGrabberIntentReceived += OnGrabberIntentReceived;
 
-      this.window.Closed += OnWindowClosed;
+      Window.Closed += OnWindowClosed;
       ToolBar.Closed += OnWindowClosed;
     }
 
@@ -100,10 +101,10 @@ namespace Captain.Application {
     ///   Disposes resources used by the grabber interface
     /// </summary>
     public void Dispose() {
-      if (this.window != null) {
-        this.window.Closed -= OnWindowClosed;
-        this.window.Close();
-        this.window = null;
+      if (Window != null) {
+        Window.Closed -= OnWindowClosed;
+        Window.Close();
+        Window = null;
       }
 
       if (ToolBar != null) {
@@ -119,13 +120,13 @@ namespace Captain.Application {
     ///   Displays the grabber UI
     /// </summary>
     /// <returns>Whether or not the capture is being created</returns>
-    internal void Show() => this.window.Show();
+    internal void Show() => Window.Show();
 
     /// <summary>
     ///   Hides the grabber UI
     /// </summary>
     internal void Hide() {
-      this.window.Hide();
+      Window.Hide();
       ToolBar.Hide();
     }
 
@@ -136,7 +137,7 @@ namespace Captain.Application {
     private void OnCaptureActionInitiated(ActionType type) =>
       OnIntentReceived?.Invoke(this,
                                new CaptureIntent(type) {
-                                 VirtualArea = this.window.Area,
+                                 VirtualArea = Window.Area,
                                  WindowHandle = AttachedWindowHandle
                                });
 
@@ -159,18 +160,18 @@ namespace Captain.Application {
 
         case GrabberIntentType.AttachToWindow:
           ToolBar.SetWindowAttachmentStatus(false, false);
-          this.window.PassThrough = true;
+          Window.PassThrough = true;
 
           /* get the window that contains the central point of the grabber windows */
           var point = new POINT {
-            x = this.window.Area.X + this.window.Area.Width / 2,
-            y = this.window.Area.Y + this.window.Area.Height / 2
+            x = Window.Area.X + Window.Area.Width / 2,
+            y = Window.Area.Y + Window.Area.Height / 2
           };
 
           IntPtr handle = User32.WindowFromPoint(point);
-          this.window.PassThrough = false;
+          Window.PassThrough = false;
 
-          if (handle == IntPtr.Zero || handle == this.window.Handle || handle == ToolBar.Handle) {
+          if (handle == IntPtr.Zero || handle == Window.Handle || handle == ToolBar.Handle) {
             // don't attach to desktop window!
             Log.WriteLine(LogLevel.Warning, "no window at the current area");
             ToolBar.SetWindowAttachmentStatus(false);
@@ -193,10 +194,10 @@ namespace Captain.Application {
           RECT rect = WindowHelper.GetWindowBounds(rootHandle);
 
           // save original bounds
-          this.originalBounds = new Rectangle((int)this.window.Left,
-                                              (int)this.window.Top,
-                                              (int)this.window.Width,
-                                              (int)this.window.Height);
+          this.originalBounds = new Rectangle((int)Window.Left,
+                                              (int)Window.Top,
+                                              (int)Window.Width,
+                                              (int)Window.Height);
 
           /* this is fine - now we want to perform the actual injection. Embrace thyselves */
           const string helperLibraryName = "cn2rthelper"; // will actually match cn2rthelper32, cn2rthelperwhatever
@@ -205,9 +206,7 @@ namespace Captain.Application {
                                                                         helperLibraryName +
                                                                         (x64 ? "64" : "32") +
                                                                         ".dll");
-
-          uint pid;
-          User32.GetWindowThreadProcessId(rootHandle, out pid);
+          User32.GetWindowThreadProcessId(rootHandle, out uint pid);
 
           if (Environment.OSVersion.Version >= new Version(6, 1)) {
             // allow console windows to be captured on Windows >= 7 by injecting the DLL into the console host process
@@ -237,7 +236,7 @@ namespace Captain.Application {
           var attachInfo = new WINATTACHINFO {
             bD3DPresent = Process.FindModule(pid, "d3d"),
             rcOrgTargetBounds = rect,
-            uiGrabberHandle = (uint)this.window.Handle,
+            uiGrabberHandle = (uint)Window.Handle,
             uiToolbarHandle = (uint)ToolBar.Handle,
             uiTargetHandle = (uint)rootHandle
           };
@@ -262,7 +261,7 @@ namespace Captain.Application {
                 // send the window message
                 User32.SendMessage(rootHandle,
                                    (uint)User32.WindowMessage.WM_COPYDATA,
-                                   this.window.Handle,
+                                   Window.Handle,
                                    ref copydata);
               } finally {
                 // free resources
@@ -293,15 +292,15 @@ namespace Captain.Application {
             AttachedWindowHandle = rootHandle;
 
             // adjust window to target bounds
-            this.window.Dispatcher.Invoke(() => {
-              this.window.Left = rect.left;
-              this.window.Top = rect.top;
-              this.window.Width = rect.right - rect.left;
-              this.window.Height = rect.bottom - rect.top;
+            Window.Dispatcher.Invoke(() => {
+              Window.Left = rect.left;
+              Window.Top = rect.top;
+              Window.Width = rect.right - rect.left;
+              Window.Height = rect.bottom - rect.top;
               //= new Rectangle(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-              this.window.UpdatePosition(rootHandle);
-              this.window.CanBeResized = false;
-              this.window.Opacity = 0;
+              Window.UpdatePosition(rootHandle);
+              Window.CanBeResized = false;
+              Window.Opacity = 0;
             });
 
             ToolBar.Dispatcher.Invoke(() => ToolBar.SetWindowAttachmentStatus(true));
@@ -323,15 +322,15 @@ namespace Captain.Application {
 
           ToolBar.SetWindowAttachmentStatus(false);
 
-          this.window.Left = this.originalBounds.Left;
-          this.window.Top = this.originalBounds.Top;
-          this.window.Width = this.originalBounds.Width;
-          this.window.Height = this.originalBounds.Height;
-          this.window.Opacity = 1;
-          this.window.UpdatePosition();
+          Window.Left = this.originalBounds.Left;
+          Window.Top = this.originalBounds.Top;
+          Window.Width = this.originalBounds.Width;
+          Window.Height = this.originalBounds.Height;
+          Window.Opacity = 1;
+          Window.UpdatePosition();
 
           // TODO: if this is a recording CanBeResized must be set to false!
-          this.window.CanBeResized = true;
+          Window.CanBeResized = true;
           break;
       }
     }

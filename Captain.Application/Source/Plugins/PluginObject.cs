@@ -9,7 +9,7 @@ namespace Captain.Application {
   ///   Plugin object (can be a capture handler, encoder, etc.)
   /// </summary>
   [Serializable]
-  internal class PluginObject {
+  internal sealed class PluginObject {
     /// <summary>
     ///   Display name
     /// </summary>
@@ -21,6 +21,11 @@ namespace Captain.Application {
     internal Type Type { get; }
 
     /// <summary>
+    ///   Whether this object is configurable
+    /// </summary>
+    internal bool Configurable { get; }
+
+    /// <summary>
     ///   Instantiates a new plugin object
     /// </summary>
     /// <param name="type">Type name</param>
@@ -29,16 +34,18 @@ namespace Captain.Application {
 
       try {
         // get localized display name, preferring the one most close to the current UI locale
-        this.displayName = ((DisplayName)type.GetCustomAttributes(typeof(DisplayName), true)
-                                             .OrderBy(dn => ((DisplayName)dn).LanguageCode != null &&
-                                                            CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLower()
-                                                                       .StartsWith(((DisplayName)dn).LanguageCode.ToLower()))
-                                             .Last()).Name;
+        this.displayName = (type.GetCustomAttributes(typeof(DisplayName), true)
+                                .OrderBy(dn => ((DisplayName) dn).LanguageCode != null &&
+                                               CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
+                                                          .StartsWith(((DisplayName) dn).LanguageCode,
+                                                                      StringComparison.OrdinalIgnoreCase))
+                                .Last() as DisplayName)?.Name ?? throw new InvalidOperationException();
       } catch (InvalidOperationException) {
         // no display name attributes
         this.displayName = type.Name;
       }
 
+      Configurable = type.GetInterface("IConfigurable") == null;
       Log.WriteLine(LogLevel.Verbose, "loaded plugin object {0}", this);
     }
 

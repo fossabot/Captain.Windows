@@ -1,17 +1,16 @@
-﻿using Captain.Common;
-using Captain.Plugins.BuiltIn;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
   /// <summary>
   ///   Handles Plugins
   /// </summary>
-  internal class PluginManager {
+  internal sealed class PluginManager {
     /// <summary>
     ///   Full name of the Captain Common Library assembly
     /// </summary>
@@ -49,7 +48,7 @@ namespace Captain.Application {
         // executing module instead
         AppDomain.CurrentDomain.AssemblyResolve += (sender, resolveEventArgs) => {
           if (assemblyLocations.Contains(resolveEventArgs.RequestingAssembly.Location) &&
-              resolveEventArgs.Name.Split(',')[0].StartsWith(CommonAssemblyName)) {
+              resolveEventArgs.Name.Split(',')[0].StartsWith(CommonAssemblyName, StringComparison.OrdinalIgnoreCase)) {
             return Assembly.GetExecutingAssembly();
           }
 
@@ -70,7 +69,15 @@ namespace Captain.Application {
 
       // manually add built-in encoders/handlers. We could feed the assembly and let them be discovered, but this is
       // cheaper and faster, since we already know which types are exported
-      StaticEncoders.Add(new PluginObject(typeof(PngCaptureEncoder)));
+      StaticEncoders.AddRange(new [] {
+        new PluginObject(typeof(PngCaptureEncoder)),
+        new PluginObject(typeof(JpegCaptureEncoder))
+      });
+
+      VideoEncoders.AddRange(new [] {
+        new PluginObject(typeof(H264CaptureEncoder))
+      });
+
       OutputStreams.AddRange(new[] {
         new PluginObject(typeof(FileOutputStream)),
         new PluginObject(typeof(ClipboardOutputStream))

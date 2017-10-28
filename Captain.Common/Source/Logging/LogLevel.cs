@@ -28,7 +28,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Message only shown when DEBUG is defined
     /// </summary>
-    Debug = 4,
+    Debug = 4
   }
 
   /// <summary>

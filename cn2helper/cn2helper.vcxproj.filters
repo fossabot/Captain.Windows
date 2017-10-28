@@ -30,10 +30,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\shell.c">
+    <ClCompile Include="src\process.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\process.c">
+    <ClCompile Include="src\shell.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,16 +2,18 @@
 using System.Threading;
 
 namespace Captain.Common {
+  /// <inheritdoc />
   /// <summary>
   ///   Specifies a custom thread apartment state for this object
   /// </summary>
   [AttributeUsage(AttributeTargets.Class)]
-  public class ThreadApartmentState : Attribute {
+  public sealed class ThreadApartmentState : Attribute {
     /// <summary>
     ///   Thread apartment state
     /// </summary>
     public ApartmentState ApartmentState { get; }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Sets the thread apartment state for this object
     /// </summary>

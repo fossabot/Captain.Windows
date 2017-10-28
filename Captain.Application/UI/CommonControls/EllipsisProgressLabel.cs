@@ -2,12 +2,14 @@
 using System.Threading;
 using System.Windows.Forms;
 
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedMember.Global
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
-  ///   Extended label which allows for hyphen animations
+  ///   Extended label which allows for ellipsis animations
   /// </summary>
-  internal class EllipsisProgressLabel : Label {
+  internal sealed class EllipsisProgressLabel : Label {
     /// <summary>
     ///   Animation frames
     /// </summary>
@@ -93,6 +95,7 @@ namespace Captain.Application {
     /// </summary>
     public bool ShowEllipsis { get; set; } = true;
 
+    /// <inheritdoc />
     /// <summary>
     ///   Paints the control
     /// </summary>

@@ -2,6 +2,7 @@
 
 #include <cn2helper/process.h>
 #include <Psapi.h>
+#include <Windows.h>
 #include <TlHelp32.h>
 
 /// <summary>
@@ -10,8 +11,8 @@
 /// <param name="dwProcessId">Process ID</param>
 /// <param name="szModuleBase">Module base name</param>
 /// <returns><c>TRUE</c> if the process loaded a module which a base name starting with the specified string</returns>
-BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBase) {
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
+BOOL WINAPI CN2ProcessFindModule(_In_ const DWORD dwProcessId, _In_ const LPCWSTR szModuleBase) {
+  const HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwProcessId);
   if (!hProcess) {
     OutputDebugStringW(L"OpenProcess() failed\n");
     return FALSE;
@@ -46,8 +47,8 @@ BOOL WINAPI CN2ProcessFindModule(_In_ DWORD dwProcessId, _In_ LPCWSTR szModuleBa
 /// </summary>
 /// <param name="dwProcessId">Process ID</param>
 /// <returns>0 on error, otherwise the process ID</returns>
-DWORD WINAPI CN2ProcessFindParentProcessId(_In_ DWORD dwProcessId) {
-  HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, dwProcessId);
+DWORD WINAPI CN2ProcessFindParentProcessId(_In_ const DWORD dwProcessId) {
+  const HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, dwProcessId);
   if (hSnapshot == INVALID_HANDLE_VALUE) {
     OutputDebugStringW(L"CreateToolHelp32Snapshot() failed\n");
     return 0;

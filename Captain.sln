@@ -1,16 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Application", "Captain.Application\Captain.Application.csproj", "{F2886E2B-0664-4B90-8F96-65598E485E06}"
 	ProjectSection(ProjectDependencies) = postProject
 		{76477108-C8D4-4603-993C-C23FFFF9E342} = {76477108-C8D4-4603-993C-C23FFFF9E342}
+		{1776FF10-3879-4932-B5D8-B5E75ACF9439} = {1776FF10-3879-4932-B5D8-B5E75ACF9439}
+		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3} = {325EE55B-00AD-4F01-ADF4-C6D364B61CB3}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Common", "Captain.Common\Captain.Common.csproj", "{5CBD5D35-99D1-4AE3-919D-7B9099ED6DC3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Plugins.BuiltIn", "Captain.Plugins.BuiltIn\Captain.Plugins.BuiltIn.csproj", "{9B667C69-0F53-4663-A74E-73C384CAFF75}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cn2helper", "cn2helper\cn2helper.vcxproj", "{76477108-C8D4-4603-993C-C23FFFF9E342}"
 EndProject
@@ -44,14 +44,6 @@ Global
 		{5CBD5D35-99D1-4AE3-919D-7B9099ED6DC3}.Release|x64.Build.0 = Release|x64
 		{5CBD5D35-99D1-4AE3-919D-7B9099ED6DC3}.Release|x86.ActiveCfg = Release|x86
 		{5CBD5D35-99D1-4AE3-919D-7B9099ED6DC3}.Release|x86.Build.0 = Release|x86
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Debug|x64.ActiveCfg = Debug|x64
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Debug|x64.Build.0 = Debug|x64
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Debug|x86.ActiveCfg = Debug|x86
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Debug|x86.Build.0 = Debug|x86
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Release|x64.ActiveCfg = Release|x64
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Release|x64.Build.0 = Release|x64
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Release|x86.ActiveCfg = Release|x86
-		{9B667C69-0F53-4663-A74E-73C384CAFF75}.Release|x86.Build.0 = Release|x86
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Debug|x64.ActiveCfg = Debug|x64
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Debug|x64.Build.0 = Debug|x64
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Debug|x86.ActiveCfg = Debug|Win32

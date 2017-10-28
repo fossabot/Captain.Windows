@@ -4,24 +4,35 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using Microsoft.Toolkit.Uwp.Notifications;
-using Windows.UI.Notifications;
 using Windows.Data.Xml.Dom;
+using Windows.UI.Notifications;
 using Captain.Common;
+using Microsoft.Toolkit.Uwp.Notifications;
 using static Captain.Application.Application;
 using Guid = System.Guid;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Implements an interface for displaying local notifications by using legacy NotifyIcon APIs
   /// </summary>
-  internal class ToastNotificationProvider : IToastProvider {
+  internal sealed class ToastNotificationProvider : IToastProvider {
     /// <summary>
     ///   Toast notifier instance
     /// </summary>
-    private readonly ToastNotifier toastNotifier =
-      ToastNotificationManager.CreateToastNotifier(VersionInfo.ProductName);
+    private readonly ToastNotifier toastNotifier;
 
+    /// <summary>
+    ///   Class constructor
+    /// </summary>
+    internal ToastNotificationProvider() {
+      this.toastNotifier = ToastNotificationManager.CreateToastNotifier(Application.Guid);
+      if (this.toastNotifier.Setting != NotificationSetting.Enabled) {
+        throw new NotSupportedException("Toast notifications are not allowed by system policies");
+      }
+    }
+
+    /// <inheritdoc />
     /// <summary>
     ///   Displays a warning message
     /// </summary>
@@ -33,6 +44,7 @@ namespace Captain.Application {
     public void PushWarning(string caption, string body, Dictionary<string, Uri> actions = null) =>
       LegacyNotificationProvider.PushMessage(caption, body, ToolTipIcon.Warning, actions?.FirstOrDefault().Value);
 
+    /// <inheritdoc />
     /// <summary>
     ///   Displays an informational/success message
     /// </summary>
@@ -46,18 +58,19 @@ namespace Captain.Application {
     /// </param>
     /// <param name="handler">Custom handler for toast activation</param>
     /// <param name="dismissionHandler">Custom handler for toast dismission</param>
-    public void PushObject(string caption,
-                           string body,
-                           string subtext = null,
-                           Uri previewUri = null,
-                           Image previewImage = null,
-                           Dictionary<string, Uri> actions = null,
-                           Action<object, object> handler = null,
-                           Action<object, object> dismissionHandler = null) {
+    public void PushObject(
+      string caption,
+      string body,
+      string subtext = null,
+      Uri previewUri = null,
+      Image previewImage = null,
+      Dictionary<string, Uri> actions = null,
+      Action<object, object> handler = null,
+      Action<object, object> dismissionHandler = null) {
       string previewSource = previewUri?.ToString();
-      bool isTemporaryPreviewSource = false;
+      var isTemporaryPreviewSource = false;
 
-      if (previewSource == null && previewImage != null) {
+      if ((previewSource == null) && (previewImage != null)) {
         previewSource = Path.Combine(Application.FsManager.GetSafePath(FsManager.TemporaryPath),
                                      Guid.NewGuid().ToString());
         isTemporaryPreviewSource = true;
@@ -71,12 +84,12 @@ namespace Captain.Application {
         Duration = ToastDuration.Long,
         Audio = new ToastAudio { Silent = true },
         Actions = new ToastActionsCustom(),
-        Launch = actions != null && actions.Any() ? actions.First().Value.ToString() : null,
+        Launch = actions?.Count > 0 ? actions.First().Value.ToString() : null,
         Visual = new ToastVisual {
           BindingGeneric = new ToastBindingGeneric {
             Children = {
-              new AdaptiveText { Text = caption, HintStyle = AdaptiveTextStyle.Title },
-              new AdaptiveText { Text = body, HintStyle = AdaptiveTextStyle.Body }
+              new AdaptiveText {Text = caption, HintStyle = AdaptiveTextStyle.Title},
+              new AdaptiveText {Text = body, HintStyle = AdaptiveTextStyle.Body}
             }
           }
         }
@@ -108,21 +121,17 @@ namespace Captain.Application {
       }
 
       if (actions != null) {
-        foreach (KeyValuePair<string, Uri> action in actions) {
-          if (action.Key != null && action.Value?.ToString() != null) {
-            Log.WriteLine(LogLevel.Debug, $"adding toast action {action.Key}: {action.Value}");
-            ((ToastActionsCustom)content.Actions).Buttons.Add(new ToastButton(action.Key, action.Value.ToString()));
-          }
+        foreach (KeyValuePair<string, Uri> action in actions.Where(action => (action.Key != null) &&
+                                                                             (action.Value?.ToString() != null))) {
+          Log.WriteLine(LogLevel.Debug, $"adding toast action {action.Key}: {action.Value}");
+          ((ToastActionsCustom)content.Actions).Buttons.Add(new ToastButton(action.Key, action.Value.ToString()));
         }
       }
 
       var doc = new XmlDocument();
       doc.LoadXml(content.GetContent());
 
-      var notification = new ToastNotification(doc) {
-        SuppressPopup = false
-      };
-
+      var notification = new ToastNotification(doc) { SuppressPopup = false };
       if (handler != null) {
         notification.Activated += (sender, eventArgs) => handler(sender, eventArgs);
       }
@@ -131,7 +140,7 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Debug, "notification dismissed");
 
         // delete temporary preview, if any
-        if (previewSource != null && isTemporaryPreviewSource) {
+        if ((previewSource != null) && isTemporaryPreviewSource) {
           try {
             File.Delete(previewSource);
             Log.WriteLine(LogLevel.Debug, $"deleted temporary preview image: {previewSource}");
@@ -143,6 +152,20 @@ namespace Captain.Application {
         // call custom handler
         dismissionHandler?.Invoke(sender, eventArgs);
       };
+
+      if (this.toastNotifier.Setting != NotificationSetting.Enabled) {
+        Log.WriteLine(LogLevel.Warning, "toast notifications are disabled by system policies - downgrading");
+        (ToastProvider = new LegacyNotificationProvider()).PushObject(caption,
+                                                                      body,
+                                                                      subtext,
+                                                                      previewUri,
+                                                                      previewImage,
+                                                                      actions,
+                                                                      handler,
+                                                                      dismissionHandler);
+        AreToastNotificationsSupported = false;
+        return;
+      }
 
       this.toastNotifier.Show(notification);
     }

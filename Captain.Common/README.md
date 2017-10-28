@@ -1,7 +1,7 @@
 ﻿# Captain.Common
-![version: 0.1](https://img.shields.io/badge/version-0.1.0.0-blue.svg)
+![version: 0.1](https://img.shields.io/badge/version-0.1-blue.svg)
 ![license: Unlicense](https://img.shields.io/badge/license-Unlicense-brightgreen.svg)
-> Code shared between Captain and its plugins
+> Code shared between [Captain](https://github.com/CaptainApp) and its plugins
 
 ## What's this?
 [Captain](https://github.com/CaptainApp) is an extensible tray app that acts as a foundation for implementing
@@ -20,5 +20,5 @@ assembly alongside yours, as Captain will automatically hook on the assembly loa
 _None yet (:_
 
 ## Examples
-- [Captain.Plugins.BuiltIn](https://github.com/CaptainApp/Captain.Plugins.BuiltIn): Built-in plugin implementing basic
-  stuff.
+- [Captain.Plugins.BuiltIn](https://github.com/CaptainApp/Captain/tree/master/Captain.Plugins.BuiltIn): Built-in plugin
+  implementing basic funcionality.

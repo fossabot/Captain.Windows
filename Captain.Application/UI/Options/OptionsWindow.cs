@@ -7,6 +7,7 @@ using Ookii.Dialogs.Wpf;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Displays a user interface for adjusting the application settings and behavior
   /// </summary>
@@ -31,6 +32,7 @@ namespace Captain.Application {
     /// </summary>
     private int escapeStrokeCount;
 
+    /// <inheritdoc />
     /// <summary>
     ///   Class constructor
     /// </summary>
@@ -71,7 +73,7 @@ namespace Captain.Application {
             MainInstruction = Resources.OptionsWindow_RestoreDialogInstruction,
             Content = Resources.OptionsWindow_RestoreDialogContent,
             Buttons = {
-              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogOptionsButton) { Default = true },
+              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogOptionsButton) {Default = true},
               new TaskDialogButton(Resources.OptionsWindow_RestoreDialogHardButton),
               new TaskDialogButton(ButtonType.Cancel)
             }
@@ -91,6 +93,7 @@ namespace Captain.Application {
       base.OnKeyDown(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Window procedure override for handling DWM changes
     /// </summary>
@@ -108,8 +111,126 @@ namespace Captain.Application {
       base.WndProc(ref msg);
     }
 
+    #region "General" page logic
+
+    /// <summary>
+    ///   Initializes the "General" page
+    /// </summary>
+    /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
+    /// <param name="eventArgs"></param>
+    private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) {
+        // no need to initalize the page
+        return;
+      }
+
+      this.generalPage.Tag = new object();
+
+      // auto-start options
+      var autoStartManager = new AutoStartManager();
+
+      this.autoStartCheckBox.Enabled = autoStartManager.IsFeatureAvailable;
+      this.autoStartCheckBox.Checked = autoStartManager.GetAutoStartPolicy() == AutoStartPolicy.Approved;
+      this.autoStartCheckBox.CheckStateChanged += (s, e) =>
+        this.autoStartCheckBox.Checked = autoStartManager.ToggleAutoStart(this.autoStartCheckBox.Checked
+                                                                            ? AutoStartPolicy.Approved
+                                                                            : AutoStartPolicy.Disapproved,
+                                                                          (ModifierKeys & Keys.Shift) != 0)
+                                                         .Equals(AutoStartPolicy.Approved);
+
+      // tray icon display options
+      // TODO: implement this feature - also, make sure the check box is disabled when no hot keys for accessing the
+      //       application UI have been set
+      this.displayTrayIconCheckBox.Enabled = false;
+      this.displayTrayIconCheckBox.Checked = true;
+
+      // notification options
+      if (Application.Options.NotificationOptions == NotificationDisplayOptions.Never) {
+        this.showNotificationsCheckBox.Checked = this.notificationOptionsComboBox.Enabled = false;
+        this.notificationOptionsComboBox.Text = "";
+        this.notificationOptionsComboBox.SelectedIndex = -1;
+      } else {
+        this.showNotificationsCheckBox.Checked = true;
+        this.notificationOptionsComboBox.SelectedIndex = (int)Application.Options.NotificationOptions - 1;
+
+        if (this.notificationOptionsComboBox.SelectedIndex == -1) {
+          this.notificationOptionsComboBox.SelectedIndex += (int)NotificationDisplayOptions.Always;
+        }
+      }
+
+      this.notificationOptionsComboBox.SelectionChangeCommitted += (s, e) =>
+        Application.Options.NotificationOptions =
+          (NotificationDisplayOptions)(this.notificationOptionsComboBox.SelectedIndex + 1);
+
+      // only show legacy notifications check box if this platform supports any other kind of notification provider
+      this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
+      this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
+      this.legacyNotificationsCheckBox.CheckedChanged += (s, e) => {
+        Application.Options.UseLegacyNotificationProvider = this.legacyNotificationsCheckBox.Checked;
+
+        if (Application.Options.UseLegacyNotificationProvider && ToastProvider is ToastNotificationProvider) {
+          Log.WriteLine(LogLevel.Informational, "downgrading toast provider to legacy notification provider");
+          ToastProvider = new LegacyNotificationProvider();
+        } else {
+          Log.WriteLine(LogLevel.Informational, "upgrading legacy notification provider to toast provider");
+          ToastProvider = new ToastNotificationProvider();
+        }
+      };
+
+      // application update options
+      if (Application.UpdateManager.Availability == UpdaterAvailability.NotSupported) {
+        // unsupported (portable mode?)
+        this.performInstallNoticeLabel.Text =
+          String.Format(this.performInstallNoticeLabel.Text, VersionInfo.ProductName);
+        this.upgradeToFullInstallPanel.Visible = true;
+      } else {
+        // updates are supported
+        this.updateOptionsPanel.Visible = true;
+
+        this.automaticUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Automatic;
+        this.checkUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.CheckOnly;
+        this.disableUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Disabled;
+
+        this.automaticUpdatesRadioButton.CheckedChanged += (s, e) => {
+          if (this.automaticUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Automatic; }
+        };
+
+        this.checkUpdatesRadioButton.CheckedChanged += (s, e) => {
+          if (this.checkUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.CheckOnly; }
+        };
+
+        this.disableUpdatesRadioButton.CheckedChanged += (s, e) => {
+          if (this.disableUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Disabled; }
+        };
+
+        // make sure the feature is available
+        this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
+          this.checkUpdatesRadioButton.Enabled =
+            this.disableUpdatesRadioButton.Enabled =
+              Application.UpdateManager.Availability == UpdaterAvailability.FullyAvailable &&
+              Application.UpdateManager.Status == UpdateStatus.Idle);
+
+        // track changes on the update manager
+        Application.UpdateManager.OnUpdateStatusChanged += (m, s) => this.updateManagerUnavailableLabel.Visible =
+          !(this.automaticUpdatesRadioButton.Enabled =
+            this.checkUpdatesRadioButton.Enabled =
+              this.disableUpdatesRadioButton.Enabled =
+                s == UpdateStatus.Idle);
+
+        Application.UpdateManager.OnAvailabilityChanged += (m, a) => this.updateManagerUnavailableLabel.Visible =
+          !(this.automaticUpdatesRadioButton.Enabled =
+            this.checkUpdatesRadioButton.Enabled =
+              this.disableUpdatesRadioButton.Enabled =
+                a == UpdaterAvailability.FullyAvailable &&
+                m.Status == UpdateStatus.Idle);
+      }
+    }
+
+    #endregion
+
     #region Common window logic
 
+    /// <inheritdoc />
     /// <summary>
     ///   Processes font changes and updates some controls accordingly
     /// </summary>
@@ -121,15 +242,17 @@ namespace Captain.Application {
       base.OnFontChanged(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the window size has changed
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnSizeChanged(EventArgs eventArgs) {
-      this.toolBar.UpdateItemSize();
+      this.toolBar?.UpdateItemSize();
       base.OnSizeChanged(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the window is first shown
     /// </summary>
@@ -139,6 +262,7 @@ namespace Captain.Application {
       base.OnShown(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Triggered when the window is closed
     /// </summary>
@@ -200,124 +324,6 @@ namespace Captain.Application {
 
     #endregion
 
-    #region "General" page logic
-
-    /// <summary>
-    ///   Initializes the "General" page
-    /// </summary>
-    /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
-    /// <param name="eventArgs"></param>
-    private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) {
-        // no need to initalize the page
-        return;
-      }
-
-      this.generalPage.Tag = new object();
-
-      // auto-start options
-      var autoStartManager = new AutoStartManager();
-
-      this.autoStartCheckBox.Enabled = autoStartManager.IsFeatureAvailable;
-      this.autoStartCheckBox.Checked = autoStartManager.GetAutoStartPolicy() == AutoStartPolicy.Approved;
-      this.autoStartCheckBox.CheckStateChanged += (_, __) =>
-        this.autoStartCheckBox.Checked = autoStartManager.ToggleAutoStart(this.autoStartCheckBox.Checked
-                                                                            ? AutoStartPolicy.Approved
-                                                                            : AutoStartPolicy.Disapproved,
-                                                                          (ModifierKeys & Keys.Shift) != 0)
-                                                         .Equals(AutoStartPolicy.Approved);
-
-      // tray icon display options
-      // TODO: implement this feature - also, make sure the check box is disabled when no hot keys for accessing the
-      //       application UI have been set
-      this.displayTrayIconCheckBox.Enabled = false;
-      this.displayTrayIconCheckBox.Checked = true;
-
-      // notification options
-      if (Application.Options.NotificationOptions == NotificationDisplayOptions.Never) {
-        this.showNotificationsCheckBox.Checked = this.notificationOptionsComboBox.Enabled = false;
-        this.notificationOptionsComboBox.Text = "";
-        this.notificationOptionsComboBox.SelectedIndex = -1;
-      } else {
-        this.showNotificationsCheckBox.Checked = true;
-        this.notificationOptionsComboBox.SelectedIndex = (int)Application.Options.NotificationOptions - 1;
-
-        if (this.notificationOptionsComboBox.SelectedIndex == -1) {
-          this.notificationOptionsComboBox.SelectedIndex += (int)NotificationDisplayOptions.Always;
-        }
-      }
-
-      this.notificationOptionsComboBox.SelectionChangeCommitted += (_, __) =>
-        Application.Options.NotificationOptions = (NotificationDisplayOptions)(this.notificationOptionsComboBox.SelectedIndex + 1);
-
-      // only show legacy notifications check box if this platform supports any other kind of notification provider
-      this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
-      this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
-      this.legacyNotificationsCheckBox.CheckedChanged += (_, __) => {
-        Application.Options.UseLegacyNotificationProvider = this.legacyNotificationsCheckBox.Checked;
-
-        if (Application.Options.UseLegacyNotificationProvider && ToastProvider is ToastNotificationProvider) {
-          Log.WriteLine(LogLevel.Informational, "downgrading toast provider to legacy notification provider");
-          ToastProvider = new LegacyNotificationProvider();
-        } else {
-          Log.WriteLine(LogLevel.Informational, "upgrading legacy notification provider to toast provider");
-          ToastProvider = new ToastNotificationProvider();
-        }
-      };
-
-      // application update options
-      if (Application.UpdateManager.Availability == UpdaterAvailability.NotSupported) {
-        // unsupported (portable mode?)
-        this.performInstallNoticeLabel.Text = String.Format(this.performInstallNoticeLabel.Text, VersionInfo.ProductName);
-        this.upgradeToFullInstallPanel.Visible = true;
-      } else {
-        // updates are supported
-        this.updateOptionsPanel.Visible = true;
-
-        this.automaticUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Automatic;
-        this.checkUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.CheckOnly;
-        this.disableUpdatesRadioButton.Checked = Application.Options.UpdatePolicy == UpdatePolicy.Disabled;
-
-        this.automaticUpdatesRadioButton.CheckedChanged += (_, __) => {
-          if (this.automaticUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Automatic; }
-        };
-
-        this.checkUpdatesRadioButton.CheckedChanged += (_, __) => {
-          if (this.checkUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.CheckOnly; }
-        };
-
-        this.disableUpdatesRadioButton.CheckedChanged += (_, __) => {
-          if (this.disableUpdatesRadioButton.Checked) { Application.Options.UpdatePolicy = UpdatePolicy.Disabled; }
-        };
-
-        // make sure the feature is available
-        this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
-                                                         this.checkUpdatesRadioButton.Enabled =
-                                                           this.disableUpdatesRadioButton.Enabled =
-                                                             Application.UpdateManager.Availability == UpdaterAvailability.FullyAvailable &&
-                                                             Application.UpdateManager.Status == UpdateStatus.Idle);
-
-        // track changes on the update manager
-        Application.UpdateManager.OnUpdateStatusChanged += (m, s) => {
-          this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
-                                                           this.checkUpdatesRadioButton.Enabled =
-                                                             this.disableUpdatesRadioButton.Enabled =
-                                                               s == UpdateStatus.Idle);
-        };
-
-        Application.UpdateManager.OnAvailabilityChanged += (m, a) => {
-          this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
-                                                           this.checkUpdatesRadioButton.Enabled =
-                                                             this.disableUpdatesRadioButton.Enabled =
-                                                               a == UpdaterAvailability.FullyAvailable &&
-                                                               m.Status == UpdateStatus.Idle);
-        };
-      }
-
-    }
-
-    #endregion
-
     #region "Tasks" page logic
 
     /// <summary>
@@ -354,6 +360,14 @@ namespace Captain.Application {
 
       this.emptyTaskListLabel.Visible = this.taskContainerPanel.Controls.Count == 0;
     }
+
+    /// <summary>
+    ///   Triggered when the "Create task" button is clicked
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnCreateTaskButtonClicked(object sender, EventArgs eventArgs) =>
+      new TaskPropertiesDialog().ShowDialog(this);
 
     #endregion
   }

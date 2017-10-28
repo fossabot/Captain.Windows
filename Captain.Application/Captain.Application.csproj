@@ -28,7 +28,7 @@
     <ProjectGuid>{F2886E2B-0664-4B90-8F96-65598E485E06}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Captain.Application</RootNamespace>
-    <AssemblyName>Captain.Application</AssemblyName>
+    <AssemblyName>Captain</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -44,14 +44,14 @@
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
   <PropertyGroup>
-    <GenerateManifests>false</GenerateManifests>
+    <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WIN32</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -61,7 +61,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>TRACE;WIN32</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -73,7 +73,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
+    <OutputPath>..\x64\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;WIN64</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -83,7 +83,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
+    <OutputPath>..\x64\Release\</OutputPath>
     <DefineConstants>TRACE;WIN64</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -92,6 +92,16 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -112,8 +122,10 @@
     <None Include="UI\CommonControls\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include=".gitattributes" />
-    <Content Include=".gitignore" />
+    <None Include="Resources\Logo.png" />
+    <None Include="Resources\EncoderOptions.png" />
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
     <None Include="Resources\TaskAdd.png" />
     <None Include="Resources\TaskTypeScreenshot.png" />
     <None Include="Resources\TaskTypeRecording.png" />
@@ -124,7 +136,6 @@
     <None Include="Resources\TaskDelete.png" />
     <None Include="Resources\AppxIcon.ico" />
     <None Include="Resources\UpdateIcon.ico" />
-    <None Include="Resources\Logo.png" />
     <Resource Include="Content\Grabber\Icons\Cancel.png" />
     <Resource Include="Content\Grabber\Icons\Pin.png" />
     <Resource Include="Content\Grabber\Icons\Unpin.png" />
@@ -134,24 +145,38 @@
     <Content Include="Content\Grabber\Icons\MutedMicrophone.png" />
     <Content Include="Content\Grabber\Icons\MutedSpeaker.png" />
     <Content Include="Content\Grabber\Icons\Pause.png" />
-    <Content Include="Content\Grabber\Icons\Record.png" />
+    <Resource Include="Content\Grabber\Icons\Record.png" />
     <Content Include="Content\Grabber\Icons\Resume.png" />
-    <Content Include="Content\Grabber\Icons\Stop.png" />
+    <Resource Include="Content\Grabber\Icons\Stop.png" />
     <Content Include="EasyHook32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EasyHook32Svc.exe" />
+    <None Include="EasyHook32Svc.exe" />
     <Content Include="EasyHook64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="EasyHook64Svc.exe" />
-    <Content Include="EasyLoad32.dll" />
-    <Content Include="EasyLoad64.dll" />
+    <None Include="EasyHook64Svc.exe" />
+    <None Include="EasyLoad32.dll" />
+    <None Include="EasyLoad64.dll" />
     <None Include="Resources\AeroIndicatorStrip.png" />
     <Content Include="Resources\AppIcon.ico" />
     <None Include="Resources\FluentIndicatorStrip.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Source\Capture\Encoders\H264CaptureEncoder.cs" />
+    <Compile Include="Source\Capture\VideoProviders\GdiVideoProvider.cs" />
+    <Compile Include="Source\Capture\VideoProviders\VideoProviderFactory.cs" />
+    <Compile Include="Source\Capture\VideoProviders\DxgiVideoProvider.cs" />
+    <Compile Include="Source\Capture\Encoders\JpegCaptureEncoder.cs" />
+    <Compile Include="Source\Capture\Encoders\PngCaptureEncoder.cs" />
+    <Compile Include="Source\OutputStreams\ClipboardOutputStream.cs" />
+    <Compile Include="Source\OutputStreams\FileOutputStream.cs" />
+    <Compile Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.Designer.cs">
+      <DependentUpon>OutputStreamPropertiesDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -161,15 +186,11 @@
     <Compile Include="Source\Actions\Action.cs" />
     <Compile Include="Source\Actions\ActionManager.cs" />
     <Compile Include="Source\Actions\ActionType.cs" />
-    <Compile Include="Source\BitHelper.cs" />
-    <Compile Include="Source\Capture\CaptureHelper.cs" />
+    <Compile Include="Source\Helpers\BitHelper.cs" />
     <Compile Include="Source\Capture\CaptureIntent.cs" />
-    <Compile Include="Source\Capture\Sources\CaptureSource.cs" />
-    <Compile Include="Source\Capture\Sources\DxgiSource.cs" />
-    <Compile Include="Source\Capture\Sources\GdiSource.cs" />
     <Compile Include="Source\Capture\UnsuccessfulCaptureResult.cs" />
-    <Compile Include="Source\DisplayHelper.cs" />
-    <Compile Include="Source\InjectionHelper.cs" />
+    <Compile Include="Source\Helpers\DisplayHelper.cs" />
+    <Compile Include="Source\Helpers\InjectionHelper.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
     <Compile Include="Source\Native\DwmApi\DWMCOLORIZATIONPARAMS.cs" />
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
@@ -193,12 +214,11 @@
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
-    <Compile Include="Source\FsManager.cs" />
+    <Compile Include="Source\Helpers\FsManager.cs" />
     <Compile Include="Source\Options\AutoStart\AutoStartManager.cs" />
     <Compile Include="Source\Options\AutoStart\AutoStartPolicy.cs" />
     <Compile Include="Source\Options\Options.cs" />
     <Compile Include="Source\Options\SerializableDictionary\SerializableDictionary.cs" />
-    <Compile Include="Source\Options\WindowPositionMap.cs" />
     <Compile Include="Source\Tasks\Task.cs" />
     <Compile Include="Source\Tasks\TaskParameters.cs" />
     <Compile Include="Source\Tasks\TaskRegionType.cs" />
@@ -206,14 +226,20 @@
     <Compile Include="Source\Update\UpdateManager.cs" />
     <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
-    <Compile Include="Source\WindowHelper.cs" />
-    <Compile Include="UI\Options\TaskControl.cs">
+    <Compile Include="Source\Helpers\WindowHelper.cs" />
+    <Compile Include="UI\Options\Tasks\TaskPropertiesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Options\Tasks\TaskPropertiesDialog.Designer.cs">
+      <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Options\Tasks\TaskControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\Options\TaskControl.Designer.cs">
+    <Compile Include="UI\Options\Tasks\TaskControl.Designer.cs">
       <DependentUpon>TaskControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ColorExtensions.cs" />
+    <Compile Include="UI\Helpers\ColorExtensions.cs" />
     <Compile Include="UI\CommonControls\EllipsisProgressLabel.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -223,15 +249,15 @@
     <Compile Include="UI\CommonControls\ListViewEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreamSelectionDialog.cs">
+    <Compile Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreamSelectionDialog.Designer.cs">
+    <Compile Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.Designer.cs">
       <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\TrayIcon\Renderers\AeroIndicatorRenderer.cs" />
-    <Compile Include="UI\UpdaterUiHelper.cs" />
-    <Compile Include="UI\Window.cs">
+    <Compile Include="UI\Helpers\UpdaterUiHelper.cs" />
+    <Compile Include="UI\CommonControls\Window.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\Options\OptionsWindow.cs">
@@ -243,7 +269,7 @@
     <Compile Include="UI\Options\ToolBarControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\StyleHelper.cs" />
+    <Compile Include="UI\Helpers\StyleHelper.cs" />
     <Compile Include="UI\TrayIcon\TrayIconHintCircle.xaml.cs">
       <DependentUpon>TrayIconHintCircle.xaml</DependentUpon>
     </Compile>
@@ -284,11 +310,17 @@
     <EmbeddedResource Include="UI\Options\OptionsWindow.resx">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\OutputStreamSelectionDialog.resx">
+    <EmbeddedResource Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.resx">
+      <DependentUpon>OutputStreamPropertiesDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.resx">
       <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\TaskControl.resx">
+    <EmbeddedResource Include="UI\Options\Tasks\TaskControl.resx">
       <DependentUpon>TaskControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Options\Tasks\TaskPropertiesDialog.resx">
+      <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -358,8 +390,17 @@
     <Reference Include="SharpDX.Direct3D11, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.Direct3D11.4.0.1\lib\net45\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Direct3D9, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Direct3D9.4.0.1\lib\net45\SharpDX.Direct3D9.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.DXGI, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.DXGI.4.0.1\lib\net45\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Mathematics, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Mathematics.4.0.1\lib\net45\SharpDX.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.MediaFoundation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.MediaFoundation.4.0.1\lib\net45\SharpDX.MediaFoundation.dll</HintPath>
     </Reference>
     <Reference Include="Splat, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Splat.2.0.0\lib\Net45\Splat.dll</HintPath>
@@ -388,10 +429,6 @@
       <Project>{5cbd5d35-99d1-4ae3-919d-7b9099ed6dc3}</Project>
       <Name>Captain.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Captain.Plugins.BuiltIn\Captain.Plugins.BuiltIn.csproj">
-      <Project>{9b667c69-0f53-4663-a74e-73c384caff75}</Project>
-      <Name>Captain.Plugins.BuiltIn</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
@@ -400,14 +437,52 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <PublishFile Include="Resources\AppIcon.ico">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>Exclude</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>File</FileType>
+    </PublishFile>
+    <PublishFile Include="Windows.Data">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>Exclude</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>Assembly</FileType>
+    </PublishFile>
+    <PublishFile Include="Windows.Foundation">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>Exclude</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>Assembly</FileType>
+    </PublishFile>
+    <PublishFile Include="Windows.UI">
+      <Visible>False</Visible>
+      <Group>
+      </Group>
+      <TargetPath>
+      </TargetPath>
+      <PublishState>Exclude</PublishState>
+      <IncludeHash>True</IncludeHash>
+      <FileType>Assembly</FileType>
+    </PublishFile>
+  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2wowbr /p:OutDir=$(ProjectDir)$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2helper /p:OutDir=$(ProjectDir)$(OutDir);Platform=$(Platform);Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)$(OutDir);Platform=x86;Configuration=$(ConfigurationName) /nologo
-      "$(MSBuildBinPath)\msbuild.exe" $(SolutionPath) /t:cn2rthelper /p:OutDir=$(ProjectDir)$(OutDir);Platform=x64;Configuration=$(ConfigurationName) /nologo
-</PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

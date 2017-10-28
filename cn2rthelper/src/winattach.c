@@ -9,8 +9,8 @@
 static WINATTACHINFO g_attachinfo = { 0 };  /// window attachment information
 static WNDPROC g_lpfnOrgWndProc = NULL;     /// original window procedure
 
-                                            /// replacement window procedure
-static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam);
+static LRESULT WINAPI WndProc(_In_ const HWND hwnd, _In_ const UINT uiMsg, _In_ const WPARAM wParam,
+  _In_ const LPARAM lParam);
 
 /// ChangeWindowMessageFilterEx()
 typedef BOOL(WINAPI *CWMFEPROC)(HWND, UINT, DWORD, PCHANGEFILTERSTRUCT);
@@ -23,7 +23,7 @@ static void DetachWindow(HWND hwnd) {
 #if 0
   // restore original window procedure
   // XXX: if we restore the original procedure we won't be able to handle WM_COPYDATA messages, meaning the library
-  //      must be injected every time. So the drawback of not leaking memory each time the library is injected is to
+  //      must be injected every time. So the drawback of not leaking memory each time the library is injected is to   
   //      keep the overhead of handling the window procedure manually
   SetWindowLongPtr(LongToPtr(g_attachinfo.uiTargetHandle), GWLP_WNDPROC, (LONG_PTR)g_lpfnOrgWndProc);
   g_lpfnOrgWndProc = NULL;
@@ -44,7 +44,7 @@ static void DetachWindow(HWND hwnd) {
 ///   Attaches a window
 /// </summary>
 /// <param name="pInfo">Window attachment information, usually passed by the injector process</param>
-void RtAttachWindow(PWINATTACHINFO pInfo) {
+void RtAttachWindow(_In_ const PWINATTACHINFO pInfo) {
   memcpy(&g_attachinfo, pInfo, sizeof(WINATTACHINFO));
 
   // replace window procedure if necessary
@@ -80,7 +80,8 @@ void RtAttachWindow(PWINATTACHINFO pInfo) {
 /// <param name="wParam">Message-dependant value</param>
 /// <param name="lParam">Message-dependant value</param>
 /// <returns>Calls the original window procedure and returns its result</returns>
-static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lParam) {
+static LRESULT WINAPI WndProc(_In_ const HWND hwnd, _In_ const UINT uiMsg, _In_ const WPARAM wParam,
+  _In_ const LPARAM lParam) {
   if (g_attachinfo.uiTargetHandle == PtrToLong(hwnd)) {
     // this window is attached
     switch (uiMsg) {
@@ -89,12 +90,12 @@ static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lPara
       return 0;
 
     case WM_WINDOWPOSCHANGED: {  // window bounds are changing
-      PWINDOWPOS pos = (PWINDOWPOS)lParam;
+      const PWINDOWPOS pPos = (PWINDOWPOS)lParam;
 
       // make sure width and height are not nil
-      if (pos->cx && pos->cy) {
+      if (pPos->cx && pPos->cy) {
         // move/resize grabber UI, then let it resize us
-        SetWindowPos(LongToPtr(g_attachinfo.uiGrabberHandle), NULL, pos->x, pos->y, pos->cx, pos->cy,
+        SetWindowPos(LongToPtr(g_attachinfo.uiGrabberHandle), NULL, pPos->x, pPos->y, pPos->cx, pPos->cy,
           SWP_NOACTIVATE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS | SWP_NOREDRAW);
       }
 
@@ -104,7 +105,7 @@ static LRESULT WINAPI WndProc(HWND hwnd, UINT uiMsg, WPARAM wParam, LPARAM lPara
     }
   }
   else if (uiMsg == WM_COPYDATA) {
-    PCOPYDATASTRUCT pCopydata = (PCOPYDATASTRUCT)lParam;
+    const PCOPYDATASTRUCT pCopydata = (PCOPYDATASTRUCT)lParam;
 
     if (pCopydata->dwData == WM_COPYDATA_CAPNSIG && pCopydata->cbData == sizeof(WINATTACHINFO)) {
       RtAttachWindow((PWINATTACHINFO)pCopydata->lpData);

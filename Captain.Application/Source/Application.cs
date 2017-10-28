@@ -1,7 +1,7 @@
-﻿using Captain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
+using Captain.Application.Native;
+using Captain.Common;
 using Process = System.Diagnostics.Process;
 
 namespace Captain.Application {
@@ -16,11 +18,6 @@ namespace Captain.Application {
   ///   Defines basic logic behind the application
   /// </summary>
   internal static class Application {
-    /// <summary>
-    ///   Single instance mutex name
-    /// </summary>
-    private static string SingleInstanceMutexName => $"{VersionInfo.ProductName} Single Instance Mutex ({Guid})";
-
     /// <summary>
     ///   Windows Application instance
     /// </summary>
@@ -32,6 +29,16 @@ namespace Captain.Application {
     private static Stream loggerStream;
 
     /// <summary>
+    ///   Whether or not toast notifications are supported on this platform
+    /// </summary>
+    private static bool areToastNotificationsSupported;
+
+    /// <summary>
+    ///   Single instance mutex name
+    /// </summary>
+    private static string SingleInstanceMutexName => $"{VersionInfo.ProductName} Single Instance Mutex ({Guid})";
+
+    /// <summary>
     ///   Single instance mutex
     /// </summary>
     private static Mutex SingleInstanceMutex { get; set; }
@@ -39,8 +46,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Application's assembly GUID
     /// </summary>
-    private static string Guid => (Assembly.GetExecutingAssembly().GetCustomAttribute(typeof(GuidAttribute)) as
-                                     GuidAttribute)?.Value;
+    internal static string Guid => (Assembly.GetExecutingAssembly().GetCustomAttribute(typeof(GuidAttribute)) as
+      GuidAttribute)?.Value;
 
     /// <summary>
     ///   Application-wide logger
@@ -78,14 +85,20 @@ namespace Captain.Application {
     internal static IToastProvider ToastProvider { get; set; }
 
     /// <summary>
-    ///   Application <see cref="Options"/> instance
+    ///   Application <see cref="Options" /> instance
     /// </summary>
     internal static Options Options { get; private set; }
 
     /// <summary>
     ///   Whether or not toast notifications are supported on this platform
     /// </summary>
-    internal static bool AreToastNotificationsSupported { get; private set; }
+    internal static bool AreToastNotificationsSupported {
+      get => areToastNotificationsSupported;
+      set {
+        areToastNotificationsSupported = value;
+        OnToastProviderAvailabilityChanged?.Invoke(ToastProvider, value);
+      }
+    }
 
     /// <summary>
     ///   Application update manager
@@ -98,10 +111,23 @@ namespace Captain.Application {
     internal static bool FirstTime { get; private set; }
 
     /// <summary>
+    ///   Event handler delegate, triggered when toast notifications provider availability changes
+    ///   (i.e. the user disables notifications for the application or these are disallowed by group policies, etc.)
+    /// </summary>
+    /// <param name="newProvider">New toast provider instance</param>
+    /// <param name="toastsSupported">Whether Windows >= 8 adaptive toast notifications are supported</param>
+    internal delegate void ToastProviderAvailabilityChangedHandler(IToastProvider newProvider, bool toastsSupported);
+
+    /// <summary>
+    ///   Triggered when the notification provider availability changes
+    /// </summary>
+    internal static event ToastProviderAvailabilityChangedHandler OnToastProviderAvailabilityChanged;
+
+    /// <summary>
     ///   Terminates the program gracefully
     /// </summary>
     /// <param name="exitCode">Optional exit code</param>
-    /// <param name="exit">Whether to exit or just perform clean up tasks</param>
+    /// <param name="exit">Whether to actually exit or just perform cleanup tasks</param>
     internal static void Exit(int exitCode = 0, bool exit = true) {
       try {
         Log.WriteLine(LogLevel.Warning, "exiting with code {0}", exitCode);
@@ -114,7 +140,7 @@ namespace Captain.Application {
         loggerStream.Dispose();
         Log.Streams.Clear();
       } finally {
-        application.Shutdown(exitCode);
+        if (exit) { application.Shutdown(exitCode); }
       }
     }
 
@@ -142,7 +168,8 @@ namespace Captain.Application {
 
       if (hard) {
         Log.WriteLine(LogLevel.Warning, "performing hard reset!");
-        nodes.AddRange(new[] { FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath }.Select(FsManager.GetSafePath));
+        nodes.AddRange(new[] { FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath }
+                         .Select(FsManager.GetSafePath));
       }
 
       Log.WriteLine(LogLevel.Verbose, $"deleting nodes: {String.Join(";", nodes)}");
@@ -154,9 +181,9 @@ namespace Captain.Application {
     ///   Program entry point
     /// </summary>
     /// <param name="args">Command-line arguments passed to the program</param>
-    [STAThread]
+    [STAThread, SuppressMessage("ReSharper", "PatternAlwaysMatches")]
     private static void Main(string[] args) {
-      if (Array.IndexOf(args, "--rmnodes") is int i && i != -1) {
+      if (Array.IndexOf(args, "--rmnodes") is int i && (i != -1)) {
         for (int j = i + 1; j < args.Length; j++) {
           try {
             FileAttributes attributes = File.GetAttributes(args[j]);
@@ -181,7 +208,10 @@ namespace Captain.Application {
 
         Process.Start(Assembly.GetExecutingAssembly().Location);
         Environment.Exit(0);
-      } else if (Array.IndexOf(args, "--kill") is int k && k != -1 && k + 1 < args.Length && UInt16.TryParse(args[k + 1], out ushort pid)) {
+      } else if (Array.IndexOf(args, "--kill") is int k &&
+                 (k != -1) &&
+                 ((1 + k) < args.Length) &&
+                 UInt16.TryParse(args[1 + k], out ushort pid)) {
         try {
           Process.GetProcessById(pid).Kill();
         } catch {
@@ -230,18 +260,30 @@ namespace Captain.Application {
         FirstTime = true;
       }
 
-      try {
-        ToastProvider = new ToastNotificationProvider();
-        AreToastNotificationsSupported = true;
-        Log.WriteLine(LogLevel.Verbose, "toast notifications are supported");
-      } catch {
-        Log.WriteLine(LogLevel.Verbose, "toast notifications are not supported by this platform");
-      } finally {
-        if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
-          ToastProvider = new LegacyNotificationProvider();
-        }
+      // XXX: create application shortcut
+      //      Since Windows 10 1709 (Fall Update) an application **requires** an AppID to be registered within a
+      //      start menu entry in order to use toast notifications
+      int hr = Shell.InstallAppShortcut(VersionInfo.ProductName, Assembly.GetExecutingAssembly().Location, Guid);
+      if (hr != 0) {
+        Log.WriteLine(LogLevel.Debug, $"InstallAppShortcut() did not succeed (0x{hr:x8}) - toasts won't be available");
+        AreToastNotificationsSupported = false;
+        ToastProvider = new LegacyNotificationProvider();
+      } else {
+        // we may display toast notifications on supported platforms
+        try {
+          ToastProvider = new ToastNotificationProvider();
+          AreToastNotificationsSupported = true;
+          Log.WriteLine(LogLevel.Verbose, "toast notifications are supported");
+        } catch {
+          // it's likely the type ToastNotificationManager could not be found
+          Log.WriteLine(LogLevel.Verbose, "toast notifications are not supported by this platform");
+        } finally {
+          if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
+            ToastProvider = new LegacyNotificationProvider();
+          }
 
-        Log.WriteLine(LogLevel.Verbose, $"initialized {ToastProvider.GetType().Name}");
+          Log.WriteLine(LogLevel.Verbose, $"initialized {ToastProvider.GetType().Name}");
+        }
       }
 
       TrayIcon = new TrayIcon();
@@ -279,8 +321,8 @@ namespace Captain.Application {
     private static string GetVersionString() {
       string version =
         $"{VersionInfo.ProductMajorPart}.{VersionInfo.ProductMinorPart}.{VersionInfo.ProductPrivatePart}";
-      var assembly = Assembly.GetExecutingAssembly();
-      var metadataAttributes = assembly
+      Assembly assembly = Assembly.GetExecutingAssembly();
+      List<AssemblyMetadataAttribute> metadataAttributes = assembly
         .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
         .Cast<AssemblyMetadataAttribute>()
         .ToList();
@@ -293,12 +335,11 @@ namespace Captain.Application {
       }
 
       return (version +
-             '+' +
-             String.Join(".",
-                         metadataAttributes
-                           .Where(a => a.Value.Length == 0)
-                           .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))))
-                   .TrimEnd('.', '+');
+              '+' +
+              String.Join(".",
+                          metadataAttributes.Where(a => a.Value.Length == 0)
+                                            .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))))
+        .TrimEnd('.', '+');
     }
 
     /// <summary>
@@ -307,15 +348,13 @@ namespace Captain.Application {
     /// <param name="key">Metadata key</param>
     /// <returns>The requested value, or <c>null</c> if none was present.</returns>
     internal static string GetMetadataValue(string key) {
-      var assembly = Assembly.GetExecutingAssembly();
+      Assembly assembly = Assembly.GetExecutingAssembly();
       AssemblyMetadataAttribute[] metadataAttributes = assembly
         .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
         .Cast<AssemblyMetadataAttribute>()
         .Where(a => a.Key == key)
         .ToArray();
-
-      if (!metadataAttributes.Any()) { return null; }
-      return metadataAttributes.First().Value;
+      return !metadataAttributes.Any() ? null : metadataAttributes.First().Value;
     }
   }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Xml.Serialization;
 using Captain.Common;
 using static Captain.Application.Application;
 
+// ReSharper disable MemberCanBeInternal
 namespace Captain.Application {
   /// <summary>
   ///   Class representing application options.
@@ -15,7 +17,7 @@ namespace Captain.Application {
   ///   version.
   /// </remarks>
   [Serializable]
-  public class Options {
+  public sealed class Options {
     /// <summary>
     ///   Default options file name
     /// </summary>
@@ -24,7 +26,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Saved position for windows
     /// </summary>
-    public WindowPositionMap WindowPositions { get; set; } = new WindowPositionMap();
+    public SerializableDictionary<string, Point> WindowPositions { get; set; } = new SerializableDictionary<string, Point>();
 
     /// <summary>
     ///   Current Options dialog tab index
@@ -51,6 +53,9 @@ namespace Captain.Application {
     /// </summary>
     public string LastVersion { get; set; } = String.Empty;
 
+    /// <summary>
+    ///   Contains the user tasks
+    /// </summary>
     public List<Task> Tasks { get; set; } = new List<Task>();
 
     /// <summary>

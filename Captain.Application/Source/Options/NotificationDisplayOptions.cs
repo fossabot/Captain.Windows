@@ -26,6 +26,11 @@
     /// <summary>
     ///   Display all notifications
     /// </summary>
-    Always = 4
+    Always = 4,
+
+    /// <summary>
+    ///   Inherit application defaults (only for Tasks)
+    /// </summary>
+    Inherit = 5
   }
 }

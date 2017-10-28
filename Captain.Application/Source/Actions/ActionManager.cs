@@ -19,7 +19,8 @@ namespace Captain.Application {
 
       // in the other hand, it is guaranteed that at least on capture handler exists
       // action.AddHandler(Application.PluginManager.CaptureHandlers.First());
-      Application.PluginManager.OutputStreams.ForEach(action.AddOutputStream);
+     // Application.PluginManager.OutputStreams.ForEach(action.AddOutputStream);
+      action.AddOutputStream(new PluginObject(typeof(FileOutputStream)));
       return action;
     }
   }

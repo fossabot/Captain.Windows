@@ -12,10 +12,10 @@ namespace Captain.Application {
   /// <typeparam name="TKey">Dictionary key type</typeparam>
   /// <typeparam name="TValue">Dictionary value type</typeparam>
   [Serializable]
-  public abstract class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable {
-    protected abstract string ItemName { get; }
-    protected abstract string KeyName { get; }
-    protected abstract string ValueName { get; }
+  public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable {
+    private const string ItemName = "Item";
+    private const string KeyName = "Key";
+    private const string ValueName = "Value";
 
     #region IXmlSerializable Members
     public XmlSchema GetSchema() => null;

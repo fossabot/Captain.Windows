@@ -5,4 +5,4 @@
 ///   Attaches a window
 /// </summary>
 /// <param name="pInfo">Window attachment information, usually passed by the injector process</param>
-void RtAttachWindow(PWINATTACHINFO pInfo);
+void RtAttachWindow(_In_ const PWINATTACHINFO pInfo);

@@ -584,18 +584,44 @@ namespace Captain.Application.Native {
     /// </summary>
     /// <param name="hWnd">The window you want to get information about.</param>
     /// <returns>
-    ///   The DPI for the window which depends on the DPI_AWARENESS of the window. See the Remarks for more
-    ///   information. An invalid hwnd value will result in a return value of 0.
+    ///   The DPI for the window which depends on the DPI_AWARENESS of the window.
     /// </returns>
     [DllImport(nameof(User32))]
-    internal static extern int GetDpiForWindow(IntPtr hWnd);
+    internal static extern int GetDpiForWindow([In] IntPtr hWnd);
 
     /// <summary>
-    ///   Returns the system DPI.
+    ///   Returns the dots per inch (dpi) value for the system.
     /// </summary>
-    /// <returns>The return value will be dependent based upon the calling context.</returns>
+    /// <returns>The system DPI value.</returns>
     [DllImport(nameof(User32))]
     internal static extern int GetDpiForSystem();
+
+    /// <summary>
+    ///   Values for the <c>nIndex</c> parameter in <see cref="GetSystemMetrics"/>
+    /// </summary>
+    internal enum SystemMetrics {
+      /// <summary>
+      ///   The recommended height of a small icon, in pixels.
+      /// </summary>
+      SM_CYSMICON = 50
+    }
+
+    /// <summary>
+    ///   Retrieves te specified system metric or system configuration setting.
+    /// </summary>
+    /// <param name="nIndex">The system metric or configuration setting to be retrieved.</param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern int GetSystemMetrics([In] int nIndex);
+
+    /// <summary>
+    ///   Retrieves the specified system metric or system configuration setting taking into account a provided DPI.
+    /// </summary>
+    /// <param name="nIndex">The system metric or configuration setting to be retrieved.</param>
+    /// <param name="dpi">The DPI to use for scaling the metric.</param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern int GetSystemMetricsForDpi([In] int nIndex, [In] uint dpi);
     #endregion
 
     #region Cursors

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Color = System.Windows.Media.Color;
 using Captain.Application.Native;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using Brushes = System.Windows.Media.Brushes;
+using Color = System.Windows.Media.Color;
 using Orientation = System.Windows.Controls.Orientation;
 
 namespace Captain.Application {

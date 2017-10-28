@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Drawing;
-using Captain.Common;
-using static Captain.Application.Application;
+using System.Windows.Forms;
+using Captain.Application.Native;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Renders indicator icons on Windows 10 and upwards
   /// </summary>
-  internal class FluentIndicatorRenderer : IIndicatorRenderer {
+  internal sealed class FluentIndicatorRenderer : IIndicatorRenderer {
     /// <summary>
     ///   Holds tray icon indicators
     /// </summary>
@@ -21,23 +22,31 @@ namespace Captain.Application {
     /// <summary>
     ///   Class constructor
     /// </summary>
-    internal FluentIndicatorRenderer() {
+    /// <param name="handle">Handle of the notify icon window</param>
+    internal FluentIndicatorRenderer(IntPtr handle) {
       // icon defaults
       int yOffset = 0;
-      int iconSize = 32;
+      int iconSize = SystemInformation.SmallIconSize.Height;
+
+      try {
+        iconSize = User32.GetSystemMetricsForDpi((int) User32.SystemMetrics.SM_CYSMICON,
+                                                     (uint) User32.GetDpiForWindow(handle));
+      } catch { /* not supported on this platform */ }
 
       using (Bitmap indicatorStrip = Resources.FluentIndicatorStrip) {
         int iconCount = indicatorStrip.Width / iconSize;
 
         // crop the icon strip for the current DPI setting
-        if (DisplayHelper.GetScreenDpi() > 96) { /* 96 = 100% scaling */
-          // use 24x24
-          iconSize = 24;
-          yOffset += 32; // skip 32x32 row
+        if (iconSize < 32) {
+          if (iconSize > 16) {
+            iconSize = 24; // use 24x24 variant
+            yOffset += 32; // skip 32x32 row
+          } else {
+            iconSize = 16; // use 16x16 variant
+            yOffset += 32 + 24; // skip 32x32 and 24x24 rows
+          }
         } else {
-          // use 16x16
-          iconSize = 16;
-          yOffset += 32 + 24; // skip 32x32 and 24x24 rows
+          iconSize = 32;
         }
 
         var iconBounds = new Rectangle(0, 0, iconSize, iconSize);
@@ -56,17 +65,17 @@ namespace Captain.Application {
 
             // create and store the icon from the current bitmap
             this.indicators[i] = Icon.FromHandle(currentIcon.GetHicon());
-            Log.WriteLine(LogLevel.Debug, $"created indicator (index {i}, {iconSize}x{iconSize})");
           }
         }
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Renders a single tray icon frame
     /// </summary>
     /// <param name="status">Icon status</param>
-    /// <returns>An <see cref="Icon"/> instance</returns>
+    /// <returns>An <see cref="T:System.Drawing.Icon" /> instance</returns>
     public Icon RenderFrame(IndicatorStatus status) {
       switch (status) {
         case IndicatorStatus.Idle: // frame 0 - return application icon

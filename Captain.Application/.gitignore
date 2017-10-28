@@ -263,3 +263,4 @@ __pycache__/
 # No. We don't do binaries on repository
 *.exe
 *.dll
+*.pfx

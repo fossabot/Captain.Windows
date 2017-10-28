@@ -6,12 +6,13 @@ using System.Drawing.Imaging;
 using System.Windows.Forms;
 using Captain.Application.Native;
 
+// ReSharper disable MemberCanBePrivate.Global
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
   ///   Represents a button control with no background
   /// </summary>
-  internal class LinkButton : Control {
+  internal sealed class LinkButton : Control {
     /// <summary>
     ///   Indicates whether the mouse is over the control or not
     /// </summary>
@@ -32,7 +33,7 @@ namespace Captain.Application {
     ///   Specifies an image to be displayed alongside this control
     /// </summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-    public Bitmap Image { get; set; } = null;
+    public Bitmap Image { get; set; }
 
     /// <inheritdoc />
     /// <summary>Processes Windows messages.</summary>
@@ -63,6 +64,7 @@ namespace Captain.Application {
       base.OnHandleCreated(eventArgs);
     }
 
+    /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.MouseEnter" /> event.</summary>
     /// <param name="e">An <see cref="T:System.EventArgs" /> that contains the event data. </param>
     protected override void OnMouseEnter(EventArgs e) {
@@ -71,6 +73,7 @@ namespace Captain.Application {
       base.OnMouseEnter(e);
     }
 
+    /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.MouseLeave" /> event.</summary>
     /// <param name="e">An <see cref="T:System.EventArgs" /> that contains the event data. </param>
     protected override void OnMouseLeave(EventArgs e) {
@@ -79,6 +82,7 @@ namespace Captain.Application {
       base.OnMouseLeave(e);
     }
 
+    /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.MouseDown" /> event.</summary>
     /// <param name="e">A <see cref="T:System.Windows.Forms.MouseEventArgs" /> that contains the event data. </param>
     protected override void OnMouseDown(MouseEventArgs e) {
@@ -133,13 +137,13 @@ namespace Captain.Application {
       }
 
       int horizontalMargin = Image == null ? 0 : 4;
-      int imageRectWidth = horizontalMargin + Image?.Width ?? 0;
+      int imageRectWidth = (horizontalMargin + Image?.Width) ?? 0;
 
       Point imageLocation = Point.Empty;
       if (!String.IsNullOrWhiteSpace(Text)) {
         Size textSize = TextRenderer.MeasureText(eventArgs.Graphics, Text, Font);
         imageLocation = new Point((Width - textSize.Width - (Image?.Width ?? 0)) / 2,
-                                  (Height - Image?.Height ?? 0) / 2);
+                                  ((Height - Image?.Height) ?? 0) / 2);
 
         TextRenderer.DrawText(eventArgs.Graphics,
                               Text,

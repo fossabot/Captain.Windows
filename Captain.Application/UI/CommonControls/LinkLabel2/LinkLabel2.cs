@@ -1,4 +1,5 @@
 ﻿// TODO: refactor and comment this file
+// ReSharper disable all
 
 using System;
 using System.ComponentModel;

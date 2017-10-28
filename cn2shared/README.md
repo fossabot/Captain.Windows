@@ -2,7 +2,6 @@
 ![license: Unlicense](https://img.shields.io/badge/license-Unlicense-brightgreen.svg)
 > **Shared Code** - Header files common to native libraries used by [Captain](https://github.com/CaptainApp).
 
-
 ## What's this?
 Just a bunch of header files that are shared by the diverse native projects required for Captain to properly function.
 

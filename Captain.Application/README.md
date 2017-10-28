@@ -1,7 +1,7 @@
 ﻿# Captain.Application
 ![version: 0.6](https://img.shields.io/badge/version-0.6-blue.svg)
 ![license: BSD 2-Clause](https://img.shields.io/badge/license-BSD_2--Clause-brightgreen.svg)
-> Native GUI application that implements most of the [Captain](https://github.com/CaptainApp) logic.
+> Native GUI application that implements most [Captain](https://github.com/CaptainApp) logic.
 
 ## What's this?
 It's the _actual_ code for [Captain](https://github.com/CaptainApp), an extensible screen capturing application.

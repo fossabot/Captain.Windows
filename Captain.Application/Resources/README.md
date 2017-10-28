@@ -19,3 +19,4 @@ This directory contains binary assets that are used in the user interface.
 - `TaskRegionGrab.png`
 - `TaskTypeRecording.png`
 - `TaskTypeScreenshot.png`
+- `EncoderOptions.png`

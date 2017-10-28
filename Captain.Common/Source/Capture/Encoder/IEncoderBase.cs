@@ -7,6 +7,5 @@
     ///   Contains information about the encoder
     /// </summary>
     EncoderInfo EncoderInfo { get; }
-
   }
 }

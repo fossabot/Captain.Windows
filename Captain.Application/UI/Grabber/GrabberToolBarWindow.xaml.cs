@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Interop;
 using Captain.Application.Native;
 
@@ -9,12 +8,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Interaction logic for GrabberToolBarWindow.xaml
   /// </summary>
-  internal partial class GrabberToolBarWindow {
-    /// <summary>
-    ///   True when the screen may be being recorded
-    /// </summary>
-    private bool mayBeRecording = false;
-
+  internal sealed partial class GrabberToolBarWindow {
     /// <summary>
     ///   Toolbar orientation
     /// </summary>
@@ -69,6 +63,7 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Creates a new capture toolbar
     /// </summary>
@@ -169,11 +164,10 @@ namespace Captain.Application {
     /// <param name="e"></param>
     private void ScreenshotButton_Click(object sender, RoutedEventArgs e) {
       OnCaptureActionInitiated(ActionType.Screenshot);
-
-      if (!this.mayBeRecording && (Keyboard.Modifiers & ModifierKeys.Alt) == 0) {
+      /*if ((Keyboard.Modifiers & ModifierKeys.Alt) == 0) {
         // close the grabber UI if this was just a screenshot and the ALT modifier key is not pressed
         OnGrabberIntentReceived(GrabberIntentType.Close);
-      }
+      }*/
     }
 
     /// <summary>
@@ -200,48 +194,26 @@ namespace Captain.Application {
     private void UnpinButton_Click(object sender, RoutedEventArgs e) =>
       OnGrabberIntentReceived(GrabberIntentType.DetachFromWindow);
 
-#if false
     /// <summary>
-    ///   Triggered when the Cancel button is activated
+    ///   Triggered when the "Record" button is clicked
     /// </summary>
-    /// <param name="sender">Event sender</param>
-    /// <param name="eventArgs">Event args</param>
-    private void CancelButton_Click(object sender, RoutedEventArgs eventArgs) => Close();
-
-    /// <summary>
-    ///   Triggered when the Capture button is activated
-    /// </summary>
-    /// <param name="sender">Event sender</param>
-    /// <param name="eventArgs">Event args</param>
-    private void OkButton_OnClick(object sender, RoutedEventArgs eventArgs) {
-      OnCaptureActionInitiated(ActionType.Screenshot);
-
-      if (!this.mayBeRecording && (Keyboard.Modifiers & ModifierKeys.Alt) == 0) {
-        // close the grabber UI if this was just a capture and the ALT modifier key is not pressed!
-        Close();
-      }
-    }
-
-    /// <summary>
-    ///   Triggered when the Record button is activated
-    /// </summary>
-    /// <param name="sender">Event sender</param>
-    /// <param name="eventArgs">Event args</param>
-    private void RecordToggleButton_Click(object sender, RoutedEventArgs eventArgs) {
-      if (this.mayBeRecording) {
-        // stop recording
-        this.RecordToggleButton.ToolTip = Captain.Application.Resources.GrabberUI_Record;
-        this.RecordToggleButtonImage.Source = new BitmapImage(new Uri("pack://application:,,,/Content/record.png"));
-      } else {
-        // start recording
-        this.RecordToggleButton.ToolTip = Captain.Application.Resources.GrabberUI_StopRecording;
-        this.RecordToggleButtonImage.Source = new BitmapImage(new Uri("pack://application:,,,/Content/stop.png"));
-      }
-
-      this.mayBeRecording = !this.mayBeRecording;
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void RecordButton_Click(object sender, RoutedEventArgs e) {
+      this.StopButton.Visibility = Visibility.Visible;
+      this.RecordButton.Visibility = Visibility.Collapsed;
       OnCaptureActionInitiated(ActionType.Record);
     }
 
-#endif
+    /// <summary>
+    ///   Triggered when the "Stop recording" button is clicked
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void StopButton_Click(object sender, RoutedEventArgs e) {
+      this.StopButton.Visibility = Visibility.Collapsed;
+      this.RecordButton.Visibility = Visibility.Visible;
+      OnCaptureActionInitiated(ActionType.Record);
+    }
   }
 }

@@ -1,9 +1,12 @@
-﻿namespace Captain.Application {
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Captain.Application {
   sealed partial class OptionsWindow {
     /// <summary>
     /// Required designer variable.
     /// </summary>
-    private System.ComponentModel.IContainer components = null;
+    private IContainer components = null;
 
     /// <summary>
     /// Clean up any resources being used.
@@ -48,12 +51,12 @@
       this.automaticUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.disableUpdatesRadioButton = new System.Windows.Forms.RadioButton();
       this.tasksPage = new System.Windows.Forms.TabPage();
+      this.emptyTaskListLabel = new System.Windows.Forms.Label();
       this.taskContainerPanel = new System.Windows.Forms.Panel();
       this.encodersPage = new System.Windows.Forms.TabPage();
       this.capturePage = new System.Windows.Forms.TabPage();
       this.shortcutsPage = new System.Windows.Forms.TabPage();
       this.helpTip = new System.Windows.Forms.ToolTip(this.components);
-      this.emptyTaskListLabel = new System.Windows.Forms.Label();
       _separator2 = new System.Windows.Forms.Panel();
       _separator1 = new System.Windows.Forms.Panel();
       taskToolBarPanel = new System.Windows.Forms.Panel();
@@ -110,6 +113,7 @@
       this.createTaskLinkButton.TabIndex = 0;
       this.createTaskLinkButton.Text = "Create task";
       this.createTaskLinkButton.TintColor = System.Drawing.Color.SeaGreen;
+      this.createTaskLinkButton.Click += new System.EventHandler(this.OnCreateTaskButtonClicked);
       // 
       // startupTitleLabel
       // 
@@ -353,6 +357,18 @@
       this.tasksPage.Text = "Tasks";
       this.tasksPage.Layout += new System.Windows.Forms.LayoutEventHandler(this.OnTasksPageLayout);
       // 
+      // emptyTaskListLabel
+      // 
+      this.emptyTaskListLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.emptyTaskListLabel.ForeColor = System.Drawing.SystemColors.GrayText;
+      this.emptyTaskListLabel.Location = new System.Drawing.Point(0, 33);
+      this.emptyTaskListLabel.Name = "emptyTaskListLabel";
+      this.emptyTaskListLabel.Size = new System.Drawing.Size(464, 315);
+      this.emptyTaskListLabel.TabIndex = 3;
+      this.emptyTaskListLabel.Text = "Create a task for handling your captures.";
+      this.emptyTaskListLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+      this.emptyTaskListLabel.Visible = false;
+      // 
       // taskContainerPanel
       // 
       this.taskContainerPanel.AutoScroll = true;
@@ -402,18 +418,6 @@
       this.helpTip.Draw += new System.Windows.Forms.DrawToolTipEventHandler(this.OnHelpTipDraw);
       this.helpTip.Popup += new System.Windows.Forms.PopupEventHandler(this.OnHelpTipPopup);
       // 
-      // emptyTaskListLabel
-      // 
-      this.emptyTaskListLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.emptyTaskListLabel.ForeColor = System.Drawing.SystemColors.GrayText;
-      this.emptyTaskListLabel.Location = new System.Drawing.Point(0, 33);
-      this.emptyTaskListLabel.Name = "emptyTaskListLabel";
-      this.emptyTaskListLabel.Size = new System.Drawing.Size(464, 315);
-      this.emptyTaskListLabel.TabIndex = 3;
-      this.emptyTaskListLabel.Text = "Create a task for handling your captures.";
-      this.emptyTaskListLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-      this.emptyTaskListLabel.Visible = false;
-      // 
       // OptionsWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -444,30 +448,30 @@
     #endregion
 
     private ToolBarControl toolBar;
-    private System.Windows.Forms.TabPage generalPage;
-    private System.Windows.Forms.TabPage encodersPage;
-    private System.Windows.Forms.TabPage capturePage;
-    private System.Windows.Forms.TabPage shortcutsPage;
-    private System.Windows.Forms.CheckBox autoStartCheckBox;
-    private System.Windows.Forms.ToolTip helpTip;
-    private System.Windows.Forms.CheckBox displayTrayIconCheckBox;
-    private System.Windows.Forms.ComboBox notificationOptionsComboBox;
-    private System.Windows.Forms.CheckBox showNotificationsCheckBox;
-    private System.Windows.Forms.Label startupTitleLabel;
-    private System.Windows.Forms.Label notificationsTitleLabel;
-    private System.Windows.Forms.CheckBox legacyNotificationsCheckBox;
-    private System.Windows.Forms.Label updatesTitleLabel;
-    private System.Windows.Forms.Label updateManagerUnavailableLabel;
-    private System.Windows.Forms.Panel updateOptionsPanel;
-    private System.Windows.Forms.RadioButton checkUpdatesRadioButton;
-    private System.Windows.Forms.RadioButton automaticUpdatesRadioButton;
-    private System.Windows.Forms.RadioButton disableUpdatesRadioButton;
-    private System.Windows.Forms.Panel upgradeToFullInstallPanel;
-    private System.Windows.Forms.Label performInstallNoticeLabel;
-    private System.Windows.Forms.TabPage tasksPage;
+    private TabPage generalPage;
+    private TabPage encodersPage;
+    private TabPage capturePage;
+    private TabPage shortcutsPage;
+    private CheckBox autoStartCheckBox;
+    private ToolTip helpTip;
+    private CheckBox displayTrayIconCheckBox;
+    private ComboBox notificationOptionsComboBox;
+    private CheckBox showNotificationsCheckBox;
+    private Label startupTitleLabel;
+    private Label notificationsTitleLabel;
+    private CheckBox legacyNotificationsCheckBox;
+    private Label updatesTitleLabel;
+    private Label updateManagerUnavailableLabel;
+    private Panel updateOptionsPanel;
+    private RadioButton checkUpdatesRadioButton;
+    private RadioButton automaticUpdatesRadioButton;
+    private RadioButton disableUpdatesRadioButton;
+    private Panel upgradeToFullInstallPanel;
+    private Label performInstallNoticeLabel;
+    private TabPage tasksPage;
     private LinkButton createTaskLinkButton;
-    private System.Windows.Forms.Panel taskContainerPanel;
-    private System.Windows.Forms.Panel panel1;
-    private System.Windows.Forms.Label emptyTaskListLabel;
+    private Panel taskContainerPanel;
+    private Panel panel1;
+    private Label emptyTaskListLabel;
   }
 }

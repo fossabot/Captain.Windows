@@ -9,9 +9,23 @@ namespace Captain.Application.Native {
     ///   Reveals a path in a File Explorer window
     /// </summary>
     /// <param name="path">The path</param>
-    /// <returns>Whether the operation completed successfully</returns>
-    [DllImport("cn2helper.dll", EntryPoint = "CN2ShellRevealInFileExplorer", CharSet = CharSet.Unicode,
-      SetLastError = true)]
-    internal static extern bool RevealInFileExplorer(string path);
+    /// <returns>A value representing the operation status</returns>
+    [DllImport("cn2helper.dll", EntryPoint = "CN2ShellRevealInFileExplorer")]
+    [return: MarshalAs(UnmanagedType.Error)]
+    internal static extern int RevealInFileExplorer([In, MarshalAs(UnmanagedType.LPWStr)] string path);
+
+    /// <summary>
+    ///   Creates an app shortcut in the user's start menu directory
+    /// </summary>
+    /// <param name="productName">Name o the shortcut to be created</param>
+    /// <param name="path">Executable path for the application to be launched</param>
+    /// <param name="appId">Application ID</param>
+    /// <returns>A value representing the operation result</returns>
+    [DllImport("cn2helper.dll", EntryPoint = "CN2InstallAppShortcut")]
+    [return: MarshalAs(UnmanagedType.Error)]
+    internal static extern int InstallAppShortcut(
+      [In, MarshalAs(UnmanagedType.LPWStr)] string productName,
+      [In, MarshalAs(UnmanagedType.LPWStr)] string path,
+      [In, MarshalAs(UnmanagedType.LPWStr)] string appId);
   }
 }

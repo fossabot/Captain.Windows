@@ -10,10 +10,11 @@ using static Captain.Application.Application;
 using static Squirrel.UpdateManager;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
-  ///   Abstracts <see cref="Squirrel.UpdateManager"/> logic
+  ///   Abstracts <see cref="T:Squirrel.UpdateManager" /> logic
   /// </summary>
-  internal class UpdateManager : IDisposable {
+  internal sealed class UpdateManager : IDisposable {
     /// <summary>
     ///   Underlying update manager instance
     /// </summary>
@@ -201,7 +202,6 @@ namespace Captain.Application {
       }
 
       Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
-
       var updateManagerHandler = new Action<Task<Squirrel.UpdateManager>>(task => {
         if (task.IsFaulted) {
           Log.WriteLine(LogLevel.Warning, $"could not initialize underlying UpdateManager - {task.Exception}");
@@ -231,8 +231,7 @@ namespace Captain.Application {
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
                                              VersionInfo.ProductName,
-                                             Environment.GetFolderPath(Environment.SpecialFolder
-                                                                                  .LocalApplicationData));
+                                             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
       } else {

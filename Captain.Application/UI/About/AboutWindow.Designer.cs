@@ -1,9 +1,12 @@
-﻿namespace Captain.Application {
+﻿using System.ComponentModel;
+using System.Windows.Forms;
+
+namespace Captain.Application {
   sealed partial class AboutWindow {
     /// <summary>
     /// Required designer variable.
     /// </summary>
-    private System.ComponentModel.IContainer components = null;
+    private IContainer components = null;
 
     /// <summary>
     /// Clean up any resources being used.
@@ -154,14 +157,14 @@
 
     #endregion
 
-    private System.Windows.Forms.PictureBox logoPictureBox;
-    private System.Windows.Forms.Label versionLabel;
-    private System.Windows.Forms.Panel panel1;
-    private System.Windows.Forms.Button closeButton;
+    private PictureBox logoPictureBox;
+    private Label versionLabel;
+    private Panel panel1;
+    private Button closeButton;
     private LinkLabel2 supportUriLinkLabel;
     private LinkLabel2 licensingLinkLabel;
-    private System.Windows.Forms.ToolTip toolTip;
+    private ToolTip toolTip;
     private EllipsisProgressLabel updateStatusLabel;
-    private System.Windows.Forms.Label distributionLabel;
+    private Label distributionLabel;
   }
 }

@@ -1,6 +1,4 @@
-﻿using Captain.Application.Native;
-using Captain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -11,14 +9,17 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using Windows.UI.Notifications;
+using Captain.Application.Native;
+using Captain.Common;
 using Ookii.Dialogs.Wpf;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Represents an action, which is a set of capture provider, handler and encoder
   /// </summary>
-  internal class Action : IDisposable {
+  internal sealed class Action : IDisposable {
     /// <summary>
     ///   URI for the "View results" action on toast notifications
     /// </summary>
@@ -35,16 +36,27 @@ namespace Captain.Application {
     private Grabber boundGrabber;
 
     /// <summary>
-    ///   Capture helper instance
+    ///   Video recording streams
     /// </summary>
-    private CaptureHelper captureHelper;
+    private (Stream MasterStream, IEnumerable<Stream> OutputStreams, IEnumerable<(PluginObject OutputStream,
+      Exception Exception)> Failed)? recordingStreams;
+
+    /// <summary>
+    ///   Video encoder instance for recording screen
+    /// </summary>
+    private IVideoEncoder recordingVideoEncoder;
+
+    /// <summary>
+    ///   Video provider for recording screen
+    /// </summary>
+    private VideoProvider recordingVideoProvider;
 
     /// <summary>
     ///   Available action types
     /// </summary>
     internal ActionType ActionTypes {
       get {
-        ActionType types = ActionType.None;
+        var types = ActionType.None;
 
         if (StaticEncoder != null) {
           types |= ActionType.Screenshot;
@@ -82,11 +94,6 @@ namespace Captain.Application {
       (StaticEncoder, VideoEncoder) = (staticEncoder, videoEncoder);
 
     /// <summary>
-    ///   Class destructor
-    /// </summary>
-    ~Action() => Dispose();
-
-    /// <summary>
     ///   Adds an output stream to this action
     /// </summary>
     /// <param name="stream">Stream plugin object</param>
@@ -95,7 +102,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Binds a grabber UI to this action
     /// </summary>
-    /// <param name="grabber">The <see cref="Grabber"/> instance</param>
+    /// <param name="grabber">The <see cref="Grabber" /> instance</param>
     /// <exception cref="InvalidOperationException">Thrown when a grabber has already been bound</exception>
     internal void BindGrabberUi(Grabber grabber) {
       if (this.boundGrabber != null) {
@@ -113,33 +120,27 @@ namespace Captain.Application {
     /// <param name="intent">Capture intent</param>
     /// <exception cref="InvalidOperationException">Thrown when called with no handlers set up</exception>
     internal void Start(CaptureIntent intent) {
-      if (!OutputStreams.Any()) {
-        throw new InvalidOperationException("No streams were set for this action.");
-      }
-
-      if (this.captureHelper is null) {
-        // instantiate capture helper shall it be required
-        this.captureHelper = new CaptureHelper();
-      }
-
       if (intent.ActionType == ActionType.Screenshot) {
+        if (!OutputStreams.Any()) {
+          throw new InvalidOperationException("No streams were set for this action.");
+        }
+
         try {
           if (Activator.CreateInstance(StaticEncoder.Type) as IStaticEncoder is IStaticEncoder encoder) {
             Application.TrayIcon.AnimateIndicator(IndicatorStatus.Progress);
-
-            this.captureHelper.WindowHandle = intent.WindowHandle;
+            VideoProvider videoProvider = VideoProviderFactory.Create(intent.VirtualArea,
+                                                                      intent.WindowHandle == IntPtr.Zero
+                                                                        ? (IntPtr?) null
+                                                                        : intent.WindowHandle);
             this.boundGrabber.Hide();
 
             // perform screen capture
-            Bitmap bmp = intent.WindowHandle == IntPtr.Zero
-                           ? this.captureHelper.CaptureFromScreen(intent.VirtualArea)
-                           : this.captureHelper.CaptureFromScreen();
-
-            // TODO: remove this HACK!
-            this.captureHelper.Dispose();
+            videoProvider.AcquireFrame();
+            Bitmap bmp = videoProvider.CreateFrameBitmap();
+            videoProvider.Dispose();
 
             // encode static image and obtain task results
-            var results = (List<CaptureResult>)EncodeStatic(bmp, encoder);
+            var results = (List<CaptureResult>) EncodeStatic(bmp, encoder);
 
             // get number of failed tasks
             int failedCount = results.Count(r => r is UnsuccessfulCaptureResult);
@@ -163,17 +164,17 @@ namespace Captain.Application {
 
               /* the only task succeeded */
               // build toast actions
-              var actions = new Dictionary<string, Uri> { { Resources.Toast_Open, results.First().ToastUri } };
+              var actions = new Dictionary<string, Uri> {{Resources.Toast_Open, results.First().ToastUri}};
 
               if (results.First().ToastUri.IsFile) {
                 // local file - add "View in folder" action
                 actions.Add(Resources.Toast_ViewInFolder,
-                            new UriBuilder(results.First().ToastUri) { Query = "select" }.Uri);
+                            new UriBuilder(results.First().ToastUri) {Query = "select"}.Uri);
               }
 
-              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+              if ((Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.Always)) {
                 ToastProvider.PushObject(results.First().ToastTitle,
                                          results.First().ToastContent,
                                          previewUri: results.First().ToastUri.IsFile ? results.First().ToastUri : null,
@@ -187,7 +188,7 @@ namespace Captain.Application {
                                            }
                                          });
               }
-            } else if (results.Count > 0 && results.Count == failedCount) {
+            } else if ((results.Count > 0) && (results.Count == failedCount)) {
               /* WTF! everything crashed and burnt */
               // What a Terrible Failure
               var exception = new Win32Exception(0x1C3, "All tasks failed.");
@@ -202,23 +203,21 @@ namespace Captain.Application {
               /* some failed, some not */
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
 
-              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+              if ((Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.Always)) {
                 ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
                                          Resources.Toast_StaticDonePartialSuccessContent,
                                          Resources.Toast_StaticDonePartialSuccessSubtext,
-
-                                         previewUri: previewUri,
-                                         previewImage: bmp,
+                                         previewUri,
+                                         bmp,
 
                                          // build toast actions
-                                         actions: new Dictionary<string, Uri> {
-                                           { Resources.Toast_ViewResultsActionText, ToastViewResultsUri },
-                                           { Resources.Toast_ViewErrorsActionText, ToastViewErrorsUri }
+                                         new Dictionary<string, Uri> {
+                                           {Resources.Toast_ViewResultsActionText, ToastViewResultsUri},
+                                           {Resources.Toast_ViewErrorsActionText, ToastViewErrorsUri}
                                          },
-
-                                         handler: (sender, data) => {
+                                         (sender, data) => {
                                            if (data as ToastActivatedEventArgs is null) {
                                              return; // go fuck thyself
                                            }
@@ -231,7 +230,7 @@ namespace Captain.Application {
                                              DisplayErrorDialog(Resources.ActionErrorDialog_PartialFailureCaption,
                                                                 Resources.ActionErrorDialog_PartialFailureContent,
                                                                 results.Where(r => r is UnsuccessfulCaptureResult)
-                                                                       .Select(r => ((UnsuccessfulCaptureResult)r)
+                                                                       .Select(r => ((UnsuccessfulCaptureResult) r)
                                                                                  .Exception));
                                            }
                                          });
@@ -240,16 +239,14 @@ namespace Captain.Application {
               // everything worked! Fireworks! Green lights! Yay I'm so sick of handling errors
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
 
-              if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
-                  Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+              if ((Application.Options.NotificationOptions == NotificationDisplayOptions.OnSuccess) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress) ||
+                  (Application.Options.NotificationOptions == NotificationDisplayOptions.Always)) {
                 ToastProvider.PushObject(Resources.Toast_StaticDoneCaption,
                                          Resources.Toast_StaticDoneContent,
                                          results.Any() ? Resources.Toast_StaticDoneDetailsSubtext : null,
-
-                                         previewUri: previewUri,
-                                         previewImage: bmp,
-
+                                         previewUri,
+                                         bmp,
                                          handler: (_, __) => DisplayResultsDialog(results));
               }
             }
@@ -262,15 +259,14 @@ namespace Captain.Application {
           Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
           DisplayErrorToast(exception.Data["caption"] as string ?? Resources.Toast_CaptureFailedCaption,
                             exception.Data["content"] as string ?? Resources.Toast_CaptureFailedContent,
-
                             exception.Data.Contains("results")
                               // unsuccessful capture results' exceptions
                               // NOTE: under normal conditions, `results` is an IEnumerable<UnsuccessfulCaptureResult>,
                               // but just for the sake of safety, let's take make sure we take actual unsuccessful
                               // results from it
-                              ? ((List<CaptureResult>)exception.Data["results"])
+                              ? ((List<CaptureResult>) exception.Data["results"])
                               .Where(r => r is UnsuccessfulCaptureResult)
-                              .Select(r => ((UnsuccessfulCaptureResult)r).Exception)
+                              .Select(r => ((UnsuccessfulCaptureResult) r).Exception)
 
                               // single exception
                               : new[] {
@@ -278,12 +274,28 @@ namespace Captain.Application {
                               });
         }
       } else if (intent.ActionType == ActionType.Record) {
-        throw new NotImplementedException();
+        if (this.recordingStreams == null) {
+          // not recording
+          Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording);
+
+          this.recordingVideoProvider = VideoProviderFactory.Create(intent.VirtualArea, intent.WindowHandle);
+          if (Activator.CreateInstance(VideoEncoder.Type) is IVideoEncoder videoEncoder) {
+            this.recordingVideoEncoder = videoEncoder;
+            StartEncodeVideo();
+            this.boundGrabber.Window.CanBeResized = false;
+          }
+        } else {
+          // stop recording
+          Application.TrayIcon.AnimateIndicator(IndicatorStatus.Idle);
+          EndEncodeVideo();
+          this.recordingStreams = null;
+          this.boundGrabber.Window.CanBeResized = true;
+        }
       }
     }
 
     /// <summary>
-    ///   Selects or creates a <see cref="Stream"/> for the encoder to write its output and wraps the rest under an
+    ///   Selects or creates a <see cref="Stream" /> for the encoder to write its output and wraps the rest under an
     ///   enumerable type.
     /// </summary>
     /// <returns>
@@ -295,7 +307,7 @@ namespace Captain.Application {
       ArrangeOutputStreams(EncoderInfo encoderInfo) {
       Stream masterStream;
       List<PluginObject> streams = OutputStreams;
-      bool isMasterReadable = true;
+      var isMasterReadable = true;
 
       try {
         PluginObject preferred = streams.OrderBy(os => os.Type.GetNestedType("MemoryStream") is null).First();
@@ -372,7 +384,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Encodes a still capture and writes the data to all the output streams
     /// </summary>
-    /// <param name="bmp"><see cref="Bitmap"/> instance</param>
+    /// <param name="bmp"><see cref="Bitmap" /> instance</param>
     /// <param name="encoder">An static encoder instance</param>
     /// <returns>A list containing the results for all output streams</returns>
     private IEnumerable<CaptureResult> EncodeStatic(Bitmap bmp, IStaticEncoder encoder) {
@@ -380,16 +392,12 @@ namespace Captain.Application {
         throw new ArgumentNullException(nameof(encoder));
       }
 
-      // create encoder information
-      EncoderInfo encoderInfo = encoder.EncoderInfo;
-      encoderInfo.PreviewBitmap = bmp;
-
       // arrange output streams so we get the fastest master
       (Stream MasterStream, IEnumerable<Stream> OutputStreams, IEnumerable<(PluginObject OutputStream,
-        Exception Exception)> Failed) streams = ArrangeOutputStreams(encoderInfo);
+        Exception Exception)> Failed) streams = ArrangeOutputStreams(encoder.EncoderInfo);
       var results = new List<CaptureResult>();
 
-      // ArrangeOutputStrams() may have omitted one or more streams due to initialization exceptions.
+      // ArrangeOutputStreams() may have omitted one or more streams due to initialization exceptions.
       // In this case, the failed output streams are contained, alongside the respective exceptions, in the `Failed`
       // member of the tuple. So let's create UnsuccessfulCaptureResult's for each failed one, for we want the user to
       // acknowledge this errors
@@ -407,7 +415,7 @@ namespace Captain.Application {
         var thread = new Thread(() => {
           // copy the data from the master stream
           try {
-            // ReSharper disable AccessToDisposedClosure
+            // ReSharper disable All AccessToDisposedClosure
             // although MasterStream is disposed below, it is guaranteed to never be disposed at this point,
             // for we block the calling thread while waiting for all threads to end
             streams.MasterStream.Position = 0; // we need to reset position on the master stream
@@ -419,7 +427,7 @@ namespace Captain.Application {
           }
 
           // commit and receive CaptureResult, then release stream
-          if (((IOutputStream)s).Commit() is CaptureResult result) {
+          if (((IOutputStream) s).Commit() is CaptureResult result) {
             results.Add(result);
           }
 
@@ -430,7 +438,7 @@ namespace Captain.Application {
         object[] attributes = s.GetType().GetCustomAttributes(typeof(ThreadApartmentState), true);
         if (attributes.Length > 0) {
           // apartment state attribute is present
-          var state = (ThreadApartmentState)attributes.First(); // only one attribute is allowed so this is safe
+          var state = (ThreadApartmentState) attributes.First(); // only one attribute is allowed so this is safe
 
           // only STA/MTA apartment states can be set
           if (state.ApartmentState != ApartmentState.Unknown) {
@@ -470,6 +478,119 @@ namespace Captain.Application {
       return results;
     }
 
+    private bool recording = false;
+    private Thread recordingThread;
+
+    /// <summary>
+    ///   Starts encoding video
+    /// </summary>
+    private void StartEncodeVideo() {
+      this.recordingStreams = ArrangeOutputStreams(this.recordingVideoEncoder.EncoderInfo);
+      this.recordingVideoEncoder.Start(this.recordingVideoProvider.CaptureBounds.Size,
+                                       this.recordingStreams.Value.MasterStream);
+
+      this.recording = true;
+      this.recordingThread = new Thread(() => {
+        while (this.recording) {
+          this.recordingVideoEncoder.Encode(this.recordingVideoProvider, this.recordingStreams.Value.MasterStream);
+          Thread.Sleep(new TimeSpan((long) Math.Round((1 / (decimal) 30) * 10_000_000)));
+        }
+      });
+      
+      this.recordingThread.SetApartmentState(ApartmentState.STA);
+      this.recordingThread.Start();
+    }
+
+    private IEnumerable<CaptureResult> EndEncodeVideo() {
+      this.recording = false;
+      this.recordingThread.Join();
+      
+      var results = new List<CaptureResult>();
+
+      // ArrangeOutputStreams() may have omitted one or more streams due to initialization exceptions.
+      // In this case, the failed output streams are contained, alongside the respective exceptions, in the `Failed`
+      // member of the tuple. So let's create UnsuccessfulCaptureResult's for each failed one, for we want the user to
+      // acknowledge this errors
+      results.AddRange(this.recordingStreams.Value.Failed.ToList()
+                           .Select(fs => new UnsuccessfulCaptureResult(fs.Exception)));
+
+      // XXX: if IStaticEncoder.Encode() fails, an exception is thrown instead of pushing an unsuccessful CaptureResult
+      //      We have no way to determine whether the exception was an encoder exception or an error while writing to
+      //      the master stream, or do we? Think 'bout this later
+      // TODO: wrap this line around a try-catch block and the underlying exception under some sort of EncoderException
+      Log.WriteLine(LogLevel.Verbose, "ending video capture on master");
+      this.recordingVideoEncoder.End(this.recordingStreams.Value.MasterStream);
+
+      // take every output stream instance
+      var threads = new List<Thread>(this.recordingStreams.Value.OutputStreams.Select(s => {
+        var thread = new Thread(() => {
+          // copy the data from the master stream
+          try {
+            // ReSharper disable AccessToDisposedClosure
+            // although MasterStream is disposed below, it is guaranteed to never be disposed at this point,
+            // for we block the calling thread while waiting for all threads to end
+            this.recordingStreams.Value.MasterStream.Position = 0; // we need to reset position on the master stream
+            this.recordingStreams.Value.MasterStream.CopyTo(s); // Stream.CopyTo() reads the source stream to end
+          } catch (Exception exception) {
+            Log.WriteLine(LogLevel.Error, $"error copying to stream {s}: {exception}");
+            results.Add(new UnsuccessfulCaptureResult(exception));
+            return;
+          }
+
+          // commit and receive CaptureResult, then release stream
+          if (((IOutputStream) s).Commit() is CaptureResult result) {
+            results.Add(result);
+          }
+
+          s.Dispose();
+        });
+
+        // some streams may require certain apartment state in order to work - change the thread apartment state here
+        object[] attributes = s.GetType().GetCustomAttributes(typeof(ThreadApartmentState), true);
+        if (attributes.Length > 0) {
+          // apartment state attribute is present
+          var state = (ThreadApartmentState) attributes.First(); // only one attribute is allowed so this is safe
+
+          // only STA/MTA apartment states can be set
+          if (state.ApartmentState != ApartmentState.Unknown) {
+            // set thread apartment state
+            if (thread.TrySetApartmentState(state.ApartmentState)) {
+              Log.WriteLine(LogLevel.Debug, $"set apartment state of {s} to {state.ApartmentState}");
+            } else {
+              Log.WriteLine(LogLevel.Warning, $"could not set apartment state of {s} to {state.ApartmentState}");
+            }
+          }
+        }
+
+        return thread;
+      }));
+
+      // start all the threads at the same time
+      threads.ForEach(t => t.Start());
+
+      // now wait for every single one to finish
+      threads.ForEach(t => t.Join());
+
+      // release master
+      try {
+        // NOTE: beware, unwise homunculi! MasterStream is the only one that just *may* not implement IOutputStream.
+        //       In the remote case everything blew up, forcing us to fall back to a MemoryStream, a direct cast to
+        //       IOutputStream would fail
+        if (this.recordingStreams.Value.MasterStream is IOutputStream masterStream &&
+            masterStream.Commit() is CaptureResult masterResult) {
+          results.Add(masterResult);
+        }
+      } catch (Exception exception) {
+        Log.WriteLine(LogLevel.Error,
+                      $"error committing to master stream of type {this.recordingStreams.Value.MasterStream.GetType()}: {exception}");
+        results.Add(new UnsuccessfulCaptureResult(exception));
+      }
+
+      this.recordingStreams.Value.MasterStream.Dispose();
+      this.recordingVideoProvider.Dispose();
+      return results;
+    }
+
     /// <summary>
     ///   Displays a generic error dialog
     /// </summary>
@@ -482,7 +603,7 @@ namespace Captain.Application {
         MainIcon = TaskDialogIcon.Warning,
         MainInstruction = caption,
         Content = body,
-        Buttons = { new TaskDialogButton(ButtonType.Close) },
+        Buttons = {new TaskDialogButton(ButtonType.Close)},
 
         ExpandFooterArea = true,
         ExpandedByDefault = false,
@@ -502,9 +623,9 @@ namespace Captain.Application {
     /// <param name="body">Toast content</param>
     /// <param name="exceptions">Underlying exceptions</param>
     private static void DisplayErrorToast(string caption, string body, IEnumerable<Exception> exceptions) {
-      if (Application.Options.NotificationOptions == NotificationDisplayOptions.OnFailure ||
-          Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress ||
-          Application.Options.NotificationOptions == NotificationDisplayOptions.Always) {
+      if ((Application.Options.NotificationOptions == NotificationDisplayOptions.OnFailure) ||
+          (Application.Options.NotificationOptions == NotificationDisplayOptions.ExceptProgress) ||
+          (Application.Options.NotificationOptions == NotificationDisplayOptions.Always)) {
         LegacyNotificationProvider.PushMessage(caption,
                                                body,
                                                ToolTipIcon.Warning,
@@ -517,7 +638,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Displays a dialog containing all the result information for each output stream
     /// </summary>
-    /// <param name="results">A list of <see cref="CaptureResult"/></param>
+    /// <param name="results">A list of <see cref="CaptureResult" /></param>
     private void DisplayResultsDialog(List<CaptureResult> results) {
       if (results.Count == 0) {
         throw new ArgumentException(@"Value cannot be an empty collection.", nameof(results));
@@ -526,12 +647,14 @@ namespace Captain.Application {
       throw new NotImplementedException();
     }
 
+    /// <inheritdoc />
     /// <summary>
-    ///   Releases resources
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
     public void Dispose() {
       this.boundGrabber?.Dispose();
-      this.captureHelper?.Dispose();
+      this.recordingVideoProvider?.Dispose();
+      GC.SuppressFinalize(this);
     }
   }
 }

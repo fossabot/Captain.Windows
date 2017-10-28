@@ -30,12 +30,12 @@
 
         <StackPanel Name="RecordingTools" Orientation="{Binding Orientation}">
           <Button Name="RecordButton" ToolTip="{x:Static local:Resources.GrabberUI_Record}"
-                  Style="{DynamicResource ToolBarButtonStyle}">
+                  Style="{DynamicResource ToolBarButtonStyle}" Click="RecordButton_Click">
             <Image Source="/Content/Grabber/Icons/Record.png" />
           </Button>
 
           <Button Name="StopButton" Visibility="Collapsed" ToolTip="{x:Static local:Resources.GrabberUI_Stop}"
-                  Style="{DynamicResource ToolBarButtonStyle}">
+                  Style="{DynamicResource ToolBarButtonStyle}" Click="StopButton_Click">
             <Image Source="/Content/Grabber/Icons/Stop.png" />
           </Button>
         </StackPanel>
