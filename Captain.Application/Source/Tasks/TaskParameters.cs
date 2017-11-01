@@ -32,6 +32,7 @@ namespace Captain.Application {
     /// <summary>
     ///   User options for the encoder
     /// </summary>
-    public SerializableDictionary<object, object> EncoderOptions { get; set; } = new SerializableDictionary<object, object>();
+    public SerializableDictionary<object, object> EncoderOptions { get; set; } =
+      new SerializableDictionary<object, object>();
   }
 }

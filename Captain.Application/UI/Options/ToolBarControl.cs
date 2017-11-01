@@ -106,6 +106,8 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="m">A Windows Message Object. </param>
     protected override void WndProc(ref Message m) {
+      if (Disposing) { return; }
+
       if (m.Msg == (int)User32.WindowMessage.TCM_ADJUSTRECT) {
         var rect = (RECT)m.GetLParam(typeof(RECT));
 
@@ -253,6 +255,8 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnPaint(PaintEventArgs eventArgs) {
+      eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x20, 0, 0, 0)), 0, 0, Width, 0);
+
       try {
         for (int i = 0; i < TabCount; i++) {
           // get bounds for the tab being rendered

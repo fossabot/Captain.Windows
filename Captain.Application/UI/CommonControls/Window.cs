@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using Captain.Application.Native;
 
@@ -9,6 +10,11 @@ namespace Captain.Application {
   ///   Contains code for abstracting application window features
   /// </summary>
   internal class Window : Form {
+    /// <summary>
+    ///   Whether to paint a title bar border on the top of the window
+    /// </summary>
+    private readonly bool paintTitleBarBorder;
+
     /// <summary>
     ///   Last DPI value for this form
     /// </summary>
@@ -33,8 +39,18 @@ namespace Captain.Application {
     ///   Class constructor
     /// </summary>
     internal Window() {
+      try {
+        // focus the existing instance of the form instead of creating yet another one
+        System.Windows.Forms.Application.OpenForms.Cast<Form>().First(f => f.GetType() == GetType()).Focus();
+        throw new ApplicationException("It is not allowed to create two simultaneous instances of this window.");
+      } catch (InvalidOperationException) { /* no form for us */ }
+
       AutoScaleMode = AutoScaleMode.Font;
       StartPosition = FormStartPosition.CenterScreen;
+
+      // draw title bar border on Windows 10 and upwards, so the little contrast between the white title bar and the
+      // light gray background is not noticed
+      this.paintTitleBarBorder = Environment.OSVersion.Version.Major >= 10;
     }
 
     /// <summary>
@@ -96,6 +112,19 @@ namespace Captain.Application {
       Application.Options.WindowPositions[Name] = Location;
       Application.Options.Save();
       base.OnClosed(eventArgs);
+    }
+
+    /// <inheritdoc />
+    /// <summary>Paints the background of the control.</summary>
+    /// <param name="eventArgs">
+    ///   A <see cref="T:System.Windows.Forms.PaintEventArgs" /> that contains the event data.
+    /// </param>
+    protected override void OnPaint(PaintEventArgs eventArgs) {
+      if (this.paintTitleBarBorder) {
+        eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x20, 0, 0, 0)), 0, 0, Width, 0);
+      }
+
+      base.OnPaint(eventArgs);
     }
 
     /// <inheritdoc />

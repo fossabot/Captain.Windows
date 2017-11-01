@@ -2,14 +2,14 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using Windows.UI.Composition.Interactions;
 
 namespace Captain.Application.Native {
   /// <summary>
   ///   Exported functions from the user32.dll Windows library.
   /// </summary>
   internal static partial class User32 {
+    #region System resources
+
     internal enum SystemResources {
       /// <summary>
       ///   Hand cursor
@@ -22,6 +22,10 @@ namespace Captain.Application.Native {
       IDI_APPLICATION = 32512,
     }
 
+    #endregion
+
+    #region Hit test values
+
     internal enum HitTestValues {
       /// <summary>
       ///   In a window currently covered by another window in the same thread (the message will be sent to underlying
@@ -30,26 +34,10 @@ namespace Captain.Application.Native {
       HTTRANSPARENT = -1
     }
 
-    [Flags]
-    internal enum SetWindowPosFlags {
-      /// <summary>
-      ///   Retains the current size (ignores the cx and cy parameters).
-      /// </summary>
-      SWP_NOSIZE = 0x0001,
-
-      /// <summary>
-      ///   Retains the current position (ignores X and Y parameters).
-      /// </summary>
-      SWP_NOMOVE = 0x0002,
-
-      /// <summary>
-      ///   Does not activate the window. If this flag is not set, the window is activated and moved to the top of
-      ///   either the topmost or non-topmost group (depending on the setting of the hwndInsertAfter member).
-      /// </summary>
-      SWP_NOACTIVATE = 0x0010
-    }
+    #endregion
 
     #region Windows
+
     #region Window styles
 
     /// <summary>
@@ -73,7 +61,6 @@ namespace Captain.Application.Native {
       ///   The WS_SYSMENU style must also be specified.
       /// </summary>
       WS_MAXIMIZEBOX = 0x10000,
-
 
       /// <summary>
       ///   The window has a minimize button. Cannot be combined with the WS_EX_CONTEXTHELP style.
@@ -114,7 +101,7 @@ namespace Captain.Application.Native {
     internal enum WindowStylesEx : uint {
       /// <summary>
       ///   The window should be placed above all non-topmost windows and should stay above them, even when the window
-      ///   is deactivated. 
+      ///   is deactivated.
       /// </summary>
       WS_EX_TOPMOST = 0x00000008,
 
@@ -183,7 +170,7 @@ namespace Captain.Application.Native {
 
       /// <summary>
       ///   Sent by a common control to its parent window when an event has occurred or the control requires some
-      ///   information. 
+      ///   information.
       /// </summary>
       WM_NOTIFY = 0x004E,
 
@@ -202,6 +189,33 @@ namespace Captain.Application.Native {
       ///   An application sends the WM_CHANGEUISTATE message to indicate that the UI state should be changed.
       /// </summary>
       WM_CHANGEUISTATE = 0x0127,
+
+      #region Mouse events
+      /// <summary>
+      ///   Posted to a window when the cursor moves.
+      /// </summary>
+      WM_MOUSEMOVE = 0x200,
+      
+      /// <summary>
+      ///   Posted when the user presses the left mouse button while the cursor is in the client area of a window.
+      /// </summary>
+      WM_LBUTTONDOWN = 0x201,
+
+      /// <summary>
+      ///   Posted when the user releases the left mouse button while the cursor is in the client area of a window.
+      /// </summary>
+      WM_LBUTTONUP = 0x202,
+
+      /// <summary>
+      ///   Posted when the user presses the right mouse button while the cursor is in the client area of a window. 
+      /// </summary>
+      WM_RBUTTONDOWN = 0x204,
+
+      /// <summary>
+      ///   Posted when the user releases the right mouse button while the cursor is in the client area of a window.
+      /// </summary>
+      WM_RBUTTONUP = 0x205,
+      #endregion
 
       /// <summary>
       ///   Notifies an application of a change to the hardware configuration of a device or the computer.
@@ -281,10 +295,11 @@ namespace Captain.Application.Native {
     internal static extern IntPtr SendMessage(IntPtr hWnd, uint uiMsg, IntPtr wParam, IntPtr lParam);
 
     [DllImport(nameof(User32), SetLastError = true)]
-    internal static extern IntPtr SendMessage(IntPtr hWnd,
-                                              uint uiMsg,
-                                              IntPtr wParam,
-                                              ref COPYDATASTRUCT lParam);
+    internal static extern IntPtr SendMessage(
+      IntPtr hWnd,
+      uint uiMsg,
+      IntPtr wParam,
+      ref COPYDATASTRUCT lParam);
 
     #region CallWindowProc
 
@@ -301,11 +316,12 @@ namespace Captain.Application.Native {
       CallingConvention = CallingConvention.Winapi,
       CharSet = CharSet.Ansi,
       SetLastError = true)]
-    internal static extern IntPtr CallWindowProcA(WndProcDelegate lpPrevWndFunc,
-                                                  IntPtr hWnd,
-                                                  uint Msg,
-                                                  IntPtr wParam,
-                                                  IntPtr lParam);
+    internal static extern IntPtr CallWindowProcA(
+      WndProcDelegate lpPrevWndFunc,
+      IntPtr hWnd,
+      uint Msg,
+      IntPtr wParam,
+      IntPtr lParam);
 
     /// <summary>
     ///   Passes message information to the specified window procedure.
@@ -320,11 +336,12 @@ namespace Captain.Application.Native {
       CallingConvention = CallingConvention.Winapi,
       CharSet = CharSet.Unicode,
       SetLastError = true)]
-    internal static extern IntPtr CallWindowProcW(WndProcDelegate lpPrevWndFunc,
-                                                  IntPtr hWnd,
-                                                  uint Msg,
-                                                  IntPtr wParam,
-                                                  IntPtr lParam);
+    internal static extern IntPtr CallWindowProcW(
+      WndProcDelegate lpPrevWndFunc,
+      IntPtr hWnd,
+      uint Msg,
+      IntPtr wParam,
+      IntPtr lParam);
 
     #endregion
 
@@ -348,13 +365,14 @@ namespace Captain.Application.Native {
     /// <param name="nIndex">
     ///   The zero-based offset to the value to be retrieved. Valid values are in the range zero
     ///   through the number of bytes of extra window memory, minus the size of a LONG_PTR. To retrieve any other value,
-    ///   specify one of the following values.</param>
+    ///   specify one of the following values.
+    /// </param>
     /// <returns>If the function succeeds, the return value is the requested value.</returns>
 #if WIN32
     [DllImport(nameof(User32), EntryPoint = "GetWindowLong")]
     internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 #elif WIN64
-    [DllImport(nameof(User32), EntryPoint = "GetWindowLongPtr")]
+    [DllImport(nameof(User32))]
     internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 #endif
 
@@ -363,7 +381,7 @@ namespace Captain.Application.Native {
     ///   extra window memory.
     /// </summary>
     /// <param name="hWnd">
-    /// A handle to the window and, indirectly, the class to which the window belongs.
+    ///   A handle to the window and, indirectly, the class to which the window belongs.
     ///   The SetWindowLongPtr function fails if the process that owns the window specified by the hWnd parameter is
     ///   at a higher process privilege in the UIPI hierarchy than the process the calling thread resides in.
     /// </param>
@@ -386,13 +404,32 @@ namespace Captain.Application.Native {
 
     #endregion
 
+    [Flags]
+    internal enum SetWindowPosFlags {
+      /// <summary>
+      ///   Retains the current size (ignores the cx and cy parameters).
+      /// </summary>
+      SWP_NOSIZE = 0x0001,
+
+      /// <summary>
+      ///   Retains the current position (ignores X and Y parameters).
+      /// </summary>
+      SWP_NOMOVE = 0x0002,
+
+      /// <summary>
+      ///   Does not activate the window. If this flag is not set, the window is activated and moved to the top of
+      ///   either the topmost or non-topmost group (depending on the setting of the hwndInsertAfter member).
+      /// </summary>
+      SWP_NOACTIVATE = 0x0010
+    }
+
     /// <summary>
-    /// Retrieves a handle to the window that contains the specified point.
+    ///   Retrieves a handle to the window that contains the specified point.
     /// </summary>
     /// <param name="Point">The point to be checked.</param>
     /// <returns>
     ///   The return value is a handle to the window that contains the point. If no window exists at the given point,
-    ///   the return value is <see cref="IntPtr.Zero"/>. If the point is over a static text control, the return value
+    ///   the return value is <see cref="IntPtr.Zero" />. If the point is over a static text control, the return value
     ///   is a handle to the window under the static text control.
     /// </returns>
     [DllImport(nameof(User32))]
@@ -449,9 +486,9 @@ namespace Captain.Application.Native {
     /// <param name="hWnd">A handle to the window and, indirectly, the class to which the window belongs.</param>
     /// <param name="lpClassName">The class name string.</param>
     /// <param name="nMaxCount">
-    ///   The length of the <paramref name="lpClassName"/> buffer, in characters. The buffer must be large enough to
+    ///   The length of the <paramref name="lpClassName" /> buffer, in characters. The buffer must be large enough to
     ///   include the terminating null character; otherwise, the class name string is truncated to
-    ///   <paramref name="nMaxCount"/>-1 characters.
+    ///   <paramref name="nMaxCount" />-1 characters.
     /// </param>
     /// <returns>
     ///   If the function succeeds, the return value is the number of characters copied to the buffer, not including
@@ -477,7 +514,7 @@ namespace Captain.Application.Native {
     ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
     /// </param>
     /// <param name="lpWindowName">
-    /// The window name (the window's title). If this parameter is NULL, all window names match.
+    ///   The window name (the window's title). If this parameter is NULL, all window names match.
     /// </param>
     /// <returns>
     ///   If the function succeeds, the return value is a handle to the window that has the specified class name and
@@ -489,28 +526,29 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   Retrieves a handle to a window whose class name and window name match the specified strings.
     ///   The function searches child windows, beginning with the one following the specified child window.
-    ///   This function does not perform a case-sensitive search. 
+    ///   This function does not perform a case-sensitive search.
     /// </summary>
     /// <param name="hwndParent">A handle to the parent window whose child windows are to be searched.</param>
     /// <param name="hwndChildAfter">
     ///   A handle to a child window. The search begins with the next child window in the Z order.
-    ///   The child window must be a direct child window of hwndParent, not just a descendant window. 
+    ///   The child window must be a direct child window of hwndParent, not just a descendant window.
     /// </param>
     /// <param name="lpszClass">
     ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
     /// </param>
     /// <param name="lpszWindow">
-    /// The window name (the window's title). If this parameter is NULL, all window names match.
+    ///   The window name (the window's title). If this parameter is NULL, all window names match.
     /// </param>
     /// <returns>
     ///   If the function succeeds, the return value is a handle to the window that has the specified class and window
     ///   names.
     /// </returns>
     [DllImport(nameof(User32), CharSet = CharSet.Unicode)]
-    internal static extern IntPtr FindWindowEx([In] [Optional] IntPtr hwndParent,
-                                               [In] [Optional] IntPtr hwndChildAfter,
-                                               [In] [Optional] string lpszClass,
-                                               [In] [Optional] string lpszWindow);
+    internal static extern IntPtr FindWindowEx(
+      [In] [Optional] IntPtr hwndParent,
+      [In] [Optional] IntPtr hwndChildAfter,
+      [In] [Optional] string lpszClass,
+      [In] [Optional] string lpszWindow);
 
     /// <summary>
     ///   Destroys the specified window. The function sends WM_DESTROY and WM_NCDESTROY messages to the window to
@@ -522,9 +560,11 @@ namespace Captain.Application.Native {
     /// <returns>If the function succeeds, the return value is nonzero.</returns>
     [DllImport(nameof(User32))]
     internal static extern bool DestroyWindow([In] IntPtr hWnd);
+
     #endregion
 
     #region Drawing contexts
+
     /// <summary>
     ///   The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect
     ///   of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on
@@ -560,25 +600,27 @@ namespace Captain.Application.Native {
     internal static extern IntPtr GetWindowDC([In] IntPtr hWnd);
 
     /// <summary>
-    ///   The <see cref="GetDC"/> function retrieves a handle to a device context (DC) for the client area of a
+    ///   The <see cref="GetDC" /> function retrieves a handle to a device context (DC) for the client area of a
     ///   specified window or for the entire screen. You can use the returned handle in subsequent GDI functions to
     ///   draw in the DC. The device context is an opaque data structure, whose values are used internally by GDI.
-    ///   The GetDCEx function is an extension to <see cref="GetDC"/>, which gives an application more control over
+    ///   The GetDCEx function is an extension to <see cref="GetDC" />, which gives an application more control over
     ///   how and whether clipping occurs in the client area.
     /// </summary>
     /// <param name="hWnd">
-    ///   A handle to the window whose DC is to be retrieved. If this value is NULL, <see cref="GetDC"/> retrieves the
+    ///   A handle to the window whose DC is to be retrieved. If this value is NULL, <see cref="GetDC" /> retrieves the
     ///   DC for the entire screen.
     /// </param>
     /// <returns>
     ///   If the function succeeds, the return value is a handle to the DC for the specified window's client area.
-    ///   If the function fails, the return value is <see cref="IntPtr.Zero"/>.
+    ///   If the function fails, the return value is <see cref="IntPtr.Zero" />.
     /// </returns>
     [DllImport(nameof(User32), SetLastError = false)]
     internal static extern IntPtr GetDC(IntPtr hWnd);
+
     #endregion
 
     #region DPI
+
     /// <summary>
     ///   Returns the dots per inch (dpi) value for the associated window.
     /// </summary>
@@ -597,7 +639,7 @@ namespace Captain.Application.Native {
     internal static extern int GetDpiForSystem();
 
     /// <summary>
-    ///   Values for the <c>nIndex</c> parameter in <see cref="GetSystemMetrics"/>
+    ///   Values for the <c>nIndex</c> parameter in <see cref="GetSystemMetrics" />
     /// </summary>
     internal enum SystemMetrics {
       /// <summary>
@@ -622,14 +664,17 @@ namespace Captain.Application.Native {
     /// <returns>If the function succeeds, the return value is nonzero.</returns>
     [DllImport(nameof(User32))]
     internal static extern int GetSystemMetricsForDpi([In] int nIndex, [In] uint dpi);
+
     #endregion
 
     #region Cursors
+
     [DllImport(nameof(User32))]
     internal static extern IntPtr LoadCursor(IntPtr hInstance, IntPtr lpCursorName);
 
     [DllImport(nameof(User32))]
     internal static extern IntPtr SetCursor(IntPtr hCursor);
+
     #endregion
 
     #region ListView Empty Markup
@@ -665,7 +710,7 @@ namespace Captain.Application.Native {
     }
 
     /// <summary>
-    ///   Contains information used with the LVN_GETEMPTYMARKUP notification code. 
+    ///   Contains information used with the LVN_GETEMPTYMARKUP notification code.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     internal struct NMLVEMPTYMARKUP {
@@ -682,9 +727,145 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   Markup to display.
       /// </summary>
-      [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int)L_MAX_URL_LENGTH)] public string szMarkup;
+      [MarshalAs(UnmanagedType.ByValTStr, SizeConst = (int) L_MAX_URL_LENGTH)] public string szMarkup;
     }
 
     #endregion
+
+    #region Hooks
+
+    /// <summary>
+    ///   The type of hook procedure to be installed by
+    ///   <see cref="SetWindowsHookEx(WindowsHookType, IntPtr, IntPtr, int)" />.
+    /// </summary>
+    internal enum WindowsHookType {
+      /// <summary>
+      ///   Installs a hook procedure that monitors messages before the system sends them to the destination window
+      ///   procedure.
+      /// </summary>
+      WH_CALLWNDPROC = 4,
+      
+      /// <summary>Installs a hook procedure that monitors low-level keyboard input events.</summary>
+      WH_KEYBOARD_LL = 13,
+
+      /// <summary>Installs a hook procedure that monitors low-level mouse input events.</summary>
+      WH_MOUSE_LL = 14
+    }
+
+    /// <summary>
+    ///   An application-defined or library-defined callback function used with the
+    ///   <see cref="SetWindowsHookEx(WindowsHookType, IntPtr, IntPtr, int)" /> function.
+    ///   This is a generic function to Hook callbacks. For specific callback functions see this
+    ///   <see href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms632589(v=vs.85).aspx">
+    ///     API documentation
+    ///     on MSDN
+    ///   </see>
+    ///   .
+    /// </summary>
+    /// <param name="nCode">
+    ///   An action code for the callback. Can be used to indicate if the hook procedure must process the message or
+    ///   not.
+    /// </param>
+    /// <param name="wParam">First message parameter</param>
+    /// <param name="lParam">Second message parameter</param>
+    /// <returns>
+    ///   An LRESULT. Usually if nCode is less than zero, the hook procedure must return the value returned by
+    ///   CallNextHookEx.
+    ///   If nCode is greater than or equal to zero, it is highly recommended that you call CallNextHookEx and return
+    ///   the value it returns;
+    ///   otherwise, other applications that have installed hooks will not receive hook notifications and may behave
+    ///   incorrectly as a result.
+    ///   If the hook procedure does not call CallNextHookEx, the return value should be zero.
+    /// </returns>
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    internal delegate int WindowsHookDelegate(int nCode, IntPtr wParam, IntPtr lParam);
+
+    /// <summary>
+    ///   Installs an application-defined hook procedure into a hook chain. You would install a hook procedure to
+    ///   monitor the system for certain types of events. These events are associated either with a specific thread or
+    ///   with all threads in the same desktop as the calling thread.
+    /// </summary>
+    /// <param name="idHook">The type of hook procedure to be installed.</param>
+    /// <param name="lpfn">
+    ///   A pointer to the hook procedure. If the <paramref name="dwThreadId" /> parameter is zero or
+    ///   specifies the identifier of a thread created by a different process, the <paramref name="lpfn" /> parameter
+    ///   must point to a hook procedure in a DLL. Otherwise, <paramref name="lpfn" /> can point to a hook procedure in
+    ///   the code associated with the current process.
+    /// </param>
+    /// <param name="hMod">
+    ///   A handle to the DLL containing the hook procedure pointed to by the <paramref name="lpfn" />
+    ///   parameter. The <paramref name="hMod" /> parameter must be set to <see cref="IntPtr.Zero" /> if the
+    ///   <paramref name="dwThreadId" /> parameter specifies a thread created by the current process and if the hook
+    ///   procedure is within the code associated with the current process.
+    /// </param>
+    /// <param name="dwThreadId">
+    ///   The identifier of the thread with which the hook procedure is to be associated. For desktop
+    ///   apps, if this parameter is zero, the hook procedure is associated with all existing threads running in the
+    ///   same desktop as the calling thread. For Windows Store apps, see the Remarks section.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is the handle to the hook procedure.
+    ///   <para>
+    ///     If the function fails, the return value is an invalid handle. To get extended error information, call
+    ///     GetLastError.
+    ///   </para>
+    /// </returns>
+    [DllImport(nameof(User32), SetLastError = true)]
+    internal static extern IntPtr SetWindowsHookEx(
+      [In] WindowsHookType idHook,
+      [In] WindowsHookDelegate lpfn,
+      [In, Optional] IntPtr hMod,
+      [In, Optional] int dwThreadId);
+
+    /// <summary>
+    ///   Removes a hook procedure installed in a hook chain by the
+    ///   <see cref="SetWindowsHookEx(WindowsHookType, IntPtr, IntPtr, int)" /> function.
+    /// </summary>
+    /// <param name="hhk">
+    ///   A handle to the hook to be removed. This parameter is a hook handle obtained by a previous call to
+    ///   <see cref="SetWindowsHookEx(WindowsHookType, IntPtr, IntPtr, int)" />.
+    /// </param>
+    /// <returns>
+    ///   If the function succeeds, the return value is true.
+    ///   <para>
+    ///     If the function fails, the return value is false. To get extended error information, call
+    ///     GetLastError.
+    ///   </para>
+    /// </returns>
+    [DllImport(nameof(User32), SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool UnhookWindowsHookEx([In] IntPtr hhk);
+
+    /// <summary>
+    ///   Passes the hook information to the next hook procedure in the current hook chain. A hook procedure can call
+    ///   this function either before or after processing the hook information.
+    /// </summary>
+    /// <param name="hhk">This parameter is ignored.</param>
+    /// <param name="nCode">
+    ///   The hook code passed to the current hook procedure. The next hook procedure uses this code to determine how
+    ///   to process the hook information.
+    /// </param>
+    /// <param name="wParam">
+    ///   The wParam value passed to the current hook procedure. The meaning of this parameter depends on the type of
+    ///   hook associated with the current hook chain.
+    /// </param>
+    /// <param name="lParam">
+    ///   The lParam value passed to the current hook procedure. The meaning of this parameter depends on the type of
+    ///   hook associated with the current hook chain.
+    /// </param>
+    /// <returns>
+    ///   This value is returned by the next hook procedure in the chain. The current hook procedure must also return
+    ///   this value. The meaning of the return value depends on the hook type. For more information, see the
+    ///   descriptions of the individual hook procedures.
+    /// </returns>
+    [DllImport(nameof(User32), SetLastError = true)]
+    internal static extern int CallNextHookEx(
+      [In] IntPtr hhk,
+      [In] int nCode,
+      [In] IntPtr wParam,
+      [In] IntPtr lParam);
+
   }
+
+  #endregion
 }

@@ -73,7 +73,6 @@ HRESULT WINAPI CN2InstallAppShortcut(_In_ LPCWSTR szProductName, _In_ LPCWSTR sz
       if (FAILED(hr = InitPropVariantFromString(szAppId, &appIdPropVar))) { goto end; }
       if (FAILED(hr = pPropStore->SetValue(PKEY_AppUserModel_ID, appIdPropVar))) { goto end; }
 
-
       // commit changes to property store
       if (FAILED(hr = pPropStore->Commit())) { goto end; }
 

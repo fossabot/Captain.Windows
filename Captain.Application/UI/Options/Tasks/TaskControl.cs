@@ -16,7 +16,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Task associated with this control
     /// </summary>
-    private Task Task {
+    internal Task Task {
       get => this.task;
       set {
         this.task = value;
@@ -28,8 +28,13 @@ namespace Captain.Application {
     /// <summary>
     ///   Control initializer
     /// </summary>
-    /// <param name="task"></param>
-    public TaskControl(Task task = null) {
+    /// <remarks>
+    ///   TODO: replace onEdit, onDelete by events
+    /// </remarks>
+    /// <param name="task">Task</param>
+    /// <param name="onEdit">Action to execute on edit</param>
+    /// <param name="onDelete">Action to execute on delete</param>
+    public TaskControl(Task task = null, System.Action onEdit = null, System.Action onDelete = null) {
       SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.CacheText | ControlStyles.UserMouse |
                ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, true);
       InitializeComponent();
@@ -43,6 +48,9 @@ namespace Captain.Application {
       }
 
       Task = task;
+
+      this.editButton.Click += (s, e) => onEdit?.Invoke();
+      this.deleteButton.Click += (s, e) => onDelete?.Invoke();
     }
 
     /// <summary>

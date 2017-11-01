@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace Captain.Common {
   /// <summary>
@@ -13,6 +14,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Displays an interface for letting the user configure this object
     /// </summary>
-    void DisplayConfigurationInterface();
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    void DisplayConfigurationInterface(IWin32Window ownerWindow);
   }
 }

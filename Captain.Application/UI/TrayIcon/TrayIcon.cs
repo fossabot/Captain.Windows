@@ -52,7 +52,7 @@ namespace Captain.Application {
       NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
       NotifyIcon.MouseDown += (_, __) =>
         this.hintCircle?.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                                                new System.Action(() => this.hintCircle.Close()));
+          new System.Action(() => this.hintCircle.Close()));
 
       contextMenu.MenuItems.AddRange(new[] {
         new MenuItem(Resources.AppMenu_Capture) {
@@ -61,23 +61,21 @@ namespace Captain.Application {
         },
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Options,
-                     (s, e) => {
-                       try {
-                         new OptionsWindow().Show();
-                       } catch (InvalidOperationException) {
-                         // perhaps an instance of OptionsWindow has already been created
-                         // TODO: focus existing window - perhaps abstract this kind of behavior?
-                       }
-                     }),
+          (s, e) => {
+            try {
+              new OptionsWindow().Show();
+            } catch (ApplicationException) {
+              /* already open */
+            }
+          }),
         new MenuItem(Resources.AppMenu_About,
-                     (s, e) => {
-                       try {
-                         new AboutWindow().Show();
-                       } catch (InvalidOperationException) {
-                         // perhaps an instance of AboutWindow has already been created
-                         // TODO: focus existing window - perhaps abstract this kind of behavior?
-                       }
-                     }),
+          (s, e) => {
+            try {
+              new AboutWindow().Show();
+            } catch (ApplicationException) {
+              /*already open */
+            }
+          }),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Exit, (s, e) => Exit())
       });
@@ -149,7 +147,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="status">Indicator status</param>
     internal void SetIndicator(IndicatorStatus status) {
-      if (status != this.currentStatus && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
+      if ((status != this.currentStatus) && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
       NotifyIcon.Icon = this.iconRenderer.RenderFrame(this.currentStatus = status);
     }
 
@@ -248,7 +246,7 @@ namespace Captain.Application {
 
           // we found it, try to find the show/hide icons button
           IntPtr notifyFlyOutButtonHandle = User32.FindWindowEx(trayNotifyWindowHandle, lpszClass: "Button");
-          if (notifyFlyOutButtonHandle == IntPtr.Zero ||
+          if ((notifyFlyOutButtonHandle == IntPtr.Zero) ||
               !User32.GetWindowRect(notifyFlyOutButtonHandle, out RECT flyOutRect)) {
             throw new Win32Exception(Marshal.GetLastWin32Error());
           }

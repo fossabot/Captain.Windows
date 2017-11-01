@@ -7,7 +7,7 @@ using Captain.Common;
 
 namespace Captain.Application {
   [DisplayName("Copy to clipboard"), ThreadApartmentState(ApartmentState.STA)]
-  internal sealed class ClipboardOutputStream : MemoryStream, IOutputStream {
+  internal sealed class ClipboardOutputStream : MemoryStream, IOutputStream, IWithCustomImage {
     /// <inheritdoc />
     /// <summary>
     ///   Encoder information passed to this output stream
@@ -40,5 +40,11 @@ namespace Captain.Application {
 
       return result;
     }
+
+    /// <summary>
+    ///   Retrieves a custom image to be displayed alongside this plugin
+    /// </summary>
+    /// <returns>An <see cref="Image"/> instance</returns>
+    public Image GetCustomImage() => Resources.CopyToClipboard;
   }
 }

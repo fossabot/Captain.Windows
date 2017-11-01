@@ -18,11 +18,6 @@ namespace Captain.Application {
     private const string PageInitTriggerProperty = "OptionsPageInitialization";
 
     /// <summary>
-    ///   Whether an About window has already been opened before
-    /// </summary>
-    private static bool isOpen;
-
-    /// <summary>
     ///   Original window title
     /// </summary>
     private readonly string originalTitle;
@@ -37,7 +32,6 @@ namespace Captain.Application {
     ///   Class constructor
     /// </summary>
     public OptionsWindow() {
-      if (isOpen) { throw new InvalidOperationException("Creating multiple instances of this window is not allowed"); }
       InitializeComponent();
 
       // set window icon
@@ -47,12 +41,12 @@ namespace Captain.Application {
       this.originalTitle = Text = String.Format(Text, VersionInfo.ProductName);
 
       // initial setup
-      this.toolBar.SelectedIndex = (int)Application.Options.OptionsDialogTab;
+      this.toolBar.SelectedIndex = (int) Application.Options.OptionsDialogTab;
       OnSelectingPage(this,
-                      new TabControlCancelEventArgs(this.toolBar.SelectedTab,
-                                                    this.toolBar.SelectedIndex,
-                                                    false,
-                                                    TabControlAction.Selecting));
+        new TabControlCancelEventArgs(this.toolBar.SelectedTab,
+          this.toolBar.SelectedIndex,
+          false,
+          TabControlAction.Selecting));
       OnSizeChanged(new EventArgs());
     }
 
@@ -100,8 +94,8 @@ namespace Captain.Application {
     /// <param name="msg">Window message</param>
     protected override void WndProc(ref Message msg) {
       switch (msg.Msg) {
-        case (int)User32.WindowMessage.WM_DWMCOMPOSITIONCHANGED:
-        case (int)User32.WindowMessage.WM_DWMCOLORIZATIONCHANGED:
+        case (int) User32.WindowMessage.WM_DWMCOMPOSITIONCHANGED:
+        case (int) User32.WindowMessage.WM_DWMCOLORIZATIONCHANGED:
           // update toolbar accent color when colorization/composition changes
           this.toolBar.UpdateAccentColor();
           Invalidate(true);
@@ -119,7 +113,7 @@ namespace Captain.Application {
     /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
     /// <param name="eventArgs"></param>
     private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) {
+      if ((eventArgs.AffectedProperty != PageInitTriggerProperty) || (this.generalPage.Tag != null)) {
         // no need to initalize the page
         return;
       }
@@ -133,9 +127,9 @@ namespace Captain.Application {
       this.autoStartCheckBox.Checked = autoStartManager.GetAutoStartPolicy() == AutoStartPolicy.Approved;
       this.autoStartCheckBox.CheckStateChanged += (s, e) =>
         this.autoStartCheckBox.Checked = autoStartManager.ToggleAutoStart(this.autoStartCheckBox.Checked
-                                                                            ? AutoStartPolicy.Approved
-                                                                            : AutoStartPolicy.Disapproved,
-                                                                          (ModifierKeys & Keys.Shift) != 0)
+          ? AutoStartPolicy.Approved
+          : AutoStartPolicy.Disapproved,
+          (ModifierKeys & Keys.Shift) != 0)
                                                          .Equals(AutoStartPolicy.Approved);
 
       // tray icon display options
@@ -151,16 +145,16 @@ namespace Captain.Application {
         this.notificationOptionsComboBox.SelectedIndex = -1;
       } else {
         this.showNotificationsCheckBox.Checked = true;
-        this.notificationOptionsComboBox.SelectedIndex = (int)Application.Options.NotificationOptions - 1;
+        this.notificationOptionsComboBox.SelectedIndex = (int) Application.Options.NotificationOptions - 1;
 
         if (this.notificationOptionsComboBox.SelectedIndex == -1) {
-          this.notificationOptionsComboBox.SelectedIndex += (int)NotificationDisplayOptions.Always;
+          this.notificationOptionsComboBox.SelectedIndex += (int) NotificationDisplayOptions.Always;
         }
       }
 
       this.notificationOptionsComboBox.SelectionChangeCommitted += (s, e) =>
         Application.Options.NotificationOptions =
-          (NotificationDisplayOptions)(this.notificationOptionsComboBox.SelectedIndex + 1);
+          (NotificationDisplayOptions) (this.notificationOptionsComboBox.SelectedIndex + 1);
 
       // only show legacy notifications check box if this platform supports any other kind of notification provider
       this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
@@ -207,8 +201,8 @@ namespace Captain.Application {
         this.updateManagerUnavailableLabel.Visible = !(this.automaticUpdatesRadioButton.Enabled =
           this.checkUpdatesRadioButton.Enabled =
             this.disableUpdatesRadioButton.Enabled =
-              Application.UpdateManager.Availability == UpdaterAvailability.FullyAvailable &&
-              Application.UpdateManager.Status == UpdateStatus.Idle);
+              (Application.UpdateManager.Availability == UpdaterAvailability.FullyAvailable) &&
+              (Application.UpdateManager.Status == UpdateStatus.Idle));
 
         // track changes on the update manager
         Application.UpdateManager.OnUpdateStatusChanged += (m, s) => this.updateManagerUnavailableLabel.Visible =
@@ -221,8 +215,8 @@ namespace Captain.Application {
           !(this.automaticUpdatesRadioButton.Enabled =
             this.checkUpdatesRadioButton.Enabled =
               this.disableUpdatesRadioButton.Enabled =
-                a == UpdaterAvailability.FullyAvailable &&
-                m.Status == UpdateStatus.Idle);
+                (a == UpdaterAvailability.FullyAvailable) &&
+                (m.Status == UpdateStatus.Idle));
       }
     }
 
@@ -254,24 +248,12 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
-    ///   Triggered when the window is first shown
-    /// </summary>
-    /// <param name="eventArgs">Event arguments</param>
-    protected override void OnShown(EventArgs eventArgs) {
-      isOpen = true;
-      base.OnShown(eventArgs);
-    }
-
-    /// <inheritdoc />
-    /// <summary>
     ///   Triggered when the window is closed
     /// </summary>
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnClosed(EventArgs eventArgs) {
       // save currently  selected tab index
-      Application.Options.OptionsDialogTab = (uint)this.toolBar.SelectedIndex;
-
-      isOpen = false;
+      Application.Options.OptionsDialogTab = (uint) this.toolBar.SelectedIndex;
       base.OnClosed(eventArgs);
     }
 
@@ -300,14 +282,14 @@ namespace Captain.Application {
     private void OnHelpTipDraw(object sender, DrawToolTipEventArgs eventArgs) {
       eventArgs.Graphics.Clear(Color.White);
       eventArgs.Graphics.DrawRectangle(Pens.LightGray,
-                                       new Rectangle(0, 0, eventArgs.Bounds.Width - 1, eventArgs.Bounds.Height - 1));
+        new Rectangle(0, 0, eventArgs.Bounds.Width - 1, eventArgs.Bounds.Height - 1));
 
       TextRenderer.DrawText(eventArgs.Graphics,
-                            eventArgs.ToolTipText.Trim(),
-                            Font,
-                            Rectangle.Inflate(eventArgs.Bounds, -12, -12),
-                            ForeColor,
-                            TextFormatFlags.Left);
+        eventArgs.ToolTipText.Trim(),
+        Font,
+        Rectangle.Inflate(eventArgs.Bounds, -12, -12),
+        ForeColor,
+        TextFormatFlags.Left);
     }
 
     /// <summary>
@@ -332,7 +314,7 @@ namespace Captain.Application {
     /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
     /// <param name="eventArgs"></param>
     private void OnTasksPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.tasksPage.Tag != null) {
+      if ((eventArgs.AffectedProperty != PageInitTriggerProperty) || (this.tasksPage.Tag != null)) {
         // no need to initalize the page
         return;
       }
@@ -354,8 +336,24 @@ namespace Captain.Application {
     private void UpdateTaskList() {
       this.taskContainerPanel.Controls.Clear();
 
-      foreach (Task task in Application.Options.Tasks) {
-        this.taskContainerPanel.Controls.Add(new TaskControl(task) { Dock = DockStyle.Top });
+      for (var i = 0; i < Application.Options.Tasks.Count; i++) {
+        int localIndex = i;  // we need this so we don't access a changed `i` inside onEdit, onDelete closures
+
+        this.taskContainerPanel.Controls.Add(new TaskControl(Application.Options.Tasks[i],
+          onEdit: () => {
+            var dialog = new TaskPropertiesDialog(Application.Options.Tasks[localIndex]);
+
+            if (dialog.ShowDialog(this) == DialogResult.OK) {
+              Application.Options.Tasks[localIndex] = dialog.Task;
+              ((TaskControl) this.taskContainerPanel.Controls[localIndex]).Task = dialog.Task;
+            }
+          },
+          onDelete: () => {
+            this.taskContainerPanel.Controls.RemoveAt(localIndex);
+            Application.Options.Tasks.RemoveAt(localIndex);
+
+            this.emptyTaskListLabel.Visible = this.taskContainerPanel.Controls.Count == 0;
+          }) {Dock = DockStyle.Top});
       }
 
       this.emptyTaskListLabel.Visible = this.taskContainerPanel.Controls.Count == 0;
@@ -366,8 +364,13 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnCreateTaskButtonClicked(object sender, EventArgs eventArgs) =>
-      new TaskPropertiesDialog().ShowDialog(this);
+    private void OnCreateTaskButtonClicked(object sender, EventArgs eventArgs) {
+      var dialog = new TaskPropertiesDialog();
+      if (dialog.ShowDialog(this) == DialogResult.OK) {
+        Application.Options.Tasks.Add(dialog.Task);
+        UpdateTaskList();
+      }
+    }
 
     #endregion
   }

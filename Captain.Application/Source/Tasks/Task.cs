@@ -31,8 +31,8 @@ namespace Captain.Application {
     ///   Keys contains the type name for the output stream, while values hold an optional dictionary with the user
     ///   options for such stream
     /// </remarks>
-    public List<SerializableDictionary<string, SerializableDictionary<object, object>>> OutputStreams { get; set; } =
-      new List<SerializableDictionary<string, SerializableDictionary<object, object>>>();
+    public List<(string, SerializableDictionary<object, object>)> OutputStreams { get; set; } =
+      new List<(string, SerializableDictionary<object, object>)>();
 
     /// <summary>
     ///   Keyboard shortcut assigned to this task
@@ -43,5 +43,40 @@ namespace Captain.Application {
     ///   Custom notification options
     /// </summary>
     public NotificationDisplayOptions NotificationOptions { get; set; } = NotificationDisplayOptions.Inherit;
+
+    /// <summary>
+    ///   Creates a default screenshot task using predefined actions (i.e. for first application startup)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> instance</returns>
+    internal static Task CreateDefaultScreenshotTask() => new Task {
+      Name = "Default screenshot task",
+      Type = TaskType.Screenshot,
+      Parameters = new TaskParameters {
+        Encoder = typeof(PngCaptureEncoder).FullName,
+        RegionType = TaskRegionType.Grab
+      },
+      OutputStreams = new List<(string, SerializableDictionary<object, object>)> {
+        (typeof(ClipboardOutputStream).FullName, new SerializableDictionary<object, object>()),
+        (typeof(FileOutputStream).FullName, new SerializableDictionary<object, object>())
+      },
+      NotificationOptions = NotificationDisplayOptions.Inherit
+    };
+
+    /// <summary>
+    ///   Creates a default screenshot task using predefined actions (i.e. for first application startup)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> instance</returns>
+    internal static Task CreateDefaultRecordingTask() => new Task {
+      Name = "Default recording task",
+      Type = TaskType.Recording,
+      Parameters = new TaskParameters {
+        Encoder = typeof(H264CaptureEncoder).FullName,
+        RegionType = TaskRegionType.Grab
+      },
+      OutputStreams = new List<(string, SerializableDictionary<object, object>)> {
+        (typeof(FileOutputStream).FullName, new SerializableDictionary<object, object>())
+      },
+      NotificationOptions = NotificationDisplayOptions.Inherit
+    };
   }
 }

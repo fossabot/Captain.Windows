@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,7 +11,7 @@ namespace Captain.Application {
   ///   Provides file-system capture saving features
   /// </summary>
   [DisplayName("Save to file"), ThreadApartmentState(ApartmentState.STA)]
-  internal sealed class FileOutputStream : FileStream, IOutputStream, IConfigurableObject {
+  internal sealed class FileOutputStream : FileStream, IOutputStream, IConfigurableObject, IWithCustomImage {
     /// <summary>
     ///   Generated file name
     /// </summary>
@@ -26,6 +27,12 @@ namespace Captain.Application {
     ///   Extra data associated with this object that is to be saved to the user settings
     /// </summary>
     public IDictionary<object, object> UserConfiguration { get; set; }
+
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public void DisplayConfigurationInterface(IWin32Window ownerWindow) { throw new NotImplementedException(); }
 
     /// <inheritdoc />
     /// <summary>
@@ -83,12 +90,10 @@ namespace Captain.Application {
       return result;
     }
 
-    /// <inheritdoc />
     /// <summary>
-    ///   Displays an interface for letting the user configure this object
+    ///   Retrieves a custom image to be displayed alongside this plugin
     /// </summary>
-    public void DisplayConfigurationInterface() {
-      MessageBox.Show(@"Hallo Welt!");
-    }
+    /// <returns>An <see cref="Image"/> instance</returns>
+    public Image GetCustomImage() => Resources.SaveToFile;
   }
 }

@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Windows.Forms;
 using Captain.Application.Native;
+using Captain.Common;
 
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
   ///   Represents a dialog in which the user can pick one or more output streams
   /// </summary>
-  internal partial class OutputStreamSelectionDialog : Window {
+  internal sealed partial class OutputStreamSelectionDialog : Window {
     /// <summary>
     ///   Contains all the streams that have been selected
     /// </summary>
@@ -32,18 +34,18 @@ namespace Captain.Application {
     /// <param name="m">The Windows <see cref="T:System.Windows.Forms.Message" /> to process.</param>
     protected override void WndProc(ref Message m) {
       switch (m.Msg) {
-        case (int)User32.WindowMessage.WM_NOTIFY:
+        case (int) User32.WindowMessage.WM_NOTIFY:
           // get notification header
-          var nmhdr = (User32.NMHDR)m.GetLParam(typeof(User32.NMHDR));
+          var nmhdr = (User32.NMHDR) m.GetLParam(typeof(User32.NMHDR));
 
-          switch ((uint)nmhdr.code) {
-            case User32.LVN_GETEMPTYMARKUP:  // ListViewEx is requesting empty markup
+          switch ((uint) nmhdr.code) {
+            case User32.LVN_GETEMPTYMARKUP: // ListViewEx is requesting empty markup
               if (FromHandle(nmhdr.hwndFrom) == this.streamListView) {
                 // get markup data
-                var markup = (User32.NMLVEMPTYMARKUP)m.GetLParam(typeof(User32.NMLVEMPTYMARKUP));
+                var markup = (User32.NMLVEMPTYMARKUP) m.GetLParam(typeof(User32.NMLVEMPTYMARKUP));
 
                 // draw centered
-                markup.dwFlags = (int)User32.EMF_CENTERED;
+                markup.dwFlags = (int) User32.EMF_CENTERED;
 
                 // set markup string
                 markup.szMarkup = Resources.OutputStreamSelectionDialog_EmptyMarkup;
@@ -70,15 +72,25 @@ namespace Captain.Application {
     /// </summary>
     private new void Update() {
       this.streamListView.Clear();
+      this.streamIconList.Images.Clear();
+
       this.streamListView.View = View.Tile;
 
-      this.streamListView.Columns.Add(new ColumnHeader { Name = "streamName" });
-      this.streamListView.Columns.Add(new ColumnHeader { Name = "pluginName" });
-      this.streamListView.Columns.Add(new ColumnHeader { Name = "publisherName" });
+      this.streamListView.Columns.Add(new ColumnHeader {Name = "streamName"});
+      this.streamListView.Columns.Add(new ColumnHeader {Name = "pluginName"});
+      this.streamListView.Columns.Add(new ColumnHeader {Name = "publisherName"});
 
-      this.streamListView.Items.AddRange(Application.PluginManager.OutputStreams.Select(s => {
+      this.streamListView.Items.AddRange(Application.PluginManager.OutputStreams.Select((s, i) => {
+        try {
+          this.streamIconList.Images.Add(s.Type.GetInterface("IWithCustomImage") != null
+            ? ((IWithCustomImage) FormatterServices.GetUninitializedObject(s.Type)).GetCustomImage()
+            : Resources.Placeholder);
+        } catch {
+          this.streamIconList.Images.Add(Resources.Placeholder);
+        }
+
         var item = new ListViewItem(s.ToString()) {
-          ImageIndex = 0,
+          ImageIndex = i,
           UseItemStyleForSubItems = true,
           Tag = s
         };
@@ -86,7 +98,7 @@ namespace Captain.Application {
         Assembly pluginAssembly = s.Type.Assembly;
         try {
           string title =
-            ((AssemblyTitleAttribute)pluginAssembly.GetCustomAttribute(typeof(AssemblyTitleAttribute))).Title;
+            ((AssemblyTitleAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyTitleAttribute))).Title;
           item.SubItems.Add(new ListViewItem.ListViewSubItem(item, $"{title} ({pluginAssembly.GetName().Version})"));
         } catch {
           item.SubItems.Add(new ListViewItem.ListViewSubItem(item, pluginAssembly.GetName().Name));
@@ -94,7 +106,7 @@ namespace Captain.Application {
 
         try {
           string company =
-            ((AssemblyCompanyAttribute)pluginAssembly.GetCustomAttribute(typeof(AssemblyCompanyAttribute))).Company;
+            ((AssemblyCompanyAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyCompanyAttribute))).Company;
           item.SubItems.Add(new ListViewItem.ListViewSubItem(item, company));
         } catch {
           item.SubItems.Add(new ListViewItem.ListViewSubItem(item, Resources.Plugin_DefaultPublisherName));
@@ -103,6 +115,7 @@ namespace Captain.Application {
         return item;
       }).ToArray());
     }
+
     /// <summary>
     ///   Triggered when the stream selection has changed
     /// </summary>
@@ -117,5 +130,12 @@ namespace Captain.Application {
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
     private void OnButtonClick(object sender, EventArgs eventArgs) => Close();
+
+    /// <summary>
+    ///   Triggered when an item is activated
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnStreamItemActivated(object sender, EventArgs eventArgs) => this.okButton.PerformClick();
   }
 }

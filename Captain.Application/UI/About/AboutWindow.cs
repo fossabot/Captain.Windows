@@ -4,20 +4,15 @@ using System.Drawing;
 using System.Windows.Forms;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Displays information about the application
   /// </summary>
   internal sealed partial class AboutWindow : Window {
     /// <summary>
-    ///   Whether an About window has already been opened before
-    /// </summary>
-    private static bool isOpen;
-
-    /// <summary>
     ///   Class constructor
     /// </summary>
     public AboutWindow() {
-      if (isOpen) { throw new InvalidOperationException("Creating multiple instances of this window is not allowed"); }
       InitializeComponent();
 
       // set dialog icon and logo resource
@@ -81,25 +76,6 @@ namespace Captain.Application {
       }
 
       this.updateStatusLabel.Suffix = progress.HasValue ? $"({progress}%)" : "";
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Triggered when the window is first shown
-    /// </summary>
-    /// <param name="eventArgs">Event arguments</param>
-    protected override void OnShown(EventArgs eventArgs) {
-      isOpen = true;
-      base.OnShown(eventArgs);
-    }
-
-    /// <summary>
-    ///   Triggered when the window is closed
-    /// </summary>
-    /// <param name="eventArgs">Event arguments</param>
-    protected override void OnClosed(EventArgs eventArgs) {
-      isOpen = false;
-      base.OnClosed(eventArgs);
     }
 
     /// <summary>
@@ -170,5 +146,14 @@ namespace Captain.Application {
     ///   XXX: I'm not saying this is wrong, but it certainly *feels* wrong... idk it works at least
     /// </remarks>
     private void OnSupportLinkClick(object sender, EventArgs eventArgs) => Process.Start(this.supportUriLinkLabel.Text);
+
+    /// <summary>
+    ///   Paints a top border on the bottom panel
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs"></param>
+    private void OnBottomPanelPaint(object sender, PaintEventArgs eventArgs) {
+      eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x10, 0, 0, 0)), 0, 0, Width, 0);
+    }
   }
 }

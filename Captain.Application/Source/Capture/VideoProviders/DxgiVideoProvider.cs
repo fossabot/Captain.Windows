@@ -292,5 +292,19 @@ namespace Captain.Application {
       bitmap.UnlockBits(data);
       return bitmap;
     }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Updates the video provider capture position
+    /// </summary>
+    /// <remarks>
+    ///   TODO: Implement this feature - it may seem trivial but when moving *across* different display devices,
+    ///         textures may have to be created each time the position is updated (!) Find a way to performantly
+    ///         achieve this (e.g. find a way to use a global, shared texture the size of the actual region instead of
+    ///         splitting this into different textures for each output device)
+    /// </remarks>
+    /// <param name="x">New X axis value</param>
+    /// <param name="y">New Y axis value</param>
+    public override void UpdatePosition(int x, int y) => throw new NotImplementedException();
   }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Windows.Forms;
 using Captain.Common;
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -8,11 +10,12 @@ using SharpDX.MediaFoundation;
 using SharpDX.Multimedia;
 
 namespace Captain.Application {
-  /// <inheritdoc />
+  /// <inheritdoc cref="IVideoEncoder" />
   /// <summary>
   ///   Provides a generic H.264 video encoder
   /// </summary>
-  internal sealed class H264CaptureEncoder : IVideoEncoder {
+  [DisplayName("MP4 (H.264)")]
+  internal sealed class H264CaptureEncoder : IVideoEncoder, IConfigurableObject {
     /// <summary>
     ///   Byte stream for writing data
     /// </summary>
@@ -41,6 +44,21 @@ namespace Captain.Application {
       Extension = "mp4",
       MediaType = "video/mp4"
     };
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Extra data associated with this object that is to be saved to the user settings
+    /// </summary>
+    public IDictionary<object, object> UserConfiguration { get; set; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public void DisplayConfigurationInterface(IWin32Window ownerWindow) {
+      MessageBox.Show(ownerWindow, @"hello world!");
+    }
 
     /// <inheritdoc />
     /// <summary>

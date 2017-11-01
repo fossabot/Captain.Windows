@@ -29,7 +29,7 @@ namespace Captain.Application {
       this.components = new System.ComponentModel.Container();
       this.logoPictureBox = new System.Windows.Forms.PictureBox();
       this.versionLabel = new System.Windows.Forms.Label();
-      this.panel1 = new System.Windows.Forms.Panel();
+      this.bottomPanel = new System.Windows.Forms.Panel();
       this.licensingLinkLabel = new Captain.Application.LinkLabel2();
       this.closeButton = new System.Windows.Forms.Button();
       this.supportUriLinkLabel = new Captain.Application.LinkLabel2();
@@ -37,7 +37,7 @@ namespace Captain.Application {
       this.updateStatusLabel = new Captain.Application.EllipsisProgressLabel();
       this.distributionLabel = new System.Windows.Forms.Label();
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
-      this.panel1.SuspendLayout();
+      this.bottomPanel.SuspendLayout();
       this.SuspendLayout();
       // 
       // logoPictureBox
@@ -59,21 +59,23 @@ namespace Captain.Application {
       this.versionLabel.Tag = "Version";
       this.versionLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.OnLabelPaint);
       // 
-      // panel1
+      // bottomPanel
       // 
-      this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(231)))), ((int)(((byte)(231)))));
-      this.panel1.Controls.Add(this.licensingLinkLabel);
-      this.panel1.Controls.Add(this.closeButton);
-      this.panel1.Location = new System.Drawing.Point(0, 275);
-      this.panel1.Name = "panel1";
-      this.panel1.Size = new System.Drawing.Size(304, 46);
-      this.panel1.TabIndex = 3;
+      this.bottomPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(231)))), ((int)(((byte)(231)))));
+      this.bottomPanel.Controls.Add(this.licensingLinkLabel);
+      this.bottomPanel.Controls.Add(this.closeButton);
+      this.bottomPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+      this.bottomPanel.Location = new System.Drawing.Point(0, 275);
+      this.bottomPanel.Name = "bottomPanel";
+      this.bottomPanel.Size = new System.Drawing.Size(304, 46);
+      this.bottomPanel.TabIndex = 3;
+      this.bottomPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.OnBottomPanelPaint);
       // 
       // licensingLinkLabel
       // 
       this.licensingLinkLabel.ForeColor = System.Drawing.SystemColors.HotTrack;
       this.licensingLinkLabel.HoverColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(103)))), ((int)(((byte)(155)))));
-      this.licensingLinkLabel.Location = new System.Drawing.Point(12, 14);
+      this.licensingLinkLabel.Location = new System.Drawing.Point(15, 15);
       this.licensingLinkLabel.Name = "licensingLinkLabel";
       this.licensingLinkLabel.RegularColor = System.Drawing.Color.FromArgb(((int)(((byte)(65)))), ((int)(((byte)(103)))), ((int)(((byte)(141)))));
       this.licensingLinkLabel.Size = new System.Drawing.Size(124, 16);
@@ -85,7 +87,7 @@ namespace Captain.Application {
       // 
       this.closeButton.DialogResult = System.Windows.Forms.DialogResult.OK;
       this.closeButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.closeButton.Location = new System.Drawing.Point(217, 11);
+      this.closeButton.Location = new System.Drawing.Point(217, 12);
       this.closeButton.Name = "closeButton";
       this.closeButton.Size = new System.Drawing.Size(75, 23);
       this.closeButton.TabIndex = 4;
@@ -137,7 +139,7 @@ namespace Captain.Application {
       this.Controls.Add(this.distributionLabel);
       this.Controls.Add(this.updateStatusLabel);
       this.Controls.Add(this.supportUriLinkLabel);
-      this.Controls.Add(this.panel1);
+      this.Controls.Add(this.bottomPanel);
       this.Controls.Add(this.versionLabel);
       this.Controls.Add(this.logoPictureBox);
       this.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -150,7 +152,7 @@ namespace Captain.Application {
       this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
       this.Text = "About {0}";
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).EndInit();
-      this.panel1.ResumeLayout(false);
+      this.bottomPanel.ResumeLayout(false);
       this.ResumeLayout(false);
 
     }
@@ -159,12 +161,12 @@ namespace Captain.Application {
 
     private PictureBox logoPictureBox;
     private Label versionLabel;
-    private Panel panel1;
     private Button closeButton;
     private LinkLabel2 supportUriLinkLabel;
     private LinkLabel2 licensingLinkLabel;
     private ToolTip toolTip;
     private EllipsisProgressLabel updateStatusLabel;
     private Label distributionLabel;
+    private Panel bottomPanel;
   }
 }

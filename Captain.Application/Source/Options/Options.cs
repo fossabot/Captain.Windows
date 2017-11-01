@@ -59,6 +59,11 @@ namespace Captain.Application {
     public List<Task> Tasks { get; set; } = new List<Task>();
 
     /// <summary>
+    ///   Whether the output stream options tip in the selection dialog has been dismissed or not
+    /// </summary>
+    public bool StreamOptionsTipDismissed { get; set; }
+
+    /// <summary>
     ///   Loads an <see cref="Options"/> instance from file
     /// </summary>
     /// <returns>An instance of the <see cref="Options"/> class</returns>

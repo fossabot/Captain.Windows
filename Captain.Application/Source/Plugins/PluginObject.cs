@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Captain.Common;
 using static Captain.Application.Application;
 
@@ -26,16 +27,22 @@ namespace Captain.Application {
     internal bool Configurable { get; }
 
     /// <summary>
+    ///   Whether this object is built-in in the application assembly
+    /// </summary>
+    internal bool BuiltIn { get; }
+
+    /// <summary>
     ///   Instantiates a new plugin object
     /// </summary>
     /// <param name="type">Type name</param>
     internal PluginObject(Type type) {
       Type = type;
+      BuiltIn = Type.Assembly.Equals(Assembly.GetExecutingAssembly());
 
       try {
         // get localized display name, preferring the one most close to the current UI locale
         this.displayName = (type.GetCustomAttributes(typeof(DisplayName), true)
-                                .OrderBy(dn => ((DisplayName) dn).LanguageCode != null &&
+                                .OrderBy(dn => (((DisplayName) dn).LanguageCode != null) &&
                                                CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
                                                           .StartsWith(((DisplayName) dn).LanguageCode,
                                                                       StringComparison.OrdinalIgnoreCase))

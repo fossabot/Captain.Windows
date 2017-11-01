@@ -75,6 +75,7 @@ namespace Captain.Application {
       cancelButton.TabIndex = 3;
       cancelButton.Text = "&Cancel";
       cancelButton.UseVisualStyleBackColor = true;
+      cancelButton.Click += new System.EventHandler(this.OnButtonClicked);
       // 
       // taskNameLabel
       // 
@@ -171,6 +172,7 @@ namespace Captain.Application {
       this.okButton.TabIndex = 4;
       this.okButton.Text = "&OK";
       this.okButton.UseVisualStyleBackColor = true;
+      this.okButton.Click += new System.EventHandler(this.OnButtonClicked);
       // 
       // topButtonPaneBorder
       // 
@@ -287,6 +289,7 @@ namespace Captain.Application {
       this.encoderOptionsLinkButton.TabIndex = 24;
       this.encoderOptionsLinkButton.TintColor = System.Drawing.Color.Transparent;
       this.toolTip.SetToolTip(this.encoderOptionsLinkButton, "Encoder options…");
+      this.encoderOptionsLinkButton.Click += new System.EventHandler(this.OnEncoderOptionsLinkButtonClicked);
       // 
       // encoderComboBox
       // 
@@ -304,7 +307,7 @@ namespace Captain.Application {
       this.AcceptButton = this.okButton;
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.BackColor = System.Drawing.SystemColors.Window;
+      this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.CancelButton = cancelButton;
       this.ClientSize = new System.Drawing.Size(344, 381);
       this.Controls.Add(this.encoderOptionsLinkButton);

@@ -1,11 +1,12 @@
 ﻿using System;
 
 namespace Captain.Common {
+  /// <inheritdoc />
   /// <summary>
   ///   Specifies a custom display name for this object
   /// </summary>
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-  public class DisplayName : Attribute {
+  public sealed class DisplayName : Attribute {
     /// <summary>
     ///   Language code (may be <c>null</c>)
     /// </summary>
@@ -16,12 +17,14 @@ namespace Captain.Common {
     /// </summary>
     public string Name { get; }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Sets the neutral display name for this object
     /// </summary>
     /// <param name="name">Display name</param>
     public DisplayName(string name) => Name = name;
 
+    /// <inheritdoc />
     /// <summary>
     ///   Sets the localized display name for this object
     /// </summary>

@@ -67,11 +67,12 @@
     <Compile Include="Source\Capture\Encoder\IStaticEncoder.cs" />
     <Compile Include="Source\Capture\Encoder\IVideoEncoder.cs" />
     <Compile Include="Source\Capture\CaptureResult.cs" />
-    <Compile Include="Source\Capture\CompatHelpers.cs" />
-    <Compile Include="Source\Capture\IConfigurableObject.cs" />
+    <Compile Include="Source\CompatHelpers.cs" />
+    <Compile Include="Source\IConfigurableObject.cs" />
     <Compile Include="Source\Capture\Streams\IOutputStream.cs" />
     <Compile Include="Source\Capture\Streams\UnsupportedMediaException.cs" />
     <Compile Include="Source\Capture\VideoProvider.cs" />
+    <Compile Include="Source\IWithCustomImage.cs" />
     <Compile Include="Source\Logging\Logger.cs" />
     <Compile Include="Source\Logging\LogLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

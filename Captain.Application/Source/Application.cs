@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
-using System.Windows.Forms;
 using Captain.Application.Native;
 using Captain.Common;
 using Process = System.Diagnostics.Process;
@@ -17,7 +15,22 @@ namespace Captain.Application {
   /// <summary>
   ///   Defines basic logic behind the application
   /// </summary>
+  /// <remarks>
+  ///   TODO: Refactor all this. Reduce app startup impact in performance and initialize things gradually as they are
+  ///   needed - do not forget this is a tray icon, not a full-blown foreground application!
+  /// </remarks>
   internal static class Application {
+    /// <summary>
+    ///   Event handler delegate, triggered when toast notifications provider availability changes
+    ///   (i.e. the user disables notifications for the application or these are disallowed by group policies, etc.)
+    /// </summary>
+    /// <remarks>
+    ///   TODO: Move this to somewhere else more appropriate - or delete it altogether if not needed
+    /// </remarks>
+    /// <param name="newProvider">New toast provider instance</param>
+    /// <param name="toastsSupported">Whether Windows >= 8 adaptive toast notifications are supported</param>
+    internal delegate void ToastProviderAvailabilityChangedHandler(IToastProvider newProvider, bool toastsSupported);
+
     /// <summary>
     ///   Windows Application instance
     /// </summary>
@@ -111,14 +124,6 @@ namespace Captain.Application {
     internal static bool FirstTime { get; private set; }
 
     /// <summary>
-    ///   Event handler delegate, triggered when toast notifications provider availability changes
-    ///   (i.e. the user disables notifications for the application or these are disallowed by group policies, etc.)
-    /// </summary>
-    /// <param name="newProvider">New toast provider instance</param>
-    /// <param name="toastsSupported">Whether Windows >= 8 adaptive toast notifications are supported</param>
-    internal delegate void ToastProviderAvailabilityChangedHandler(IToastProvider newProvider, bool toastsSupported);
-
-    /// <summary>
     ///   Triggered when the notification provider availability changes
     /// </summary>
     internal static event ToastProviderAvailabilityChangedHandler OnToastProviderAvailabilityChanged;
@@ -136,9 +141,15 @@ namespace Captain.Application {
         Options?.Save();
         UpdateManager?.Dispose();
 
-        GC.WaitForPendingFinalizers();
         loggerStream.Dispose();
         Log.Streams.Clear();
+
+        GC.WaitForPendingFinalizers();
+      } catch (Exception exception) {
+        // try to log exceptions
+        if ((Log.Streams?.Count > 0) && Log.Streams.All(s => s.CanWrite)) {
+          Log.WriteLine(LogLevel.Error, $"exception caught: {exception}");
+        }
       } finally {
         if (exit) { application.Shutdown(exitCode); }
       }
@@ -164,25 +175,28 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="hard">Removes everything under the application directory</param>
     internal static void Reset(bool hard = false) {
-      var nodes = new List<string> { Path.Combine(FsManager.GetSafePath(), Options.OptionsFileName) };
+      var nodes = new List<string> {Path.Combine(FsManager.GetSafePath(), Options.OptionsFileName)};
 
       if (hard) {
         Log.WriteLine(LogLevel.Warning, "performing hard reset!");
-        nodes.AddRange(new[] { FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath }
-                         .Select(FsManager.GetSafePath));
+        nodes.AddRange(new[] {FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath}
+          .Select(FsManager.GetSafePath));
       }
 
-      Log.WriteLine(LogLevel.Verbose, $"deleting nodes: {String.Join(";", nodes)}");
+      Log.WriteLine(LogLevel.Verbose, $"deleting nodes: {String.Join("; ", nodes)}");
       Exit(0, false);
-      Process.Start(Assembly.GetExecutingAssembly().Location, $"--rmnodes \"{String.Join("\" \"", nodes)}\"");
+      Process.Start(Assembly.GetExecutingAssembly().Location,
+        $"--kill {Process.GetCurrentProcess().Id} --rmnodes \"{String.Join("\" \"", nodes)}\"");
+      Environment.Exit(0);
     }
 
     /// <summary>
     ///   Program entry point
     /// </summary>
     /// <param name="args">Command-line arguments passed to the program</param>
-    [STAThread, SuppressMessage("ReSharper", "PatternAlwaysMatches")]
+    [STAThread]
     private static void Main(string[] args) {
+      // ReSharper disable PatternAlwaysMatches
       if (Array.IndexOf(args, "--rmnodes") is int i && (i != -1)) {
         for (int j = i + 1; j < args.Length; j++) {
           try {
@@ -205,13 +219,12 @@ namespace Captain.Application {
             Console.WriteLine(@"Failed to retrieve attributes for node - {0}", args[j]);
           }
         }
+      }
 
-        Process.Start(Assembly.GetExecutingAssembly().Location);
-        Environment.Exit(0);
-      } else if (Array.IndexOf(args, "--kill") is int k &&
-                 (k != -1) &&
-                 ((1 + k) < args.Length) &&
-                 UInt16.TryParse(args[1 + k], out ushort pid)) {
+      if (Array.IndexOf(args, "--kill") is int k &&
+          (k != -1) &&
+          ((1 + k) < args.Length) &&
+          UInt16.TryParse(args[1 + k], out ushort pid)) {
         try {
           Process.GetProcessById(pid).Kill();
         } catch {
@@ -241,8 +254,8 @@ namespace Captain.Application {
       try {
         // create/open log file stream
         loggerStream = new FileStream(Path.Combine(FsManager.GetSafePath(FsManager.LogsPath),
-                                                   DateTime.UtcNow.ToString("yy.MM.dd") + ".log"),
-                                      FileMode.Append);
+          DateTime.UtcNow.ToString("yy.MM.dd") + ".log"),
+          FileMode.Append);
         Log.Streams.Add(loggerStream);
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Warning, $"could not open logger stream: {exception}");
@@ -256,6 +269,12 @@ namespace Captain.Application {
       if (Options.LastVersion != VersionString) {
         Log.WriteLine(LogLevel.Informational, "this is the first time the user opens the app - welcome!");
         Options.LastVersion = VersionString;
+
+        // create default tasks
+        Log.WriteLine(LogLevel.Informational, "creating default tasks");
+        Options.Tasks.Add(Task.CreateDefaultScreenshotTask());
+        Options.Tasks.Add(Task.CreateDefaultRecordingTask());
+
         Options.Save();
         FirstTime = true;
       }
@@ -263,6 +282,7 @@ namespace Captain.Application {
       // XXX: create application shortcut
       //      Since Windows 10 1709 (Fall Update) an application **requires** an AppID to be registered within a
       //      start menu entry in order to use toast notifications
+      // TODO: reimplement this in managed code
       int hr = Shell.InstallAppShortcut(VersionInfo.ProductName, Assembly.GetExecutingAssembly().Location, Guid);
       if (hr != 0) {
         Log.WriteLine(LogLevel.Debug, $"InstallAppShortcut() did not succeed (0x{hr:x8}) - toasts won't be available");
@@ -288,28 +308,17 @@ namespace Captain.Application {
 
       TrayIcon = new TrayIcon();
 
-      void MyLittleCallback(bool exclusive) {
-        Action action = ActionManager.CreateDefault();
-
-        if (exclusive) {
-          action.Start(new CaptureIntent(ActionType.Screenshot));
-        } else {
-          action.BindGrabberUi(Grabber.Create(action.ActionTypes));
-        }
-      }
-
-      TrayIcon.NotifyIcon.MouseClick += (_, mouseEventArgs) => {
-        if (mouseEventArgs.Button == MouseButtons.Left) {
-          MyLittleCallback(false);
-        }
-      };
-
-      application = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+      // TODO: get rid of WPF-dependent code
+      application = new System.Windows.Application {ShutdownMode = ShutdownMode.OnExplicitShutdown};
       application.Exit += (_, __) => {
         lock (SingleInstanceMutex) {
           SingleInstanceMutex.ReleaseMutex();
         }
       };
+
+      var snackBarWrapper = new SnackBarWrapper();
+      snackBarWrapper.Show();
+      var snackBar = new SnackBar(snackBarWrapper);
 
       application.Run();
     }
@@ -317,29 +326,30 @@ namespace Captain.Application {
     /// <summary>
     ///   Gets a semantic version string for the application
     /// </summary>
+    /// <remarks>
+    ///   TODO: Change application versioning to something more consistent. Get rid of semver, it can not be used with
+    ///   .NET assemblies without all this hassle
+    /// </remarks>
     /// <returns>A string representing the application version</returns>
     private static string GetVersionString() {
       string version =
         $"{VersionInfo.ProductMajorPart}.{VersionInfo.ProductMinorPart}.{VersionInfo.ProductPrivatePart}";
       Assembly assembly = Assembly.GetExecutingAssembly();
-      List<AssemblyMetadataAttribute> metadataAttributes = assembly
+      List<AssemblyMetadataAttribute> metaAttrs = assembly
         .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
         .Cast<AssemblyMetadataAttribute>()
         .ToList();
 
-      if (!metadataAttributes.Any()) { return version; }
-      if (metadataAttributes.Any(a => a.Key == "prerelease")) {
-        AssemblyMetadataAttribute attribute = metadataAttributes.First(a => a.Key == "prerelease");
+      if (!metaAttrs.Any()) { return version; }
+      if (metaAttrs.Any(a => a.Key == "prerelease")) {
+        AssemblyMetadataAttribute attribute = metaAttrs.First(a => a.Key == "prerelease");
         version += '-' + attribute.Value;
-        metadataAttributes.Remove(attribute);
+        metaAttrs.Remove(attribute);
       }
 
-      return (version +
-              '+' +
-              String.Join(".",
-                          metadataAttributes.Where(a => a.Value.Length == 0)
-                                            .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))))
-        .TrimEnd('.', '+');
+      return version + '+' + String.Join(".",
+        metaAttrs.Where(a => a.Value.Length == 0)
+                 .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))).TrimEnd('.', '+');
     }
 
     /// <summary>

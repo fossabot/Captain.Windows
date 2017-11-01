@@ -18,6 +18,12 @@ namespace Captain.Application {
     /// </summary>
     public IDictionary<object, object> UserConfiguration { get; set; }
 
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public void DisplayConfigurationInterface(IWin32Window ownerWindow) { throw new System.NotImplementedException(); }
+
     /// <inheritdoc />
     /// <summary>
     ///   Encoder information
@@ -33,13 +39,5 @@ namespace Captain.Application {
     /// <param name="bitmap">Capture</param>
     /// <param name="outputStream">Output stream</param>
     public void Encode(Bitmap bitmap, Stream outputStream) => bitmap.Save(outputStream, ImageFormat.Jpeg);
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Displays an interface for letting the user configure this object
-    /// </summary>
-    public void DisplayConfigurationInterface() {
-      MessageBox.Show(@"Hello, world!");
-    }
   }
 }

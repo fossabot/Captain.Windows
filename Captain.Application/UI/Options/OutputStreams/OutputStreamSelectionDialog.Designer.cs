@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 
 namespace Captain.Application {
-  partial class OutputStreamSelectionDialog {
+  sealed partial class OutputStreamSelectionDialog {
     /// <summary>
     /// Required designer variable.
     /// </summary>
@@ -28,7 +28,6 @@ namespace Captain.Application {
     private void InitializeComponent() {
       this.components = new System.ComponentModel.Container();
       System.Windows.Forms.Button cancelButton;
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OutputStreamSelectionDialog));
       this.okButton = new System.Windows.Forms.Button();
       this.streamIconList = new System.Windows.Forms.ImageList(this.components);
       this.panel1 = new System.Windows.Forms.Panel();
@@ -67,9 +66,9 @@ namespace Captain.Application {
       // 
       // streamIconList
       // 
-      this.streamIconList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("streamIconList.ImageStream")));
+      this.streamIconList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
+      this.streamIconList.ImageSize = new System.Drawing.Size(32, 32);
       this.streamIconList.TransparentColor = System.Drawing.Color.Transparent;
-      this.streamIconList.Images.SetKeyName(0, "");
       // 
       // panel1
       // 
@@ -95,20 +94,22 @@ namespace Captain.Application {
       // streamListView
       // 
       this.streamListView.Activation = System.Windows.Forms.ItemActivation.TwoClick;
+      this.streamListView.BackColor = System.Drawing.Color.WhiteSmoke;
       this.streamListView.BorderStyle = System.Windows.Forms.BorderStyle.None;
       this.streamListView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.streamListView.FullRowSelect = true;
       this.streamListView.HideSelection = false;
       this.streamListView.LargeImageList = this.streamIconList;
-      this.streamListView.Location = new System.Drawing.Point(0, 0);
+      this.streamListView.Location = new System.Drawing.Point(0, 1);
       this.streamListView.Name = "streamListView";
       this.streamListView.ShowGroups = false;
       this.streamListView.ShowItemToolTips = true;
-      this.streamListView.Size = new System.Drawing.Size(344, 240);
+      this.streamListView.Size = new System.Drawing.Size(344, 239);
       this.streamListView.TabIndex = 0;
       this.streamListView.TileSize = new System.Drawing.Size(326, 56);
       this.streamListView.UseCompatibleStateImageBehavior = false;
       this.streamListView.View = System.Windows.Forms.View.Tile;
+      this.streamListView.ItemActivate += new System.EventHandler(this.OnStreamItemActivated);
       this.streamListView.ItemSelectionChanged += new System.Windows.Forms.ListViewItemSelectionChangedEventHandler(this.OnStreamSelectionChanged);
       // 
       // OutputStreamSelectionDialog
@@ -116,7 +117,7 @@ namespace Captain.Application {
       this.AcceptButton = this.okButton;
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.BackColor = System.Drawing.Color.White;
+      this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.CancelButton = cancelButton;
       this.ClientSize = new System.Drawing.Size(344, 281);
       this.Controls.Add(this.streamListView);
@@ -128,6 +129,7 @@ namespace Captain.Application {
       this.MinimizeBox = false;
       this.MinimumSize = new System.Drawing.Size(360, 320);
       this.Name = "OutputStreamSelectionDialog";
+      this.Padding = new System.Windows.Forms.Padding(0, 1, 0, 0);
       this.ShowIcon = false;
       this.ShowInTaskbar = false;
       this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;

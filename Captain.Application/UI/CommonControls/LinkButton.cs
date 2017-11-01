@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using Captain.Application.Native;
 
 // ReSharper disable MemberCanBePrivate.Global
+
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
@@ -14,14 +15,14 @@ namespace Captain.Application {
   /// </summary>
   internal sealed class LinkButton : Control {
     /// <summary>
-    ///   Indicates whether the mouse is over the control or not
-    /// </summary>
-    private bool mouseOver;
-
-    /// <summary>
     ///   Indicates whether the mouse button is pressed or not
     /// </summary>
     private bool mouseDown;
+
+    /// <summary>
+    ///   Indicates whether the mouse is over the control or not
+    /// </summary>
+    private bool mouseOver;
 
     /// <summary>
     ///   Specifies a tint color for this control
@@ -40,8 +41,8 @@ namespace Captain.Application {
     /// <param name="m">The Windows <see cref="T:System.Windows.Forms.Message" /> to process.</param>
     protected override void WndProc(ref Message m) {
       if (!DesignMode) {
-        if (m.Msg == (int)User32.WindowMessage.WM_SETCURSOR) {
-          User32.SetCursor(User32.LoadCursor(IntPtr.Zero, new IntPtr((int)User32.SystemResources.IDC_HAND)));
+        if (m.Msg == (int) User32.WindowMessage.WM_SETCURSOR) {
+          User32.SetCursor(User32.LoadCursor(IntPtr.Zero, new IntPtr((int) User32.SystemResources.IDC_HAND)));
           m.Result = IntPtr.Zero;
           return;
         }
@@ -49,7 +50,6 @@ namespace Captain.Application {
 
       base.WndProc(ref m);
     }
-
 
     /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.HandleCreated" /> event.</summary>
@@ -60,7 +60,7 @@ namespace Captain.Application {
                ControlStyles.AllPaintingInWmPaint |
                ControlStyles.DoubleBuffer |
                ControlStyles.StandardClick,
-               true);
+        true);
       base.OnHandleCreated(eventArgs);
     }
 
@@ -91,6 +91,7 @@ namespace Captain.Application {
       base.OnMouseDown(e);
     }
 
+    /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.MouseUp" /> event.</summary>
     /// <param name="e">A <see cref="T:System.Windows.Forms.MouseEventArgs" /> that contains the event data. </param>
     protected override void OnMouseUp(MouseEventArgs e) {
@@ -132,7 +133,8 @@ namespace Captain.Application {
 
         if (this.mouseOver || this.mouseDown) {
           eventArgs.Graphics.FillPath(new SolidBrush(TintColor.Blend(ForeColor, this.mouseDown ? 0.5 : 0.75)
-                                                              .Blend(Color.Transparent)), path);
+                                                              .Blend(Color.Transparent)),
+            path);
         }
       }
 
@@ -143,16 +145,16 @@ namespace Captain.Application {
       if (!String.IsNullOrWhiteSpace(Text)) {
         Size textSize = TextRenderer.MeasureText(eventArgs.Graphics, Text, Font);
         imageLocation = new Point((Width - textSize.Width - (Image?.Width ?? 0)) / 2,
-                                  ((Height - Image?.Height) ?? 0) / 2);
+          ((Height - Image?.Height) ?? 0) / 2);
 
         TextRenderer.DrawText(eventArgs.Graphics,
-                              Text,
-                              Font,
-                              new Rectangle(imageRectWidth, 0, Width - imageRectWidth, Height),
-                              this.mouseDown ? ForeColor : TintColor.Blend(ForeColor, this.mouseOver ? 0.25 : 0.5),
-                              TextFormatFlags.HorizontalCenter |
-                              TextFormatFlags.EndEllipsis |
-                              TextFormatFlags.VerticalCenter);
+          Text,
+          Font,
+          new Rectangle(imageRectWidth, 0, Width - imageRectWidth, Height),
+          Enabled ? this.mouseDown ? ForeColor : TintColor.Blend(ForeColor, this.mouseOver ? 0.25 : 0.5) : Color.Gray,
+          TextFormatFlags.HorizontalCenter |
+          TextFormatFlags.EndEllipsis |
+          TextFormatFlags.VerticalCenter);
       } else if (Image != null) {
         imageLocation = new Point((Width - Image.Width) / 2, (Height - Image.Height) / 2);
       }
@@ -176,21 +178,21 @@ namespace Captain.Application {
         float bb = cb * 0.6666f;
 
         attrs.SetColorMatrix(new ColorMatrix(new[] {
-          new[] { cr, cg, cb, 0f, 0f },
-          new[] { cb, cr, cg, 0f, 0f },
-          new[] { cg, cb, cr, 0f, 0f },
-          new[] { 0f, 0f, 0f, ca, 0f },
-          new[] { br, bg, bb, 0f, 1f }
+          new[] {cr, cg, cb, 0f, 0f},
+          new[] {cb, cr, cg, 0f, 0f},
+          new[] {cg, cb, cr, 0f, 0f},
+          new[] {0f, 0f, 0f, ca, 0f},
+          new[] {br, bg, bb, 0f, 1f}
         }));
 
         eventArgs.Graphics.DrawImage(Image,
-                                     new Rectangle(imageLocation, Image.Size),
-                                     0,
-                                     0,
-                                     Image.Width,
-                                     Image.Height,
-                                     GraphicsUnit.Pixel,
-                                     attrs);
+          new Rectangle(imageLocation, Image.Size),
+          0,
+          0,
+          Image.Width,
+          Image.Height,
+          GraphicsUnit.Pixel,
+          attrs);
       }
     }
   }
