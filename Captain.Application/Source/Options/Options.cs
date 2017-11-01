@@ -7,6 +7,7 @@ using Captain.Common;
 using static Captain.Application.Application;
 
 // ReSharper disable MemberCanBeInternal
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 namespace Captain.Application {
   /// <summary>
   ///   Class representing application options.
@@ -57,11 +58,6 @@ namespace Captain.Application {
     ///   Contains the user tasks
     /// </summary>
     public List<Task> Tasks { get; set; } = new List<Task>();
-
-    /// <summary>
-    ///   Whether the output stream options tip in the selection dialog has been dismissed or not
-    /// </summary>
-    public bool StreamOptionsTipDismissed { get; set; }
 
     /// <summary>
     ///   Loads an <see cref="Options"/> instance from file

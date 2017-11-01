@@ -10,7 +10,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Handles the autostart feature by reading from/writing to the OS registry
   /// </summary>
-  internal class AutoStartManager {
+  internal sealed class AutoStartManager {
     /// <summary>
     ///   Contains the Startup registry key path
     /// </summary>

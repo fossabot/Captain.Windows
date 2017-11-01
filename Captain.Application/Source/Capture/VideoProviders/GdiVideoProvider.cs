@@ -8,6 +8,9 @@ namespace Captain.Application {
   /// <summary>
   ///   Provides video capture capabilities using GDI, for its use in platforms that do not support desktop duplication
   /// </summary>
+  /// <remarks>
+  ///   TODO: Use PrintWindow API when a window handle is provided
+  /// </remarks>
   internal sealed class GdiVideoProvider : VideoProvider {
     /// <summary>
     ///   Attached window handle

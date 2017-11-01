@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 
 // ReSharper disable MemberCanBeInternal
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 namespace Captain.Application {
   /// <summary>
   ///   Tasks are the main functional unit of the application

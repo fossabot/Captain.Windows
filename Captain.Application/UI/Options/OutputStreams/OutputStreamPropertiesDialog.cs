@@ -16,7 +16,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Contains all the output streams alongside their configurations
     /// </summary>
-    internal List<(string TypeName, SerializableDictionary<object, object> Options)> OutputStreams { get; set; }
+    internal List<(string TypeName, SerializableDictionary<object, object> Options)> OutputStreams { get; }
 
     /// <inheritdoc />
     /// <summary>

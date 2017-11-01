@@ -29,7 +29,7 @@ namespace Captain.Application {
       Content = String.Format(Resources.UpdaterUI_DialogText,
                                 VersionInfo.ProductName,
                                 update.ReleasesToApply.Last().Version,
-                                VersionString)
+                                VersionInfo.ProductVersion)
     }.ShowDialog().Default;
 
     /// <summary>

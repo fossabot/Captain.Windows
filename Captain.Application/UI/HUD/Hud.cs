@@ -12,6 +12,25 @@ namespace Captain.Application {
     private readonly IMouseHookProvider mouseHook;
 
     /// <summary>
+    ///   Creates a HUD instance for the system UI
+    /// </summary>
+    internal Hud() {
+      // install global mouse hook
+      this.mouseHook = new SystemMouseHookProvider();
+      this.mouseHook.OnMouseDown += OnMouseDown;
+      this.mouseHook.OnMouseMove += OnMouseMove;
+      this.mouseHook.OnMouseUp += OnMouseUp;
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() { this.mouseHook?.Dispose(); }
+
+    #region Selected region
+
+    /// <summary>
     ///   Initial mouse location, saved right after the left mouse button is down
     /// </summary>
     private Point? initialMouseLocation;
@@ -21,15 +40,9 @@ namespace Captain.Application {
     /// </summary>
     private Rectangle selectedRegion;
 
-    /// <summary>
-    ///   Class constructor
-    /// </summary>
-    internal Hud() {
-      this.mouseHook = new SystemMouseHookProvider();
-      this.mouseHook.OnMouseDown += OnMouseDown;
-      this.mouseHook.OnMouseMove += OnMouseMove;
-      this.mouseHook.OnMouseUp += OnMouseUp;
-    }
+    #endregion
+
+    #region Mouse hook event handlers
 
     /// <summary>
     ///   Triggered when a mouse button is held
@@ -76,28 +89,24 @@ namespace Captain.Application {
     private void OnMouseUp(object sender, MouseEventArgs mouseEventArgs) {
       Log.WriteLine(LogLevel.Debug, $"mouse up at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
       this.mouseHook.Release();
+
+
     }
+
+    #endregion
+
+    #region Display
 
     /// <summary>
     ///   Displays the HUD
     /// </summary>
-    internal void Show() {
-      this.mouseHook.Acquire();
-    }
+    internal void Show() { this.mouseHook.Acquire(); }
 
     /// <summary>
     ///   Hides the HUD
     /// </summary>
-    internal void Hide() {
-      this.mouseHook.Release();
-    }
+    internal void Hide() { this.mouseHook.Release(); }
 
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() {
-      this.mouseHook?.Dispose();
-    }
+    #endregion
   }
 }

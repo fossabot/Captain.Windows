@@ -39,7 +39,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Whether or not the button will be rendered as hovered
     /// </summary>
-    internal bool Hovered { get; set; }
+    internal bool Hovered { private get; set; }
 
     /// <summary>
     ///   Whether or not the button will be rendered as active
@@ -49,22 +49,22 @@ namespace Captain.Application {
     /// <summary>
     ///   Normal fill brush
     /// </summary>
-    internal Brush NormalFill { get; set; }
+    internal Brush NormalFill { private get; set; }
 
     /// <summary>
     ///   Hover fill brush
     /// </summary>
-    internal Brush HoverFill { get; set; }
+    internal Brush HoverFill { private get; set; }
 
     /// <summary>
     ///   Active fill brush
     /// </summary>
-    internal Brush ActiveFill { get; set; }
+    internal Brush ActiveFill { private get; set; }
 
     /// <summary>
     ///   Click handler
     /// </summary>
-    internal System.Action Action { get; set; }
+    internal Action Action { private get; set; }
 
     /// <summary>
     ///   GDI-compatible bitmap to be displayed alongside the button

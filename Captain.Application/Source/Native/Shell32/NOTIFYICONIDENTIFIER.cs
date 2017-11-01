@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-// ReSharper disable All
+// ReSharper disable InconsistentNaming
+
 namespace Captain.Application.Native {
   [StructLayout(LayoutKind.Sequential)]
   internal struct NOTIFYICONIDENTIFIER {
@@ -23,6 +24,6 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   A registered GUID that identifies the icon.
     /// </summary>
-    internal Guid guidItem;
+    private readonly Guid guidItem;
   }
 }

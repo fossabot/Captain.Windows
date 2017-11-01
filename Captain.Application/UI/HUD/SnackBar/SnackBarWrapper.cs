@@ -1,10 +1,10 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
-  ///   Wraps the HUD snack bar in a composited window
+  ///   Wraps the HUD snack bar in a desktop window
   /// </summary>
   internal sealed class SnackBarWrapper : Form {
     /// <inheritdoc />

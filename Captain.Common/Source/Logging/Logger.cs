@@ -9,7 +9,7 @@ namespace Captain.Common {
   /// <summary>
   ///   Provides basic logging facilities to applications
   /// </summary>
-  public class Logger {
+  public sealed class Logger {
     /// <summary>
     ///   Number of stack frames to skip for retrieving calling method on log messages
     /// </summary>

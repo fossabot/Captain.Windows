@@ -85,6 +85,7 @@ namespace Captain.Application {
                                             : Application.PluginManager.StaticEncoders.ToArray());
 
       if (this.encoderComboBox.Tag == null && Task != null) {
+        // BUG: .First() crashes under some circumstances - investigate
         this.encoderComboBox.SelectedItem =
           this.encoderComboBox.Items.Cast<PluginObject>().First(o => o.Type.FullName == Task.Parameters.Encoder);
         this.encoderComboBox.Tag = this.encoderComboBox.SelectedIndex;

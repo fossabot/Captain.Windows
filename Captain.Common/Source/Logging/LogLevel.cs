@@ -34,13 +34,13 @@ namespace Captain.Common {
   /// <summary>
   /// Provides extension methods to the LogLevel struct
   /// </summary>
-  public static class LogLevelExtensions {
+  internal static class LogLevelExtensions {
     /// <summary>
     ///   Get the short string representing the log level associated to a message
     /// </summary>
     /// <param name="level">This log level</param>
     /// <returns>A string of a maximum of 5 characters representing the log level, or an empty string if no such level is implemented</returns>
-    public static string ToShortString(this LogLevel level) {
+    internal static string ToShortString(this LogLevel level) {
       switch (level) {
         case LogLevel.Error:
           return "FAIL";
@@ -66,7 +66,7 @@ namespace Captain.Common {
     /// </summary>
     /// <param name="level">This log level</param>
     /// <returns>The <see cref="ConsoleColor"/> associated to this log level or <c>ConsoleColor.Gray</c> if no such level is implemented</returns>
-    public static ConsoleColor GetAssociatedConsoleColor(this LogLevel level) {
+    internal static ConsoleColor GetAssociatedConsoleColor(this LogLevel level) {
       switch (level) {
         case LogLevel.Error:
           return ConsoleColor.Red;

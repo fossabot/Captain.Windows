@@ -12,7 +12,7 @@ namespace Captain.Application {
   /// <typeparam name="TKey">Dictionary key type</typeparam>
   /// <typeparam name="TValue">Dictionary value type</typeparam>
   [Serializable]
-  public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable {
+  public sealed class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable {
     private const string ItemName = "Item";
     private const string KeyName = "Key";
     private const string ValueName = "Value";

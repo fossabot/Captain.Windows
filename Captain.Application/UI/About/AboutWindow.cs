@@ -21,7 +21,7 @@ namespace Captain.Application {
 
       // format text labels
       Text = String.Format(Text, Application.VersionInfo.ProductName);
-      this.versionLabel.Text = Application.VersionString;
+      this.versionLabel.Text = Application.VersionInfo.ProductVersion;
       this.distributionLabel.Text = Application.UpdateManager.Availability == UpdaterAvailability.NotSupported
                                       ? "Standalone"
                                       : "Full";

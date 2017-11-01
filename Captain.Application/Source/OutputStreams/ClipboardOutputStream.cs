@@ -21,7 +21,7 @@ namespace Captain.Application {
     /// </summary>
     public ClipboardOutputStream() {
       if (!EncoderInfo.MediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)) {
-        throw new UnsupportedMediaException();
+        throw new NotSupportedException("This media type is not supported.");
       }
     }
 

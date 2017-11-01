@@ -2,15 +2,15 @@
 using Captain.Common;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Represents a failed capture result
   /// </summary>
-  internal class UnsuccessfulCaptureResult : CaptureResult {
+  internal sealed class UnsuccessfulCaptureResult : CaptureResult {
     /// <summary>
     ///   Contains an instance of the underlying exception
     /// </summary>
     internal Exception Exception { get; }
-
 
     /// <summary>
     ///   Creates an instance of this class

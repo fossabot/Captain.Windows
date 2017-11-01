@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows;
 using Captain.Application.Native;
 using Captain.Common;
 using Process = System.Diagnostics.Process;
@@ -30,11 +29,6 @@ namespace Captain.Application {
     /// <param name="newProvider">New toast provider instance</param>
     /// <param name="toastsSupported">Whether Windows >= 8 adaptive toast notifications are supported</param>
     internal delegate void ToastProviderAvailabilityChangedHandler(IToastProvider newProvider, bool toastsSupported);
-
-    /// <summary>
-    ///   Windows Application instance
-    /// </summary>
-    private static System.Windows.Application application;
 
     /// <summary>
     ///   Current logger file stream
@@ -71,11 +65,6 @@ namespace Captain.Application {
     ///   Contains information about the application assembly version
     /// </summary>
     internal static FileVersionInfo VersionInfo { get; private set; }
-
-    /// <summary>
-    ///   Contains a semantic version string
-    /// </summary>
-    internal static string VersionString { get; private set; }
 
     /// <summary>
     ///   Handles local application filesystem
@@ -151,7 +140,10 @@ namespace Captain.Application {
           Log.WriteLine(LogLevel.Error, $"exception caught: {exception}");
         }
       } finally {
-        if (exit) { application.Shutdown(exitCode); }
+        if (exit) {
+          Environment.ExitCode = exitCode;
+          System.Windows.Forms.Application.Exit();
+        }
       }
     }
 
@@ -163,10 +155,11 @@ namespace Captain.Application {
       Log.WriteLine(LogLevel.Warning, "restarting the application");
 
       try {
-        Exit(exit: false);
+        Exit(exitCode, false);
         Process.Start(Assembly.GetExecutingAssembly().Location, $"--kill {Process.GetCurrentProcess().Id}");
       } finally {
-        application.Shutdown(exitCode);
+        Environment.ExitCode = exitCode;
+        System.Windows.Forms.Application.Exit();
       }
     }
 
@@ -233,10 +226,9 @@ namespace Captain.Application {
       }
 
       VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-      VersionString = GetVersionString();
 
       Log = new Logger();
-      Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionString}");
+      Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionInfo.ProductVersion}");
 
       if (Mutex.TryOpenExisting(SingleInstanceMutexName, out Mutex _)) {
         Log.WriteLine(LogLevel.Warning, "another instance of the application is running - aborting");
@@ -266,9 +258,9 @@ namespace Captain.Application {
       UpdateManager = new UpdateManager();
 
       // has the application been updated or perhaps is it the first time the user opens it?
-      if (Options.LastVersion != VersionString) {
+      if (Options.LastVersion != VersionInfo.ProductVersion) {
         Log.WriteLine(LogLevel.Informational, "this is the first time the user opens the app - welcome!");
-        Options.LastVersion = VersionString;
+        Options.LastVersion = VersionInfo.ProductVersion;
 
         // create default tasks
         Log.WriteLine(LogLevel.Informational, "creating default tasks");
@@ -308,48 +300,13 @@ namespace Captain.Application {
 
       TrayIcon = new TrayIcon();
 
-      // TODO: get rid of WPF-dependent code
-      application = new System.Windows.Application {ShutdownMode = ShutdownMode.OnExplicitShutdown};
-      application.Exit += (_, __) => {
+      System.Windows.Forms.Application.ApplicationExit += (s, e) => {
         lock (SingleInstanceMutex) {
           SingleInstanceMutex.ReleaseMutex();
         }
       };
 
-      var snackBarWrapper = new SnackBarWrapper();
-      snackBarWrapper.Show();
-      var snackBar = new SnackBar(snackBarWrapper);
-
-      application.Run();
-    }
-
-    /// <summary>
-    ///   Gets a semantic version string for the application
-    /// </summary>
-    /// <remarks>
-    ///   TODO: Change application versioning to something more consistent. Get rid of semver, it can not be used with
-    ///   .NET assemblies without all this hassle
-    /// </remarks>
-    /// <returns>A string representing the application version</returns>
-    private static string GetVersionString() {
-      string version =
-        $"{VersionInfo.ProductMajorPart}.{VersionInfo.ProductMinorPart}.{VersionInfo.ProductPrivatePart}";
-      Assembly assembly = Assembly.GetExecutingAssembly();
-      List<AssemblyMetadataAttribute> metaAttrs = assembly
-        .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
-        .Cast<AssemblyMetadataAttribute>()
-        .ToList();
-
-      if (!metaAttrs.Any()) { return version; }
-      if (metaAttrs.Any(a => a.Key == "prerelease")) {
-        AssemblyMetadataAttribute attribute = metaAttrs.First(a => a.Key == "prerelease");
-        version += '-' + attribute.Value;
-        metaAttrs.Remove(attribute);
-      }
-
-      return version + '+' + String.Join(".",
-        metaAttrs.Where(a => a.Value.Length == 0)
-                 .Select(a => a.Key + (a.Value.Length > 0 ? '.' + a.Value : ""))).TrimEnd('.', '+');
+      System.Windows.Forms.Application.Run();
     }
 
     /// <summary>

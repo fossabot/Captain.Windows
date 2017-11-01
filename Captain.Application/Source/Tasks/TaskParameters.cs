@@ -8,7 +8,7 @@ namespace Captain.Application {
   ///   Holds common task parameters
   /// </summary>
   [Serializable]
-  public class TaskParameters {
+  public sealed class TaskParameters {
     /// <summary>
     ///   Region capture type
     /// </summary>

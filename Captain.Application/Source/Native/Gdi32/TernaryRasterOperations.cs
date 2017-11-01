@@ -1,6 +1,6 @@
-﻿// ReSharper disable All
+﻿using System;
 
-using System;
+// ReSharper disable InconsistentNaming
 
 namespace Captain.Application.Native {
   internal static partial class Gdi32 {

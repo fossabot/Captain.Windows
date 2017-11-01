@@ -1,7 +1,7 @@
-﻿// ReSharper disable All
-
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+
+// ReSharper disable InconsistentNaming
 
 namespace Captain.Application.Native {
   /// <summary>
@@ -62,15 +62,16 @@ namespace Captain.Application.Native {
     /// </param>
     /// <returns></returns>
     [DllImport(nameof(Gdi32))]
-    internal static extern bool BitBlt([In] IntPtr hObject,
-                                       [In] int nXDest,
-                                       [In] int nYDest,
-                                       [In] int nWidth,
-                                       [In] int nHeight,
-                                       [In] IntPtr hObjectSource,
-                                       [In] int nXSrc,
-                                       [In] int nYSrc,
-                                       [In] TernaryRasterOperations dwRop);
+    internal static extern bool BitBlt(
+      [In] IntPtr hObject,
+      [In] int nXDest,
+      [In] int nYDest,
+      [In] int nWidth,
+      [In] int nHeight,
+      [In] IntPtr hObjectSource,
+      [In] int nXSrc,
+      [In] int nYSrc,
+      [In] TernaryRasterOperations dwRop);
 
     /// <summary>
     ///   The CreateCompatibleBitmap function creates a bitmap compatible with the device that is associated with the
@@ -99,17 +100,5 @@ namespace Captain.Application.Native {
     /// </returns>
     [DllImport(nameof(Gdi32))]
     internal static extern IntPtr CreateCompatibleDC([In] IntPtr hDC);
-
-    /// <summary>
-    ///   The GetDeviceCaps function retrieves device-specific information for the specified device.
-    /// </summary>
-    /// <param name="hdc">A handle to the DC.</param>
-    /// <param name="nIndex">The item to be returned.</param>
-    /// <returns>
-    ///   The return value specifies the value of the desired item.
-    ///   When nIndex is BITSPIXEL (12) and the device has 15bpp or 16bpp, the return value is 16.
-    /// </returns>
-    [DllImport(nameof(Gdi32), SetLastError = false)]
-    internal static extern int GetDeviceCaps(IntPtr hdc, DeviceCaps nIndex);
   }
 }

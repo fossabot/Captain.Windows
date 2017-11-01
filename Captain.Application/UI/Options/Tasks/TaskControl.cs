@@ -17,7 +17,7 @@ namespace Captain.Application {
     ///   Task associated with this control
     /// </summary>
     internal Task Task {
-      get => this.task;
+      private get => this.task;
       set {
         this.task = value;
         UpdateTask();
@@ -34,7 +34,7 @@ namespace Captain.Application {
     /// <param name="task">Task</param>
     /// <param name="onEdit">Action to execute on edit</param>
     /// <param name="onDelete">Action to execute on delete</param>
-    public TaskControl(Task task = null, System.Action onEdit = null, System.Action onDelete = null) {
+    public TaskControl(Task task = null, Action onEdit = null, Action onDelete = null) {
       SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.CacheText | ControlStyles.UserMouse |
                ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, true);
       InitializeComponent();

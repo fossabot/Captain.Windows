@@ -7,18 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Application", "Capt
 	ProjectSection(ProjectDependencies) = postProject
 		{76477108-C8D4-4603-993C-C23FFFF9E342} = {76477108-C8D4-4603-993C-C23FFFF9E342}
 		{1776FF10-3879-4932-B5D8-B5E75ACF9439} = {1776FF10-3879-4932-B5D8-B5E75ACF9439}
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3} = {325EE55B-00AD-4F01-ADF4-C6D364B61CB3}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Common", "Captain.Common\Captain.Common.csproj", "{5CBD5D35-99D1-4AE3-919D-7B9099ED6DC3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cn2helper", "cn2helper\cn2helper.vcxproj", "{76477108-C8D4-4603-993C-C23FFFF9E342}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cn2wowbr", "cn2wowbr\cn2wowbr.vcxproj", "{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cn2rthelper", "cn2rthelper\cn2rthelper.vcxproj", "{1776FF10-3879-4932-B5D8-B5E75ACF9439}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cn2shared", "cn2shared\cn2shared.vcxitems", "{D7FF169D-6D1F-4A09-8AC5-E5D5F2A3BC61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,14 +47,6 @@ Global
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Release|x64.Build.0 = Release|x64
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Release|x86.ActiveCfg = Release|Win32
 		{76477108-C8D4-4603-993C-C23FFFF9E342}.Release|x86.Build.0 = Release|Win32
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Debug|x64.ActiveCfg = Debug|Win32
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Debug|x64.Build.0 = Debug|Win32
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Debug|x86.ActiveCfg = Debug|x64
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Debug|x86.Build.0 = Debug|x64
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Release|x64.ActiveCfg = Release|Win32
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Release|x64.Build.0 = Release|Win32
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Release|x86.ActiveCfg = Release|x64
-		{325EE55B-00AD-4F01-ADF4-C6D364B61CB3}.Release|x86.Build.0 = Release|x64
 		{1776FF10-3879-4932-B5D8-B5E75ACF9439}.Debug|x64.ActiveCfg = Debug|x64
 		{1776FF10-3879-4932-B5D8-B5E75ACF9439}.Debug|x64.Build.0 = Debug|x64
 		{1776FF10-3879-4932-B5D8-B5E75ACF9439}.Debug|x86.ActiveCfg = Debug|Win32

@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Threading;
 using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
@@ -14,11 +13,6 @@ namespace Captain.Application {
   ///   Icon shown on the notification area from which the user can access diverse actions and settings
   /// </summary>
   internal sealed class TrayIcon {
-    /// <summary>
-    ///   Hint circle lets the user know where to start when first opening the application
-    /// </summary>
-    private readonly TrayIconHintCircle hintCircle;
-
     /// <summary>
     ///   Renders tray icons
     /// </summary>
@@ -50,9 +44,6 @@ namespace Captain.Application {
     internal TrayIcon() {
       var contextMenu = new ContextMenu();
       NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
-      NotifyIcon.MouseDown += (_, __) =>
-        this.hintCircle?.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-          new System.Action(() => this.hintCircle.Close()));
 
       contextMenu.MenuItems.AddRange(new[] {
         new MenuItem(Resources.AppMenu_Capture) {
@@ -99,14 +90,16 @@ namespace Captain.Application {
       // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
       if (FirstTime) {
         try {
-          RECT iconRect = GetIconRect();
-
+          // TODO: place hint circle
+          /*
+           * RECT iconRect = GetIconRect();
           this.hintCircle = new TrayIconHintCircle();
           this.hintCircle.Show();
           this.hintCircle.Left = iconRect.left;
           this.hintCircle.Top = iconRect.top;
           this.hintCircle.Width = this.hintCircle.Height =
             Math.Max(iconRect.right - iconRect.left, iconRect.bottom - iconRect.top);
+          */
         } catch (Exception exception) when (exception is InvalidOperationException || exception is Win32Exception) {
           Log.WriteLine(LogLevel.Error, $"could not place tray icon hint: {exception}");
         }

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -73,7 +74,7 @@ namespace Captain.Application {
 
             while (this.animated) {
               if (IsHandleCreated && Visible && !IsDisposed) {
-                Invoke(new System.Action(() => Text = Prefix + this.frames[i = (byte)((i + 1) % this.frames.Length)]));
+                Invoke(new Action(() => Text = Prefix + this.frames[i = (byte)((i + 1) % this.frames.Length)]));
               }
 
               Thread.Sleep(60);

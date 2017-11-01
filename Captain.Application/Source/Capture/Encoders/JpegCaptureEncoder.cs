@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -22,7 +23,7 @@ namespace Captain.Application {
     ///   Displays an interface for letting the user configure this object
     /// </summary>
     /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
-    public void DisplayConfigurationInterface(IWin32Window ownerWindow) { throw new System.NotImplementedException(); }
+    public void DisplayConfigurationInterface(IWin32Window ownerWindow) { throw new NotImplementedException(); }
 
     /// <inheritdoc />
     /// <summary>

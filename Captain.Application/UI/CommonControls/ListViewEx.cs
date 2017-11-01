@@ -7,7 +7,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Implements a list view control with extended properties and styles
   /// </summary>
-  internal class ListViewEx : ListView {
+  internal sealed class ListViewEx : ListView {
     /// <inheritdoc />
     /// <summary>Gets a value indicating whether the control should display focus rectangles.</summary>
     /// <returns>true if the control should display focus rectangles; otherwise, false.</returns>
