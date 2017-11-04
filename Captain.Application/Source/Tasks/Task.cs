@@ -185,7 +185,7 @@ namespace Captain.Application {
               previewUri: previewUri,
               previewImage: previewBmp,
               actions: new Dictionary<string, Uri> {
-                {"View details", new Uri(ViewResultDetailsUri)}
+                {Resources.Task_ViewDetailsAction, new Uri(ViewResultDetailsUri)}
               },
               handler: (s, d) => {
                 if (d is ToastActivatedEventArgs) {
@@ -207,7 +207,8 @@ namespace Captain.Application {
                 (s, e) =>
                   DisplayErrorDialog(Resources.Task_CaptureFailedExtendedCaption,
                     Resources.Task_CaptureFailedExtendedBody,
-                    new[] {exception}),
+                    new[] {exception},
+                    TaskDialogIcon.Error),
               closeHandler: (s, e) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle));
           } catch (AggregateException exception) {
             Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
@@ -218,8 +219,8 @@ namespace Captain.Application {
               ToastProvider.PushObject(Resources.Task_PartialSuccessCaption,
                 Resources.Task_PartialSuccessBody,
                 actions: new Dictionary<string, Uri> {
-                  {"View results", new Uri(ViewResultDetailsUri)},
-                  {"View failures", new Uri(ViewErrorDetailsUri)}
+                  {Resources.Task_ViewResultsAction, new Uri(ViewResultDetailsUri)},
+                  {Resources.Task_ViewFailuresAction, new Uri(ViewErrorDetailsUri)}
                 },
                 handler: (s, d) => {
                   if (d is ToastActivatedEventArgs eventArgs) {
@@ -251,10 +252,12 @@ namespace Captain.Application {
     /// <param name="caption">Instruction text</param>
     /// <param name="body">Dialog body</param>
     /// <param name="exceptions">Exception list</param>
-    private static void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions) {
+    /// <param name="mainIcon">Optionally specify task dialog icon</param>
+    private static void DisplayErrorDialog(string caption, string body, IEnumerable<Exception> exceptions,
+                                           TaskDialogIcon mainIcon = TaskDialogIcon.Warning) {
       var dialog = new TaskDialog {
         WindowTitle = VersionInfo.ProductName,
-        MainIcon = TaskDialogIcon.Warning,
+        MainIcon = mainIcon,
         MainInstruction = caption,
         Content = body,
         Buttons = {new TaskDialogButton(ButtonType.Close)},
@@ -265,7 +268,7 @@ namespace Captain.Application {
         ExpandedInformation = String.Join(Environment.NewLine, exceptions.Select(e => e.Message))
       };
 
-      dialog.Destroyed += (_, __) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
+      dialog.Destroyed += (s, e) => Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
       dialog.Show();
     }
 

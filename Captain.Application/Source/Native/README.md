@@ -17,3 +17,11 @@ repository.
   - `RECT.cs`
   - `User32.cs`
   - `WINDOWPOS.cs`
+
+### [Microsoft Reference Source for .NET Framework](https://referencesource.microsoft.com/)
+> Microsoft Avalon  
+> Copyright (c) Microsoft Corporation, All Rights Reserved
+
+- `PropIdl`
+  - `PROPVARIANT.cs`
+    - [`PropVariant.Init(string[] value, bool fAscii)`](https://referencesource.microsoft.com/#PresentationCore/Core/CSharp/System/Windows/Media/Imaging/PropVariant.cs,209)

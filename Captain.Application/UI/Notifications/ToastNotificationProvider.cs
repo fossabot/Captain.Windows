@@ -145,7 +145,7 @@ namespace Captain.Application {
           Log.WriteLine(LogLevel.Debug, "binding Activated event handler");
           notification.Activated += (s, e) => {
             Log.WriteLine(LogLevel.Debug, "toast notification has been activated");
-            
+
             // HACK: what the hell are you doing sir
             dispatcher.Invoke(() => handler(s, e));
           };

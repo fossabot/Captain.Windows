@@ -115,6 +115,7 @@
     </None>
     <None Include="README.md" />
     <None Include="Resources\README.md" />
+    <None Include="Source\Helpers\README.md" />
     <None Include="Source\Native\README.md" />
     <None Include="Source\Options\SerializableDictionary\README.md" />
     <None Include="UI\CommonControls\LinkLabel2\LICENSE.md" />
@@ -150,14 +151,15 @@
     <None Include="Resources\FluentIndicatorStrip.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\Capture\Encoders\H264CaptureEncoder.cs" />
-    <Compile Include="Source\Capture\VideoProviders\GdiVideoProvider.cs" />
-    <Compile Include="Source\Capture\VideoProviders\VideoProviderFactory.cs" />
-    <Compile Include="Source\Capture\VideoProviders\DxgiVideoProvider.cs" />
-    <Compile Include="Source\Capture\Encoders\JpegCaptureEncoder.cs" />
-    <Compile Include="Source\Capture\Encoders\PngCaptureEncoder.cs" />
+    <Compile Include="Source\Encoders\H264CaptureEncoder.cs" />
+    <Compile Include="Source\VideoProviders\GdiVideoProvider.cs" />
+    <Compile Include="Source\VideoProviders\VideoProviderFactory.cs" />
+    <Compile Include="Source\VideoProviders\DxgiVideoProvider.cs" />
+    <Compile Include="Source\Encoders\JpegCaptureEncoder.cs" />
+    <Compile Include="Source\Encoders\PngCaptureEncoder.cs" />
     <Compile Include="Source\Helpers\MouseHook\IMouseHookProvider.cs" />
     <Compile Include="Source\Helpers\MouseHook\SystemMouseHookProvider.cs" />
+    <Compile Include="Source\Helpers\ShellLink.cs" />
     <Compile Include="Source\Native\UxTheme\MARGINS.cs" />
     <Compile Include="Source\Native\User32\MSLLHOOKSTRUCT.cs" />
     <Compile Include="Source\OutputStreams\ClipboardOutputStream.cs" />
@@ -191,8 +193,7 @@
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
     <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
-    <Compile Include="Source\Native\Process.cs" />
-    <Compile Include="Source\Native\Shell.cs" />
+    <Compile Include="Source\Helpers\ShellHelper.cs" />
     <Compile Include="Source\Native\Shell32\NOTIFYICONIDENTIFIER.cs" />
     <Compile Include="Source\Native\Shell32\Shell32.cs" />
     <Compile Include="Source\Native\UxTheme\UxTheme.cs" />
@@ -205,7 +206,7 @@
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
-    <Compile Include="Source\Helpers\FsManager.cs" />
+    <Compile Include="Source\FsManager.cs" />
     <Compile Include="Source\Options\AutoStart\AutoStartManager.cs" />
     <Compile Include="Source\Options\AutoStart\AutoStartPolicy.cs" />
     <Compile Include="Source\Options\Options.cs" />

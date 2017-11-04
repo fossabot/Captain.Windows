@@ -475,6 +475,33 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to View details.
+        /// </summary>
+        public static string Task_ViewDetailsAction {
+            get {
+                return ResourceManager.GetString("Task_ViewDetailsAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View failures.
+        /// </summary>
+        public static string Task_ViewFailuresAction {
+            get {
+                return ResourceManager.GetString("Task_ViewFailuresAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View results.
+        /// </summary>
+        public static string Task_ViewResultsAction {
+            get {
+                return ResourceManager.GetString("Task_ViewResultsAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap TaskAdd {

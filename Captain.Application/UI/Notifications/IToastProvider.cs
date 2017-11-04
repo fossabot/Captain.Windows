@@ -26,7 +26,14 @@ namespace Captain.Application {
     /// <param name="actions">A dictionary with the action names and their URIs</param>
     /// <param name="handler">Handles activation events</param>
     /// <param name="dismissionHandler">Handles dismission events</param>
-    void PushObject(string caption, string body, string subtext = null, Uri previewUri = null, Image previewImage = null, Dictionary<string, Uri> actions = null,
-      Action<object, object> handler = null, Action<object, object> dismissionHandler = null);
+    void PushObject(
+      string caption,
+      string body,
+      string subtext = null,
+      Uri previewUri = null,
+      Image previewImage = null,
+      Dictionary<string, Uri> actions = null,
+      Action<object, object> handler = null,
+      Action<object, object> dismissionHandler = null);
   }
 }

@@ -54,14 +54,14 @@ namespace Captain.Application {
       Dictionary<string, Uri> actions = null,
       Action<object, object> handler = null,
       Action<object, object> dismissionHandler = null) =>
-      PushMessage(caption,
-                  (body + Environment.NewLine + (subtext ?? "")).Trim(),
-                  ToolTipIcon.None,
-                  actions?.FirstOrDefault().Value,
-                  (s, e) => {
-                    handler?.Invoke(s, e);
-                    dismissionHandler?.Invoke(s, e);
-                  });
+        PushMessage(caption,
+          (body + Environment.NewLine + (subtext ?? "")).Trim(),
+          ToolTipIcon.None,
+          actions?.FirstOrDefault().Value,
+          (s, e) => {
+            handler?.Invoke(s, e);
+            dismissionHandler?.Invoke(s, e);
+          });
 
     /// <summary>
     ///   Displays a notification
@@ -82,12 +82,12 @@ namespace Captain.Application {
       Log.WriteLine(LogLevel.Debug, $"pushing generic message as balloon notification ({icon} | {uri})");
       Application.TrayIcon.NotifyIcon.ShowBalloonTip(BalloonTipDuration, title, text, icon);
 
-      if (uri != null || handler != null) {
+      if ((uri != null) || (handler != null)) {
         EventHandler originalCloseHandler = closeHandler;
 
         Log.WriteLine(LogLevel.Debug, "non-null handler or action URI was provided");
         Application.TrayIcon.NotifyIcon.BalloonTipClicked += handler ?? (handler = (s, e) =>
-                                                               Process.Start(uri.ToString()));
+          Process.Start(uri.ToString()));
         Application.TrayIcon.NotifyIcon.BalloonTipClosed += closeHandler = (s, e) => {
           // detach event handlers
           Application.TrayIcon.NotifyIcon.BalloonTipClicked -= handler;

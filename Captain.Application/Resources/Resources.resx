@@ -308,4 +308,13 @@ Tap here to see details.</value>
   <data name="Task_SuccessBody" xml:space="preserve">
     <value>All actions succeeded.</value>
   </data>
+  <data name="Task_ViewDetailsAction" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="Task_ViewResultsAction" xml:space="preserve">
+    <value>View results</value>
+  </data>
+  <data name="Task_ViewFailuresAction" xml:space="preserve">
+    <value>View failures</value>
+  </data>
 </root>

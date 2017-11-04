@@ -46,7 +46,8 @@ namespace Captain.Application {
             DefaultItem = true,
             Visible = true
           },
-        new MenuItem("Record screen", (s, e) => throw new NotImplementedException()),
+        new MenuItem("Record screen",
+          (s, e) => Application.Options.Tasks[Application.Options.DefaultRecordingTask].Start()),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Options,
           (s, e) => {

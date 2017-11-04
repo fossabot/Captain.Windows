@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Captain.Common;
@@ -15,21 +16,6 @@ namespace Captain.Application {
   ///   Abstracts <see cref="T:Squirrel.UpdateManager" /> logic
   /// </summary>
   internal sealed class UpdateManager : IDisposable {
-    /// <summary>
-    ///   Underlying update manager instance
-    /// </summary>
-    private Squirrel.UpdateManager Manager { get; set; }
-
-    /// <summary>
-    ///   Determines whether or not the update manager is available
-    /// </summary>
-    internal UpdaterAvailability Availability { get; private set; }
-
-    /// <summary>
-    ///   Current update status
-    /// </summary>
-    internal UpdateStatus Status { get; private set; } = UpdateStatus.Idle;
-
     /// <summary>
     ///   Triggered when the update manager availability changes
     /// </summary>
@@ -53,19 +39,19 @@ namespace Captain.Application {
     internal delegate void UpdateProgressChangedHandler(UpdateManager manager, UpdateStatus status, int progress);
 
     /// <summary>
-    ///   Triggered when the update manager availability changes
+    ///   Underlying update manager instance
     /// </summary>
-    internal event AvailabilityChangedHandler OnAvailabilityChanged;
+    private Squirrel.UpdateManager Manager { get; set; }
 
     /// <summary>
-    ///   Triggered when the update manager status changes
+    ///   Determines whether or not the update manager is available
     /// </summary>
-    internal event UpdateStatusChangedHandler OnUpdateStatusChanged;
+    internal UpdaterAvailability Availability { get; private set; }
 
     /// <summary>
-    ///   Triggered when the update manager progress changes
+    ///   Current update status
     /// </summary>
-    internal event UpdateProgressChangedHandler OnUpdateProgressChanged;
+    internal UpdateStatus Status { get; private set; } = UpdateStatus.Idle;
 
     /// <summary>
     ///   Initializes the update manager asynchronously
@@ -82,6 +68,27 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Warning, "updates are not supported - aborting");
       }
     }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Releases resources
+    /// </summary>
+    public void Dispose() => Manager?.Dispose();
+
+    /// <summary>
+    ///   Triggered when the update manager availability changes
+    /// </summary>
+    internal event AvailabilityChangedHandler OnAvailabilityChanged;
+
+    /// <summary>
+    ///   Triggered when the update manager status changes
+    /// </summary>
+    internal event UpdateStatusChangedHandler OnUpdateStatusChanged;
+
+    /// <summary>
+    ///   Triggered when the update manager progress changes
+    /// </summary>
+    internal event UpdateProgressChangedHandler OnUpdateProgressChanged;
 
     /// <summary>
     ///   Restarts the app, launching the newest version
@@ -132,6 +139,7 @@ namespace Captain.Application {
         }
       });
     }
+
     /// <summary>
     ///   Downloads and installs updates
     /// </summary>
@@ -142,21 +150,22 @@ namespace Captain.Application {
       dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
 
       Log.WriteLine(LogLevel.Verbose, "downloading updates");
-      Manager.DownloadReleases(updates.ReleasesToApply, p => {
-        Log.WriteLine(LogLevel.Debug, $"downloading updates ({p}%)");
-        dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
-      }).ContinueWith(t => {
-        Status = UpdateStatus.Idle;
-        dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
+      Manager.DownloadReleases(updates.ReleasesToApply,
+        p => {
+          Log.WriteLine(LogLevel.Debug, $"downloading updates ({p}%)");
+          dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
+        }).ContinueWith(t => {
+          Status = UpdateStatus.Idle;
+          dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
 
-        if (t.IsFaulted || t.IsCanceled) {
-          Log.WriteLine(LogLevel.Warning, $"update downloader task canceled or failed - {t.Exception}");
-          return;
-        }
+          if (t.IsFaulted || t.IsCanceled) {
+            Log.WriteLine(LogLevel.Warning, $"update downloader task canceled or failed - {t.Exception}");
+            return;
+          }
 
-        Log.WriteLine(LogLevel.Verbose, $"downloaded {updates.ReleasesToApply.Sum(r => r.Filesize) / 1024 / 1024}MiB");
-        ApplyUpdates(dispatcher, updates);
-      });
+          Log.WriteLine(LogLevel.Verbose, $"downloaded {updates.ReleasesToApply.Sum(r => r.Filesize) / 1024 / 1024}MiB");
+          ApplyUpdates(dispatcher, updates);
+        });
     }
 
     private void ApplyUpdates(Dispatcher dispatcher, UpdateInfo updates) {
@@ -164,21 +173,22 @@ namespace Captain.Application {
       dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
 
       Log.WriteLine(LogLevel.Verbose, "applying updates");
-      Manager.ApplyReleases(updates, p => {
-        Log.WriteLine(LogLevel.Debug, $"applying updates ({p}%)");
-        dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
-      }).ContinueWith(t => {
-        if (t.IsFaulted || t.IsCanceled) {
-          Status = UpdateStatus.Idle;
-          Log.WriteLine(LogLevel.Warning, $"update install task canceled or failed - {t.Exception}");
-        } else {
-          Status = UpdateStatus.ReadyToRestart;
-          Log.WriteLine(LogLevel.Verbose, $"successfully applied {updates.ReleasesToApply.Count} update(s)");
-        }
+      Manager.ApplyReleases(updates,
+        p => {
+          Log.WriteLine(LogLevel.Debug, $"applying updates ({p}%)");
+          dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
+        }).ContinueWith(t => {
+          if (t.IsFaulted || t.IsCanceled) {
+            Status = UpdateStatus.Idle;
+            Log.WriteLine(LogLevel.Warning, $"update install task canceled or failed - {t.Exception}");
+          } else {
+            Status = UpdateStatus.ReadyToRestart;
+            Log.WriteLine(LogLevel.Verbose, $"successfully applied {updates.ReleasesToApply.Count} update(s)");
+          }
 
-        dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
-        // TODO: restart the app automatically if it's been idle for some time
-      });
+          dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
+          // TODO: restart the app automatically if it's been idle for some time
+        });
     }
 
     /// <summary>
@@ -225,19 +235,18 @@ namespace Captain.Application {
 
       if (GetMetadataValue("githubRepo") is string githubUrl) {
         GitHubUpdateManager(githubUrl,
-                            VersionInfo.ProductName,
-                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+          VersionInfo.ProductName,
+          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
           .ContinueWith(updateManagerHandler);
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
-                                             VersionInfo.ProductName,
-                                             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+          VersionInfo.ProductName,
+          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
       } else {
         Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting");
       }
-
     }
 
     /// <summary>
@@ -254,10 +263,19 @@ namespace Captain.Application {
       InitializeUnderlyingManager();
     }
 
-    /// <inheritdoc />
     /// <summary>
-    ///   Releases resources
+    ///   Gets a value from the assembly metadata attributes
     /// </summary>
-    public void Dispose() => Manager?.Dispose();
+    /// <param name="key">Metadata key</param>
+    /// <returns>The requested value, or <c>null</c> if none was present.</returns>
+    private static string GetMetadataValue(string key) {
+      Assembly assembly = Assembly.GetExecutingAssembly();
+      AssemblyMetadataAttribute[] metadataAttributes = assembly
+        .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
+        .Cast<AssemblyMetadataAttribute>()
+        .Where(a => a.Key == key)
+        .ToArray();
+      return !metadataAttributes.Any() ? null : metadataAttributes.First().Value;
+    }
   }
 }

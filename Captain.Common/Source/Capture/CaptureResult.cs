@@ -5,7 +5,7 @@ namespace Captain.Common {
   /// <summary>
   ///   Contains information about a successful capture after it has been handled appropiately
   /// </summary>
-  public class CaptureResult {
+  public sealed class CaptureResult {
     /// <summary>
     ///   Optional status message
     /// </summary>
