@@ -1,10 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
 
@@ -43,13 +40,13 @@ namespace Captain.Application {
     /// </summary>
     internal TrayIcon() {
       var contextMenu = new ContextMenu();
-      NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
-
       contextMenu.MenuItems.AddRange(new[] {
-        new MenuItem(Resources.AppMenu_Capture) {
-          DefaultItem = true,
-          Visible = true
-        },
+        new MenuItem("Take screenshot",
+          (s, e) => Application.Options.Tasks[Application.Options.DefaultScreenshotTask].Start()) {
+            DefaultItem = true,
+            Visible = true
+          },
+        new MenuItem("Record screen", (s, e) => throw new NotImplementedException()),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Options,
           (s, e) => {
@@ -71,6 +68,15 @@ namespace Captain.Application {
         new MenuItem(Resources.AppMenu_Exit, (s, e) => Exit())
       });
 
+      NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
+      NotifyIcon.MouseClick += (s, e) => {
+        if (e.Button == MouseButtons.Left && NotifyIcon.ContextMenu.MenuItems[0].Enabled) {
+          NotifyIcon.ContextMenu.MenuItems[0].PerformClick();
+        } else if (e.Button == MouseButtons.Middle && NotifyIcon.ContextMenu.MenuItems[1].Enabled) {
+          NotifyIcon.ContextMenu.MenuItems[1].PerformClick();
+        }
+      };
+
       // display the tray icon
       Show();
 
@@ -86,24 +92,6 @@ namespace Captain.Application {
 
       // set initial icon
       SetIndicator(IndicatorStatus.Idle);
-
-      // this is the first time the user uses the app - highlight the tray icon so the user knows where to start
-      if (FirstTime) {
-        try {
-          // TODO: place hint circle
-          /*
-           * RECT iconRect = GetIconRect();
-          this.hintCircle = new TrayIconHintCircle();
-          this.hintCircle.Show();
-          this.hintCircle.Left = iconRect.left;
-          this.hintCircle.Top = iconRect.top;
-          this.hintCircle.Width = this.hintCircle.Height =
-            Math.Max(iconRect.right - iconRect.left, iconRect.bottom - iconRect.top);
-          */
-        } catch (Exception exception) when (exception is InvalidOperationException || exception is Win32Exception) {
-          Log.WriteLine(LogLevel.Error, $"could not place tray icon hint: {exception}");
-        }
-      }
     }
 
     /// <summary>
@@ -196,61 +184,6 @@ namespace Captain.Application {
       }
 
       return window.Handle;
-    }
-
-    /// <summary>
-    ///   Tries to obtain the bounds of the notify icon
-    /// </summary>
-    /// <returns>A <see cref="RECT" /> structure containing the notify icon rectangle</returns>
-    /// <exception cref="InvalidOperationException">Thrown when some data could not be retrieved</exception>
-    /// <exception cref="Win32Exception">Thrown when the shell fails to obtain the notify icon rectangle</exception>
-    private RECT GetIconRect() {
-      /* get notify icon ID */
-      // get "id" field
-      FieldInfo idField = typeof(NotifyIcon).GetField("id", BindingFlags.NonPublic | BindingFlags.Instance);
-      if (idField == null) {
-        throw new InvalidOperationException("Could not retrieve ID field for NotifyIcon");
-      }
-
-      // create notify icon identifier structure
-      var notifyIconId = new NOTIFYICONIDENTIFIER {
-        cbSize = Marshal.SizeOf(typeof(NOTIFYICONIDENTIFIER)),
-        hWnd = GetIconHandle(),
-        uID = (int) idField.GetValue(NotifyIcon)
-      };
-
-      int result = Shell32.NotifyIconGetRect(ref notifyIconId, out RECT rect);
-      switch (result) {
-        case 0:
-          if (rect.bottom == Screen.PrimaryScreen.Bounds.Height) {
-            // HACK: tray area is only displayed on the primary screen - if the icon is NOT on the fly-out window then
-            //       substract 8px so the hint circle fits perfectly
-            rect.left -= 8;
-          }
-
-          return rect;
-        case 1:
-          // perhaps the icon is hidden in the tray fly-out - we want to find that lil' son of a beach
-          IntPtr trayWindowHandle = User32.FindWindow("Shell_TrayWnd");
-          if (trayWindowHandle == IntPtr.Zero) { throw new Win32Exception(Marshal.GetLastWin32Error()); }
-
-          IntPtr trayNotifyWindowHandle = User32.FindWindowEx(trayWindowHandle, lpszClass: "TrayNotifyWnd");
-          if (trayNotifyWindowHandle == IntPtr.Zero) { throw new Win32Exception(Marshal.GetLastWin32Error()); }
-
-          // we found it, try to find the show/hide icons button
-          IntPtr notifyFlyOutButtonHandle = User32.FindWindowEx(trayNotifyWindowHandle, lpszClass: "Button");
-          if ((notifyFlyOutButtonHandle == IntPtr.Zero) ||
-              !User32.GetWindowRect(notifyFlyOutButtonHandle, out RECT flyOutRect)) {
-            throw new Win32Exception(Marshal.GetLastWin32Error());
-          }
-
-          // got it!
-          flyOutRect.left -= 8;
-          return flyOutRect;
-      }
-
-      // something went wrong
-      throw new Win32Exception(result);
     }
   }
 }

@@ -28,6 +28,7 @@ namespace Captain.Application {
     /// </summary>
     public IDictionary<object, object> UserConfiguration { get; set; }
 
+    /// <inheritdoc />
     /// <summary>
     ///   Displays an interface for letting the user configure this object
     /// </summary>
@@ -80,20 +81,13 @@ namespace Captain.Application {
     ///   Called when the data has been successfully copied to this output stream
     /// </summary>
     /// <returns>A <see cref="T:Captain.Common.CaptureResult" /> instance containing result information</returns>
-    public CaptureResult Commit() {
-      var result = new CaptureResult {
-        ToastTitle = "Capture saved!",
-        ToastContent = "The file has been saved to your Captures folder.",
-        ToastUri = new Uri(this.fileName)
-      };
+    public CaptureResult Commit() => new CaptureResult { Uri = new Uri(this.fileName) };
 
-      return result;
-    }
-
+    /// <inheritdoc />
     /// <summary>
     ///   Retrieves a custom image to be displayed alongside this plugin
     /// </summary>
-    /// <returns>An <see cref="Image"/> instance</returns>
+    /// <returns>An <see cref="T:System.Drawing.Image" /> instance</returns>
     public Image GetCustomImage() => Resources.SaveToFile;
   }
 }

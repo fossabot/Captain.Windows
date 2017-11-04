@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Captain.Application.Native;
 using Captain.Common;
+using SharpDX;
+using SharpDX.Diagnostics;
 using Process = System.Diagnostics.Process;
 
 namespace Captain.Application {
@@ -39,6 +41,11 @@ namespace Captain.Application {
     ///   Whether or not toast notifications are supported on this platform
     /// </summary>
     private static bool areToastNotificationsSupported;
+
+    /// <summary>
+    ///   HUD instance
+    /// </summary>
+    private static Hud hud;
 
     /// <summary>
     ///   Single instance mutex name
@@ -92,6 +99,19 @@ namespace Captain.Application {
     internal static Options Options { get; private set; }
 
     /// <summary>
+    ///   HUD instance
+    /// </summary>
+    internal static Hud Hud {
+      get {
+        if (hud == null || hud.IsDisposed) {
+          hud = new Hud();
+        }
+
+        return hud;
+      }
+    }
+
+    /// <summary>
     ///   Whether or not toast notifications are supported on this platform
     /// </summary>
     internal static bool AreToastNotificationsSupported {
@@ -129,6 +149,10 @@ namespace Captain.Application {
         TrayIcon?.Hide();
         Options?.Save();
         UpdateManager?.Dispose();
+
+#if DEBUG
+        Log.WriteLine(LogLevel.Warning, ObjectTracker.ReportActiveObjects());
+#endif
 
         loggerStream.Dispose();
         Log.Streams.Clear();
@@ -189,6 +213,11 @@ namespace Captain.Application {
     /// <param name="args">Command-line arguments passed to the program</param>
     [STAThread]
     private static void Main(string[] args) {
+#if DEBUG
+      // black magic
+      Configuration.EnableObjectTracking = true;
+#endif
+
       // ReSharper disable PatternAlwaysMatches
       if (Array.IndexOf(args, "--rmnodes") is int i && (i != -1)) {
         for (int j = i + 1; j < args.Length; j++) {

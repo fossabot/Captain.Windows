@@ -37,6 +37,11 @@ namespace Captain.Application {
     private Bitmap bitmap;
 
     /// <summary>
+    ///   Whether or not this button is enabled
+    /// </summary>
+    internal bool Enabled { get; set; } = true;
+
+    /// <summary>
     ///   Whether or not the button will be rendered as hovered
     /// </summary>
     internal bool Hovered { private get; set; }
@@ -108,6 +113,18 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
+    /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() {
+      this.geometry?.Dispose();
+      this.bitmap?.Dispose();
+      NormalFill?.Dispose();
+      HoverFill?.Dispose();
+      ActiveFill?.Dispose();
+    }
+
     /// <summary>
     ///   Tests whether or not a point is contained in the button shape
     /// </summary>
@@ -125,7 +142,7 @@ namespace Captain.Application {
     ///   Draws the button in its render target
     /// </summary>
     internal void Draw() {
-      Brush brush = Active ? ActiveFill : Hovered ? HoverFill : NormalFill;
+      Brush brush = Enabled ? Active ? ActiveFill : Hovered ? HoverFill : NormalFill : NormalFill;
       Vector2? center = null;
 
       // obtain the center point for the button
@@ -149,23 +166,10 @@ namespace Captain.Application {
             center.Value.Y - (this.bitmap.Size.Height / 2),
             center.Value.X + (this.bitmap.Size.Width / 2),
             center.Value.Y + (this.bitmap.Size.Height / 2)),
-          Hovered || Active ? 1 : 0.85f,
+          Enabled ? Hovered || Active ? 1 : 0.75f : 0.25f,
           BitmapInterpolationMode.Linear,
           new RawRectangleF(0, 0, this.bitmap.Size.Width, this.bitmap.Size.Height));
       }
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() {
-      this.geometry?.Dispose();
-      this.render?.Dispose();
-      this.bitmap?.Dispose();
-      NormalFill?.Dispose();
-      HoverFill?.Dispose();
-      ActiveFill?.Dispose();
     }
   }
 }

@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
+
 namespace Captain.Application.Native {
   /// <summary>
   ///   Exported functions from the user32.dll Windows library.
@@ -24,6 +25,11 @@ namespace Captain.Application.Native {
 
     [Flags]
     internal enum WindowStylesEx : uint {
+      /// <summary>
+      ///   The window is intended to be used as a floating toolbar.
+      /// </summary>
+      WS_EX_TOOLWINDOW = 0x00000080,
+
       /// <summary>
       ///   Paints via double-buffering, which reduces flicker. This extended style also enables alpha-blended marquee
       ///   selection on systems where it is supported.
@@ -136,13 +142,7 @@ namespace Captain.Application.Native {
       ///   Calculates a tab control's display area given a window rectangle, or calculates the window rectangle that
       ///   would correspond to a specified display area.
       /// </summary>
-      TCM_ADJUSTRECT = 0x1328,
-
-      /// <summary>
-      ///   The WM_APP constant is used by applications to help define private messages, usually of the form WM_APP+X,
-      ///   where X is an integer value.
-      /// </summary>
-      WM_APP = 0x8000
+      TCM_ADJUSTRECT = 0x1328
     }
 
     /// <summary>
@@ -244,6 +244,43 @@ namespace Captain.Application.Native {
     [DllImport(nameof(User32))]
     internal static extern bool DestroyWindow([In] IntPtr hWnd);
 
+    #region Layered windows
+
+    /// <summary>
+    ///   Sets the opacity and transparency color key of a layered window.
+    /// </summary>
+    /// <param name="hwnd">A handle to the layered window.</param>
+    /// <param name="crKey">
+    ///   A COLORREF structure that specifies the transparency color key to be used when composing the layered window.
+    /// </param>
+    /// <param name="bAlpha">Alpha value used to describe the opacity of the layered window.</param>
+    /// <param name="dwFlags">An action to be taken.</param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport(nameof(User32))]
+    internal static extern bool SetLayeredWindowAttributes(
+      [In] IntPtr hwnd,
+      [In] int crKey,
+      [In] byte bAlpha,
+      [In] LayeredWindowActions dwFlags);
+
+    /// <summary>
+    ///   Layered window action for using as <c>dwFlags</c> in <see cref="SetLayeredWindowAttributes" />
+    /// </summary>
+    [Flags]
+    internal enum LayeredWindowActions {
+      /// <summary>
+      ///   Use bAlpha to determine the opacity of the layered window.
+      /// </summary>
+      LWA_ALPHA = 2,
+
+      /// <summary>
+      ///   Use crKey as the transparency color.
+      /// </summary>
+      LWA_COLORKEY = 1
+    }
+
+    #endregion
+
     #endregion
 
     #region Drawing contexts
@@ -326,11 +363,30 @@ namespace Captain.Application.Native {
 
     #region Cursors
 
+    /// <summary>
+    ///   Loads the specified cursor resource from the executable (.EXE) file associated with an application instance.
+    /// </summary>
+    /// <param name="hInstance">
+    ///   A handle to an instance of the module whose executable file contains the cursor to be loaded.
+    /// </param>
+    /// <param name="lpCursorName">
+    ///   The name of the cursor resource to be loaded. Alternatively, this parameter can consist of the resource
+    ///   identifier in the low-order word and zero in the high-order word.
+    /// </param>
+    /// <returns>If the function succeeds, the return value is the handle to the newly loaded cursor.</returns>
     [DllImport(nameof(User32))]
-    internal static extern IntPtr LoadCursor(IntPtr hInstance, IntPtr lpCursorName);
+    internal static extern IntPtr LoadCursor([In, Optional] IntPtr hInstance, [In] IntPtr lpCursorName);
 
+    /// <summary>
+    ///   Sets the cursor shape.
+    /// </summary>
+    /// <param name="hCursor">
+    ///   A handle to the cursor. The cursor must have been created by the CreateCursor function or loaded by the
+    ///   <see cref="LoadCursor(IntPtr,IntPtr)" /> or LoadImage function.
+    /// </param>
+    /// <returns>The return value is the handle to the previous cursor, if there was one.</returns>
     [DllImport(nameof(User32))]
-    internal static extern IntPtr SetCursor(IntPtr hCursor);
+    internal static extern IntPtr SetCursor([In] IntPtr hCursor);
 
     #endregion
 
@@ -512,6 +568,36 @@ namespace Captain.Application.Native {
       [In] int nCode,
       [In] IntPtr wParam,
       [In] IntPtr lParam);
+
+    #region Undocumented Windows 10 composition features
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WindowCompositionAttributeData {
+      internal WindowCompositionAttribute Attribute;
+      internal IntPtr Data;
+      internal int SizeOfData;
+    }
+
+    internal enum WindowCompositionAttribute {
+      WCA_ACCENT_POLICY = 19
+    }
+
+    internal enum AccentState {
+      ACCENT_ENABLE_BLURBEHIND = 3
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct AccentPolicy {
+      internal AccentState AccentState;
+      private readonly int AccentFlags;
+      private readonly int GradientColor;
+      private readonly int AnimationId;
+    }
+
+    [DllImport(nameof(User32))]
+    internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+    #endregion
   }
 
   #endregion

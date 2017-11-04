@@ -121,9 +121,6 @@
   <data name="AppIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>AppIcon.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="AppMenu_Capture" xml:space="preserve">
-    <value>&amp;Capture</value>
-  </data>
   <data name="AppMenu_Options" xml:space="preserve">
     <value>&amp;Options…</value>
   </data>
@@ -133,104 +130,17 @@
   <data name="AppMenu_Exit" xml:space="preserve">
     <value>&amp;Exit</value>
   </data>
-  <data name="CapturesFolderName" xml:space="preserve">
-    <value>Captures</value>
-  </data>
-  <data name="Toast_Open" xml:space="preserve">
-    <value>Open</value>
-  </data>
-  <data name="Toast_ViewInFolder" xml:space="preserve">
-    <value>View in folder</value>
-  </data>
-  <data name="Toast_LocalSaveFailedSubText" xml:space="preserve">
-    <value>A local copy of this capture could not be saved.</value>
-  </data>
-  <data name="Toast_LocalSaveFailedCaption" xml:space="preserve">
-    <value>Could not save capture</value>
-  </data>
-  <data name="Toast_LocalSaveFailedContent" xml:space="preserve">
-    <value>There was a problem trying to save this capture.</value>
-  </data>
   <data name="GenericActionErrorDialog_HideDetails" xml:space="preserve">
     <value>Hide error &amp;details</value>
   </data>
   <data name="GenericActionErrorDialog_ShowDetails" xml:space="preserve">
     <value>Show error &amp;details</value>
   </data>
-  <data name="Toast_OutputStreamFailedCaption" xml:space="preserve">
-    <value>The capture could not be processed</value>
-  </data>
-  <data name="Toast_OutputStreamFailedContent" xml:space="preserve">
-    <value>An error occured while handling this capture.</value>
-  </data>
-  <data name="Toast_CaptureFailedCaption" xml:space="preserve">
-    <value>Capture failed</value>
-  </data>
-  <data name="Toast_CaptureFailedContent" xml:space="preserve">
-    <value>Either the capture failed or there was a media encoding problem.</value>
-  </data>
-  <data name="Toast_StaticDoneCaption" xml:space="preserve">
-    <value>Screenshot taken!</value>
-  </data>
-  <data name="Toast_StaticDonePartialSuccessContent" xml:space="preserve">
-    <value>Your capture has been processed.</value>
-  </data>
-  <data name="Toast_StaticDonePartialSuccessSubtext" xml:space="preserve">
-    <value>Some tasks failed. Tap for details.</value>
-  </data>
-  <data name="Toast_ViewResultsActionText" xml:space="preserve">
-    <value>View results…</value>
-  </data>
-  <data name="Toast_ViewErrorsActionText" xml:space="preserve">
-    <value>View errors…</value>
-  </data>
   <data name="ActionErrorDialog_PartialFailureCaption" xml:space="preserve">
     <value>Some tasks failed</value>
   </data>
   <data name="ActionErrorDialog_PartialFailureContent" xml:space="preserve">
     <value>Not all output streams could process your capture. Refer to the application log for technical information.</value>
-  </data>
-  <data name="Toast_StaticDoneContent" xml:space="preserve">
-    <value>All tasks have been completed.</value>
-  </data>
-  <data name="Toast_StaticDoneDetailsSubtext" xml:space="preserve">
-    <value>Tap here to see details.</value>
-  </data>
-  <data name="GrabberUI_Cancel" xml:space="preserve">
-    <value>Cancel</value>
-  </data>
-  <data name="GrabberUI_MuteMicrophone" xml:space="preserve">
-    <value>Mute microphone</value>
-  </data>
-  <data name="GrabberUI_MuteSpeaker" xml:space="preserve">
-    <value>Mute speaker</value>
-  </data>
-  <data name="GrabberUI_Pause" xml:space="preserve">
-    <value>Pause recording</value>
-  </data>
-  <data name="GrabberUI_Pin" xml:space="preserve">
-    <value>Attach to window</value>
-  </data>
-  <data name="GrabberUI_Record" xml:space="preserve">
-    <value>Record</value>
-  </data>
-  <data name="GrabberUI_Resume" xml:space="preserve">
-    <value>Resume recording</value>
-  </data>
-  <data name="GrabberUI_Screenshot" xml:space="preserve">
-    <value>Take screenshot!</value>
-  </data>
-  <data name="GrabberUI_Stop" xml:space="preserve">
-    <value>Stop recording</value>
-  </data>
-  <data name="GrabberUI_UnmuteMicrophone" xml:space="preserve">
-    <value>Unmute microphone</value>
-  </data>
-  <data name="GrabberUI_UnmuteSpeaker" xml:space="preserve">
-    <value>Unmute speaker</value>
-  </data>
-  <data name="GrabberUI_Unpin" xml:space="preserve">
-    <value>Detach from window</value>
   </data>
   <data name="AeroIndicatorStrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>AeroIndicatorStrip.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -240,7 +150,7 @@
   </data>
   <data name="AboutWindow_URI" xml:space="preserve">
     <value>https://git.io/captain</value>
-    <comment>Support URL for the application</comment>
+    
   </data>
   <data name="UpdaterUI_DialogCaption" xml:space="preserve">
     <value>Update {0}</value>
@@ -278,12 +188,6 @@ Would you like to install it?</value>
   </data>
   <data name="UpdaterUI_DialogInstallProgressText" xml:space="preserve">
     <value>Installing update…</value>
-  </data>
-  <data name="AboutWindow_DistributionTypeStandalone" xml:space="preserve">
-    <value>Standalone</value>
-  </data>
-  <data name="AboutWindow_DistributionTypeFull" xml:space="preserve">
-    <value>Full</value>
   </data>
   <data name="AboutWindow_DistributionType" xml:space="preserve">
     <value>Distribution type</value>
@@ -378,5 +282,30 @@ Contact the plugin vendor for further information.</value>
   </data>
   <data name="SnackBarUnmute" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>SnackBarUnmute.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Task_CaptureFailedCaption" xml:space="preserve">
+    <value>Capture failed</value>
+  </data>
+  <data name="Task_CaptureFailedBody" xml:space="preserve">
+    <value>We could not capture the screen due to an internal error.
+Tap here to see details.</value>
+  </data>
+  <data name="Task_CaptureFailedExtendedCaption" xml:space="preserve">
+    <value>Could not capture the screen</value>
+  </data>
+  <data name="Task_CaptureFailedExtendedBody" xml:space="preserve">
+    <value>The required encoder may have not been properly initialized, there were no actions to take or an error occurred while trying to duplicate the desktop.</value>
+  </data>
+  <data name="Task_PartialSuccessCaption" xml:space="preserve">
+    <value>Some actions failed</value>
+  </data>
+  <data name="Task_PartialSuccessBody" xml:space="preserve">
+    <value>Not all actions could process your capture.</value>
+  </data>
+  <data name="Task_SuccessCaption" xml:space="preserve">
+    <value>Screenshot taken!</value>
+  </data>
+  <data name="Task_SuccessBody" xml:space="preserve">
+    <value>All actions succeeded.</value>
   </data>
 </root>

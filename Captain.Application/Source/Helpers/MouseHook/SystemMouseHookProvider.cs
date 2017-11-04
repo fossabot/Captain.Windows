@@ -19,6 +19,11 @@ namespace Captain.Application {
     private const int HC_ACTION = 0;
 
     /// <summary>
+    ///   Low-level mouse hook procedure reference so it it does not get garbage collected
+    /// </summary>
+    private User32.WindowsHookDelegate lowLevelMouseProc;
+
+    /// <summary>
     ///   Handle for the system mouse hook
     /// </summary>
     private IntPtr hookHandle;
@@ -55,7 +60,8 @@ namespace Captain.Application {
         throw new InvalidOperationException("The previous hook must be released before capturing the mouse again.");
       }
 
-      if ((this.hookHandle = User32.SetWindowsHookEx(User32.WindowsHookType.WH_MOUSE_LL, LowLevelMouseProc)) ==
+      GC.KeepAlive(this.lowLevelMouseProc = LowLevelMouseProc);
+      if ((this.hookHandle = User32.SetWindowsHookEx(User32.WindowsHookType.WH_MOUSE_LL, this.lowLevelMouseProc)) ==
           IntPtr.Zero) {
         Log.WriteLine(LogLevel.Error, $"SetWindowHookEx() failed (LE 0x{Marshal.GetLastWin32Error():x8})");
         throw new Win32Exception(Marshal.GetLastWin32Error());

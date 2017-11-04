@@ -45,7 +45,7 @@ namespace Captain.Application {
         this.displayName = type.Name;
       }
 
-      Configurable = type.GetInterface("IConfigurable") == null;
+      Configurable = type.GetInterface("IConfigurable") != null;
       Log.WriteLine(LogLevel.Verbose, "loaded plugin object {0}", this);
     }
 

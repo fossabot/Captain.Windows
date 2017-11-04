@@ -60,6 +60,16 @@ namespace Captain.Application {
     public List<Task> Tasks { get; set; } = new List<Task>();
 
     /// <summary>
+    ///   Default screenshot task index
+    /// </summary>
+    public int DefaultScreenshotTask = 0;
+
+    /// <summary>
+    ///   Default recording task index
+    /// </summary>
+    public int DefaultRecordingTask = 0;
+
+    /// <summary>
     ///   Loads an <see cref="Options"/> instance from file
     /// </summary>
     /// <returns>An instance of the <see cref="Options"/> class</returns>

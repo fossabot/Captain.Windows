@@ -1,24 +1,24 @@
 ﻿using System;
+using System.Drawing;
 
-// ReSharper disable once CheckNamespace
 namespace Captain.Common {
   /// <summary>
   ///   Contains information about a successful capture after it has been handled appropiately
   /// </summary>
   public class CaptureResult {
     /// <summary>
-    /// Title of the notification (optional)
+    ///   Optional status message
     /// </summary>
-    public string ToastTitle { get; set; }
+    public string Status { get; set; }
 
     /// <summary>
-    /// Content of the notification (optional)
+    ///   Optional result URI
     /// </summary>
-    public string ToastContent { get; set; }
+    public Uri Uri { get; set; }
 
     /// <summary>
-    /// URL to be open upon toast activation
+    ///   Optional preview bitmap
     /// </summary>
-    public Uri ToastUri { get; set; }
+    public Bitmap PreviewBitmap { get; set; }
   }
 }

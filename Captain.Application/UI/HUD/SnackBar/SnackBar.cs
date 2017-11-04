@@ -4,6 +4,9 @@ using System.Linq;
 using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct2D1;
+using SharpDX.DXGI;
+using AlphaMode = SharpDX.Direct2D1.AlphaMode;
+using Factory = SharpDX.Direct2D1.Factory;
 
 namespace Captain.Application {
   /// <inheritdoc />
@@ -12,6 +15,16 @@ namespace Captain.Application {
   /// </summary>
   internal sealed class SnackBar : IDisposable {
     /// <summary>
+    ///   Handler for action intent events
+    /// </summary>
+    internal delegate void IntentReceivedEventHandler(SnackBar sender, SnackBarIntent intent);
+
+    /// <summary>
+    ///   Record/Stop button
+    /// </summary>
+    private SnackBarButton recordButton;
+
+    /// <summary>
     ///   Button list
     /// </summary>
     private readonly List<SnackBarButton> buttons = new List<SnackBarButton>();
@@ -19,13 +32,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Generic, common constructor
     /// </summary>
-    private SnackBar() {
-#if DEBUG || TRACE
-      this.factory = new Factory(FactoryType.SingleThreaded, DebugLevel.Information);
-#else
-      this.factory = new Factory(FactoryType.SingleThreaded, DebugLevel.None);
-#endif
-    }
+    private SnackBar() { }
 
     /// <inheritdoc />
     /// <summary>
@@ -33,23 +40,44 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="wrapper">Wrapper instance</param>
     internal SnackBar(Control wrapper) : this() {
-      this.renderTarget = new WindowRenderTarget(this.factory,
-        new RenderTargetProperties(),
+      this.wrapper = wrapper;
+      this.renderTarget = new WindowRenderTarget(
+        new Factory(),
+        new RenderTargetProperties(new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied)),
         new HwndRenderTargetProperties {
-          PixelSize = new Size2(wrapper.Width, wrapper.Height),
-          Hwnd = wrapper.Handle
+          PixelSize = new Size2(this.wrapper.Width, this.wrapper.Height),
+          Hwnd = this.wrapper.Handle
         });
 
       // bind events
-      wrapper.MouseMove += (s, e) => OnMouseMove(e.X, e.Y);
-      wrapper.MouseLeave += (s, e) => OnMouseMove(-1, -1);
-      wrapper.MouseDown += (s, e) => OnMouseDown(e.X, e.Y, e.Button);
-      wrapper.MouseUp += (s, e) => OnMouseUp(e.Button);
-
-      wrapper.Paint += (s, e) => Render();
+      this.wrapper.MouseMove += OnWrapperOnMouseMove;
+      this.wrapper.MouseLeave += OnWrapperOnMouseLeave;
+      this.wrapper.MouseDown += OnWrapperOnMouseDown;
+      this.wrapper.MouseUp += OnWrapperOnMouseUp;
+      this.wrapper.Paint += OnWrapperOnPaint;
 
       CreateBrushes();
       CreateButtons();
+    }
+
+    /// <summary>
+    ///   Toggles Record/Stop button behaviour
+    /// </summary>
+    /// <param name="recording">Whether a recording is in progress</param>
+    internal void MorphRecordButton(bool recording = false) {
+      if (recording) {
+        this.recordButton.NormalFill = this.stopNormalButtonBrush;
+        this.recordButton.HoverFill = this.stopHoverButtonBrush;
+        this.recordButton.ActiveFill = this.stopActiveButtonBrush;
+        this.recordButton.Bitmap = Resources.SnackBarStop;
+      } else {
+        this.recordButton.NormalFill = this.recordNormalButtonBrush;
+        this.recordButton.HoverFill = this.recordHoverButtonBrush;
+        this.recordButton.ActiveFill = this.recordActiveButtonBrush;
+        this.recordButton.Bitmap = Resources.SnackBarRecord;
+      }
+
+      Render();
     }
 
     /// <inheritdoc />
@@ -57,6 +85,19 @@ namespace Captain.Application {
     ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
     public void Dispose() {
+      // unbind wrapper events
+      this.wrapper.MouseMove -= OnWrapperOnMouseMove;
+      this.wrapper.MouseLeave -= OnWrapperOnMouseLeave;
+      this.wrapper.MouseDown -= OnWrapperOnMouseDown;
+      this.wrapper.MouseUp -= OnWrapperOnMouseUp;
+      this.wrapper.Paint -= OnWrapperOnPaint;
+
+      // release button resources
+      if (this.buttons?.Any() == true) {
+        this.buttons.ForEach(b => b.Dispose());
+      }
+
+      // release resources
       this.genericHoverButtonBrush?.Dispose();
       this.genericActiveButtonBrush?.Dispose();
       this.closeHoverButtonBrush?.Dispose();
@@ -64,9 +105,54 @@ namespace Captain.Application {
       this.recordNormalButtonBrush?.Dispose();
       this.recordHoverButtonBrush?.Dispose();
       this.recordActiveButtonBrush?.Dispose();
-      this.factory?.Dispose();
       this.renderTarget?.Dispose();
     }
+
+    /// <summary>
+    ///   Triggered when a snack bar action is performed
+    /// </summary>
+    internal event IntentReceivedEventHandler OnIntentReceived;
+
+    #region Wrapper events
+
+    /// <summary>
+    ///   Triggered when the wrapper window gets painted
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnWrapperOnPaint(object sender, PaintEventArgs eventArgs) => Render();
+
+    /// <summary>
+    ///   Triggered when the wrapper window receives a mouse up event
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnWrapperOnMouseUp(object sender, MouseEventArgs eventArgs) => OnMouseUp(eventArgs.Button);
+
+    /// <summary>
+    ///   Triggered when the wrapper window receives a mouse down event
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnWrapperOnMouseDown(object sender, MouseEventArgs eventArgs) =>
+      OnMouseDown(eventArgs.X, eventArgs.Y, eventArgs.Button);
+
+    /// <summary>
+    ///   Triggered when the wrapper window receives a mouse move event
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnWrapperOnMouseLeave(object sender, EventArgs eventArgs) => OnMouseMove(-1, -1);
+
+    /// <summary>
+    ///   Triggered when the wrapper window receives a mouse move event
+    /// </summary>
+    /// <param name="sender">Sender object</param>
+    /// <param name="eventArgs">Event arguments</param>
+    private void OnWrapperOnMouseMove(object sender, MouseEventArgs eventArgs) =>
+      OnMouseMove(eventArgs.X, eventArgs.Y);
+
+    #endregion
 
     #region Mouse events
 
@@ -107,11 +193,18 @@ namespace Captain.Application {
     /// <param name="mouseButtons">The buttons</param>
     private void OnMouseUp(MouseButtons mouseButtons) {
       if (mouseButtons != MouseButtons.Left) { return; }
-      this.buttons.Where(b => b.Active).ToList().ForEach(b => {
-        b.Active = false;
-        b.PerformClick();
-      });
-      Render();
+
+      try {
+        SnackBarButton button = this.buttons.First(b => b.Active);
+        button.Active = false;
+        Render();
+
+        if (button.Enabled) {
+          button.PerformClick();
+        }
+      } catch (InvalidOperationException) {
+        /* no held buttons */
+      }
     }
 
     #endregion
@@ -129,6 +222,10 @@ namespace Captain.Application {
       this.recordHoverButtonBrush = new SolidColorBrush(this.renderTarget, this.recordHoverColor);
       this.recordActiveButtonBrush = new SolidColorBrush(this.renderTarget, this.recordActiveColor);
 
+      this.stopNormalButtonBrush = new SolidColorBrush(this.renderTarget, this.stopNormalColor);
+      this.stopHoverButtonBrush = new SolidColorBrush(this.renderTarget, this.stopHoverColor);
+      this.stopActiveButtonBrush = new SolidColorBrush(this.renderTarget, this.stopActiveColor);
+
       this.closeHoverButtonBrush = new SolidColorBrush(this.renderTarget, this.closeHoverColor);
       this.closeActiveButtonBrush = new SolidColorBrush(this.renderTarget, this.closeActiveColor);
     }
@@ -140,19 +237,20 @@ namespace Captain.Application {
       // screenshot
       this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(0, 0, 32, 32)) {
         Bitmap = Resources.SnackBarScreenshot,
-        Action = OnScreenshotButtonClick
+        Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Screenshot)
       });
 
       // mute/unmute
       this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(32, 0, 36, 32)) {
+        Enabled = false,
         Bitmap = Resources.SnackBarMute,
-        Action = OnMuteButtonClick
+        Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.ToggleMute)
       });
 
       // options
       this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(124, 0, 36, 32)) {
         Bitmap = Resources.SnackBarOptions,
-        Action = OnOptionsButtonClick
+        Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Options)
       });
 
       /* bind generic fill brushes */
@@ -164,7 +262,7 @@ namespace Captain.Application {
       // close
       this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(160, 0, 32, 32)) {
         Bitmap = Resources.SnackBarClose,
-        Action = OnCloseButtonClick
+        Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Close)
       });
 
       /* bind brushes */
@@ -174,10 +272,11 @@ namespace Captain.Application {
       // record/stop
       // This button is rendered last so that it's above the rest of buttons. This creates a nice style for the side
       // buttons (mute and options) that seem to fit perfectly with the elliptic shape
-      this.buttons.Add(new SnackBarButton(this.renderTarget, new Ellipse(new Vector2(96, 16), 32, 32)) {
+      this.recordButton = new SnackBarButton(this.renderTarget, new Ellipse(new Vector2(96, 16), 32, 32)) {
         Bitmap = Resources.SnackBarRecord,
-        Action = OnRecordButtonClick
-      });
+        Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.ToggleRecord)
+      };
+      this.buttons.Add(this.recordButton);
 
       /* bind brushes */
       this.buttons.Last().NormalFill = this.recordNormalButtonBrush;
@@ -187,45 +286,12 @@ namespace Captain.Application {
 
     #endregion
 
-    #region Button events
-
-    /// <summary>
-    ///   Triggered when the Record button is clicked
-    /// </summary>
-    private void OnRecordButtonClick() { throw new NotImplementedException(); }
-
-    /// <summary>
-    ///   Triggered when the Close button is clicked
-    /// </summary>
-    private void OnCloseButtonClick() { throw new NotImplementedException(); }
-
-    /// <summary>
-    ///   Triggered when the Options button is clicked
-    /// </summary>
-    private static void OnOptionsButtonClick() {
-      try {
-        new OptionsWindow().Show();
-      } catch (ApplicationException) { /* already open */ }
-    }
-
-    /// <summary>
-    ///   Triggered when the Mute button is clicked
-    /// </summary>
-    private void OnMuteButtonClick() { throw new NotImplementedException(); }
-
-    /// <summary>
-    ///   Triggered when the Screenshot button is clicked
-    /// </summary>
-    private void OnScreenshotButtonClick() { throw new NotImplementedException(); }
-
-    #endregion
-
     #region Colors
 
     /// <summary>
     ///   Snack bar background color
     /// </summary>
-    private readonly Color backgroundColor = new Color(34, 34, 34);
+    private readonly Color backgroundColor = new Color(0, 0, 0, 127);
 
     /// <summary>
     ///   Normal button hover color
@@ -250,17 +316,32 @@ namespace Captain.Application {
     /// <summary>
     ///   Normal record button color
     /// </summary>
-    private readonly Color recordNormalColor = new Color(76, 29, 33);
+    private readonly Color recordNormalColor = new Color(84, 39, 42);
 
     /// <summary>
     ///   Hover record button color
     /// </summary>
-    private readonly Color recordHoverColor = new Color(109, 32, 38);
+    private readonly Color recordHoverColor = new Color(158, 27, 38);
 
     /// <summary>
     ///   Active record button color
     /// </summary>
-    private readonly Color recordActiveColor = new Color(138, 44, 52);
+    private readonly Color recordActiveColor = new Color(102, 30, 36);
+
+    /// <summary>
+    ///   Normal stop button color
+    /// </summary>
+    private readonly Color stopNormalColor = new Color(39, 46, 84);
+
+    /// <summary>
+    ///   Hover stop button color
+    /// </summary>
+    private readonly Color stopHoverColor = new Color(27, 49, 158);
+
+    /// <summary>
+    ///   Active stop button color
+    /// </summary>
+    private readonly Color stopActiveColor = new Color(30, 42, 102);
 
     #endregion
 
@@ -301,19 +382,34 @@ namespace Captain.Application {
     /// </summary>
     private Brush recordActiveButtonBrush;
 
+    /// <summary>
+    ///   Brush used to paint the stop button
+    /// </summary>
+    private Brush stopNormalButtonBrush;
+
+    /// <summary>
+    ///   Brush used to paint the hovered stop button
+    /// </summary>
+    private Brush stopHoverButtonBrush;
+
+    /// <summary>
+    ///   Brush used to paint the active stop button
+    /// </summary>
+    private Brush stopActiveButtonBrush;
+
     #endregion
 
     #region Direct2D
 
     /// <summary>
-    ///   Direct2D factory
-    /// </summary>
-    private readonly Factory factory;
-
-    /// <summary>
     ///   Render target
     /// </summary>
     private readonly RenderTarget renderTarget;
+
+    /// <summary>
+    ///   Snack bar wrapper window
+    /// </summary>
+    private readonly Control wrapper;
 
     /// <summary>
     ///   Renders the snack bar UI

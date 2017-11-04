@@ -4,6 +4,7 @@ using System.IO;
 using Captain.Common;
 
 namespace Captain.Application {
+  /// <inheritdoc />
   /// <summary>
   ///   Encodes still captures as PNG images
   /// </summary>
@@ -18,6 +19,7 @@ namespace Captain.Application {
       MediaType = "image/png"
     };
 
+    /// <inheritdoc />
     /// <summary>
     ///   Performs the encoding
     /// </summary>

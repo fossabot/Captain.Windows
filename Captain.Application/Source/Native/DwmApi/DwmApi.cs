@@ -27,6 +27,7 @@ namespace Captain.Application.Native {
     ///   If this function succeeds, it returns <c>S_OK</c>. Otherwise, it returns an <c>HRESULT</c> error code.
     /// </returns>
     [DllImport(nameof(DwmApi))]
+    [return: MarshalAs(UnmanagedType.Error)]
     internal static extern int DwmGetWindowAttribute(
       [In] IntPtr hwnd,
       [In] DwmWindowAttribute dwAttribute,
@@ -42,6 +43,7 @@ namespace Captain.Application.Native {
     /// </param>
     /// <returns>If this function succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code.</returns>
     [DllImport(nameof(DwmApi))]
+    [return: MarshalAs(UnmanagedType.Error)]
     internal static extern int DwmIsCompositionEnabled([Out] out bool pfEnabed);
 
     /// <summary>
@@ -50,5 +52,22 @@ namespace Captain.Application.Native {
     /// <param name="dp">Destination colorization parameters struct.</param>
     [DllImport(nameof(DwmApi), EntryPoint = "#127")]
     internal static extern void DwmGetColorizationParameters([In, Out] ref DWMCOLORIZATIONPARAMS dp);
+
+    /// <summary>
+    ///   Extends the window frame into the client area.
+    /// </summary>
+    /// <param name="hWnd">The handle to the window in which the frame will be extended into the client area.</param>
+    /// <param name="pMarInset">
+    ///   A pointer to a <see cref="MARGINS"/> structure that describes the margins to use when extending the frame
+    ///   into the client area.
+    /// </param>
+    /// <returns>If this function succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code.</returns>
+    /// <remarks>
+    ///   This function must be called whenever Desktop Window Manager (DWM) composition is toggled.
+    ///   Handle the WM_DWMCOMPOSITIONCHANGED message for composition change notification.
+    /// </remarks>
+    [DllImport(nameof(DwmApi))]
+    [return: MarshalAs(UnmanagedType.Error)]
+    internal static extern int DwmExtendFrameIntoClientArea([In] IntPtr hWnd, [In, Out] ref MARGINS pMarInset);
   }
 }

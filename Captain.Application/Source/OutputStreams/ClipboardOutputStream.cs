@@ -32,13 +32,7 @@ namespace Captain.Application {
     /// <returns>A <see cref="T:Captain.Common.CaptureResult" /> instance containing result information</returns>
     public CaptureResult Commit() {
       Clipboard.SetImage(Image.FromStream(this));
-
-      var result = new CaptureResult {
-        ToastTitle = "Screenshot copied!",
-        ToastContent = "The screenshot has been copied to your clipboard."
-      };
-
-      return result;
+      return new CaptureResult();
     }
 
     /// <summary>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Captain.Application", "Captain.Application\Captain.Application.csproj", "{F2886E2B-0664-4B90-8F96-65598E485E06}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -60,6 +60,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_ShowPerformanceTraces = True
 		SolutionGuid = {90E4A3AC-CC21-45E5-91E7-B7B5E42030DD}
 	EndGlobalSection
 EndGlobal
