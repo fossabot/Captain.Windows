@@ -58,7 +58,7 @@ namespace Captain.Application {
       this.task = taskInstance;
 
       void OnCrop(object sender, Rectangle rectangle) {
-        DisplaySnackBar(location: new Point(rectangle.X + ((rectangle.Width - 192) / 2), rectangle.Y + rectangle.Height));
+        DisplaySnackBar(location: new Point(rectangle.X + (rectangle.Width - 192) / 2, rectangle.Y + rectangle.Height));
       }
 
       OnScreenCrop += OnCrop;
@@ -184,7 +184,7 @@ namespace Captain.Application {
     /// <param name="show">Whether to display the HUD or not</param>
     internal void Display(bool show = true) {
       if (show) {
-        if ((this.cropRectangleWrapper == null) || this.cropRectangleWrapper.IsDisposed) {
+        if (this.cropRectangleWrapper == null || this.cropRectangleWrapper.IsDisposed) {
           this.cropRectangleWrapper = new CropRectangleWrapper();
         }
 
@@ -235,9 +235,9 @@ namespace Captain.Application {
       switch (intent) {
         case SnackBarIntent.Screenshot:
           if (this.task == null) {
-            Application.Options.Tasks[Application.Options.DefaultScreenshotTask].Start();
+            TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultScreenshotTask]);
           } else {
-            this.task.Start();
+            TaskHelper.StartTask(this.task);
           }
 
           break;

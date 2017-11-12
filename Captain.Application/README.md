@@ -34,12 +34,6 @@ These open-source projects are also being used (albeit with no actual source cod
 - [Microsoft/UWPCommunityToolkit](https://github.com/Microsoft/UWPCommunityToolkit), as a
   [NuGet package dependency](https://www.nuget.org/packages/Microsoft.Toolkit.Uwp/).  
   Copyright (c) .NET Foundation and Contributors
-- [EasyHook/EasyHook](https://github.com/EasyHook/EasyHook/), as a
-  [NuGet package dependency](https://www.nuget.org/packages/EasyHookNativePackage/).  
-  Copyright (c) 2009 Christoph Husse & Copyright (c) 2012 Justin Stenning
-- [sharpdx/SharpDX](https://github.com/sharpdx/SharpDX), as several
-  [NuGet package dependencies](https://www.nuget.org/packages?q=Tags%3A%22SharpDX%22).  
-  Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
 - [Squirrel/Squirrel.Windows](https://github.com/Squirrel/Squirrel.Windows) and 
   [its dependencies](https://github.com/Squirrel/Squirrel.Windows/blob/master/src/Squirrel.nuspec#L11), as a
   [NuGet package dependency](https://www.nuget.org/packages/Squirrel.Windows).  

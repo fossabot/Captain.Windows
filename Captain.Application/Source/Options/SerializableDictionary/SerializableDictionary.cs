@@ -5,6 +5,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 
 namespace Captain.Application {
+  /// <inheritdoc cref="Dictionary{TKey,TValue}" />
   /// <summary>
   ///   XML-serializable Dictionary
   ///   TODO: add documentation for this file

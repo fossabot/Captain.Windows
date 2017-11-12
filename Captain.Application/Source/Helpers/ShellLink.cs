@@ -27,9 +27,7 @@ namespace Captain.Application {
     /// <param name="hresult">HRESULT</param>
     /// <remarks>This method is from Sending toast notifications from desktop apps sample.</remarks>
     private void VerifySucceeded(uint hresult) {
-      if (hresult > 1) {
-        throw new Exception("Failed with HRESULT: " + hresult.ToString("X"));
-      }
+      if (hresult > 1) { throw new Exception("Failed with HRESULT: " + hresult.ToString("X")); }
     }
 
     #endregion
@@ -218,10 +216,8 @@ namespace Captain.Application {
       public object Value {
         get {
           switch ((VarEnum) this.valueType) {
-            case VarEnum.VT_LPWSTR:
-              return Marshal.PtrToStringUni(this.value);
-            case VarEnum.VT_CLSID:
-              return Marshal.PtrToStructure(this.value, typeof(Guid));
+            case VarEnum.VT_LPWSTR: return Marshal.PtrToStringUni(this.value);
+            case VarEnum.VT_CLSID: return Marshal.PtrToStructure(this.value, typeof(Guid));
             default: // VT_EMPTY and so on
               return null;
           }
@@ -239,9 +235,7 @@ namespace Captain.Application {
       /// </summary>
       /// <param name="value">String value</param>
       public PropVariant(string value) {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
+        if (value == null) { throw new ArgumentNullException(nameof(value)); }
 
         this.valueType = (ushort) VarEnum.VT_LPWSTR;
         this.value = Marshal.StringToCoTaskMemUni(value);
@@ -252,9 +246,7 @@ namespace Captain.Application {
       /// </summary>
       /// <param name="value">CLSID value</param>
       public PropVariant(Guid value) {
-        if (value == Guid.Empty) {
-          throw new ArgumentNullException(nameof(value));
-        }
+        if (value == Guid.Empty) { throw new ArgumentNullException(nameof(value)); }
 
         this.valueType = (ushort) VarEnum.VT_CLSID;
         this.value = Marshal.AllocCoTaskMem(Marshal.SizeOf(value));
@@ -300,7 +292,8 @@ namespace Captain.Application {
     ///   PropID = 5
     ///   Type = String (VT_LPWSTR)
     /// </remarks>
-    private static readonly PropertyKey appUserModelIDKey = new PropertyKey("{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}", 5);
+    private static readonly PropertyKey appUserModelIDKey = new PropertyKey("{9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3}", 5)
+      ;
 
     /// <summary>
     ///   Property key of AppUserModelToastActivatorCLSID
@@ -380,9 +373,7 @@ namespace Captain.Application {
     private IPersistFile PersistFile {
       get {
         var pf = this.shellLink as IPersistFile;
-        if (pf == null) {
-          throw new COMException("Failed to create IPersistFile.");
-        }
+        if (pf == null) { throw new COMException("Failed to create IPersistFile."); }
 
         return pf;
       }
@@ -391,9 +382,7 @@ namespace Captain.Application {
     private IPropertyStore PropertyStore {
       get {
         var ps = this.shellLink as IPropertyStore;
-        if (ps == null) {
-          throw new COMException("Failed to create IPropertyStore.");
-        }
+        if (ps == null) { throw new COMException("Failed to create IPropertyStore."); }
 
         return ps;
       }
@@ -408,9 +397,7 @@ namespace Captain.Application {
     /// </summary>
     internal string ShortcutPath {
       get {
-        string buff;
-        PersistFile.GetCurFile(out buff);
-
+        PersistFile.GetCurFile(out string buff);
         return buff;
       }
     }
@@ -455,7 +442,7 @@ namespace Captain.Application {
         using (var pv = new PropVariant()) {
           VerifySucceeded(PropertyStore.GetValue(argumentsKey, pv));
 
-          return pv.Value as string ?? string.Empty;
+          return pv.Value as string ?? String.Empty;
         }
       }
       set => VerifySucceeded(this.shellLink.SetArguments(value));
@@ -510,9 +497,7 @@ namespace Captain.Application {
     /// </summary>
     internal SW WindowStyle {
       get {
-        SW showCmd;
-        VerifySucceeded(this.shellLink.GetShowCmd(out showCmd));
-
+        VerifySucceeded(this.shellLink.GetShowCmd(out SW showCmd));
         return showCmd;
       }
       set => VerifySucceeded(this.shellLink.SetShowCmd(value));
@@ -525,8 +510,7 @@ namespace Captain.Application {
     internal string IconPath {
       get {
         var sb = new StringBuilder(MAX_PATH - 1);
-        int index;
-        VerifySucceeded(this.shellLink.GetIconLocation(sb, sb.Capacity, out index));
+        VerifySucceeded(this.shellLink.GetIconLocation(sb, sb.Capacity, out int index));
 
         return sb.ToString();
       }
@@ -545,9 +529,7 @@ namespace Captain.Application {
     internal int IconIndex {
       get {
         var sb = new StringBuilder(MAX_PATH);
-        int index;
-        VerifySucceeded(this.shellLink.GetIconLocation(sb, sb.Capacity, out index));
-
+        VerifySucceeded(this.shellLink.GetIconLocation(sb, sb.Capacity, out int index));
         return index;
       }
       set {
@@ -577,14 +559,12 @@ namespace Captain.Application {
         using (var pv = new PropVariant()) {
           VerifySucceeded(PropertyStore.GetValue(appUserModelIDKey, pv));
 
-          return pv.Value as string ?? string.Empty;
+          return pv.Value as string ?? String.Empty;
         }
       }
       set {
-        string buff = value ?? string.Empty;
-        if (128 < buff.Length) {
-          throw new ArgumentException("AppUserModelID is too long.", nameof(AppUserModelID));
-        }
+        string buff = value ?? String.Empty;
+        if (128 < buff.Length) { throw new ArgumentException("AppUserModelID is too long.", nameof(AppUserModelID)); }
 
         using (var pv = new PropVariant(buff)) {
           VerifySucceeded(PropertyStore.SetValue(appUserModelIDKey, pv));
@@ -626,9 +606,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="shortcutPath">Shortcut file path</param>
     public ShellLink(string shortcutPath) {
-      try {
-        this.shellLink = (IShellLinkW) new CShellLink();
-      } catch (Exception ex) {
+      try { this.shellLink = (IShellLinkW) new CShellLink(); } catch (Exception ex) {
         throw new COMException("Failed to create Shell link object.", ex);
       }
 
@@ -666,13 +644,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="shortcutPath">Shortcut file path</param>
     internal void Load(string shortcutPath) {
-      if (string.IsNullOrWhiteSpace(shortcutPath)) {
-        throw new ArgumentNullException(nameof(shortcutPath));
-      }
+      if (String.IsNullOrWhiteSpace(shortcutPath)) { throw new ArgumentNullException(nameof(shortcutPath)); }
 
-      if (!File.Exists(shortcutPath)) {
-        throw new FileNotFoundException("Shortcut file is not found.", shortcutPath);
-      }
+      if (!File.Exists(shortcutPath)) { throw new FileNotFoundException("Shortcut file is not found.", shortcutPath); }
 
       PersistFile.Load(shortcutPath, (int) STGM.STGM_READ);
     }
@@ -680,18 +654,14 @@ namespace Captain.Application {
     /// <summary>
     ///   Save shortcut file.
     /// </summary>
-    internal void Save() {
-      Save(ShortcutPath);
-    }
+    internal void Save() => Save(ShortcutPath);
 
     /// <summary>
     ///   Save shortcut file.
     /// </summary>
     /// <param name="shortcutPath">Shortcut file path</param>
     internal void Save(string shortcutPath) {
-      if (string.IsNullOrWhiteSpace(shortcutPath)) {
-        throw new ArgumentNullException(nameof(shortcutPath));
-      }
+      if (String.IsNullOrWhiteSpace(shortcutPath)) { throw new ArgumentNullException(nameof(shortcutPath)); }
 
       PersistFile.Save(shortcutPath, true);
     }

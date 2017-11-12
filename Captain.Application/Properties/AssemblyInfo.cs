@@ -27,9 +27,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.6.*")]
 [assembly: AssemblyFileVersion("0.6.0.0")]
-
-[assembly: AssemblyMetadata("prerelease", "beta")]
-
-#if DEBUG
-[assembly: AssemblyMetadata("debug", "")]
-#endif

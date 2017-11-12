@@ -122,6 +122,12 @@
     <None Include="UI\CommonControls\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\NeutralResultOverlay.png" />
+    <None Include="Resources\UnsuccessfulResultOverlay.png" />
+    <None Include="Resources\SuccessfulResultOverlay.png" />
+    <None Include="Resources\CaptureResultUri.png" />
+    <None Include="Resources\CaptureResultErrorDetails.png" />
+    <None Include="Resources\CapturePreviewUnavailable.png" />
     <None Include="Resources\SnackBarUnmute.png" />
     <None Include="Resources\SnackBarStop.png" />
     <None Include="Resources\SnackBarScreenshot.png" />
@@ -144,26 +150,48 @@
     <None Include="Resources\TaskRegionFixed.png" />
     <None Include="Resources\TaskEdit.png" />
     <None Include="Resources\TaskDelete.png" />
-    <None Include="Resources\AppxIcon.ico" />
     <None Include="Resources\UpdateIcon.ico" />
     <None Include="Resources\AeroIndicatorStrip.png" />
     <Content Include="Resources\AppIcon.ico" />
     <None Include="Resources\FluentIndicatorStrip.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\Encoders\H264CaptureEncoder.cs" />
+    <Compile Include="Source\Actions\CopyToClipboardAction.cs" />
+    <Compile Include="Source\Actions\SaveToFile\SaveToFileAction.cs" />
+    <Compile Include="Source\Actions\SaveToFile\SaveToFileOptions.cs" />
+    <Compile Include="Source\Codecs\StillImage\BmpWicCodec.cs" />
+    <Compile Include="Source\Codecs\StillImage\GenericWicCodec.cs" />
+    <Compile Include="Source\Codecs\StillImage\GifWicCodec.cs" />
+    <Compile Include="Source\Codecs\StillImage\JpegWicCodec.cs" />
+    <Compile Include="Source\Codecs\StillImage\PngWicCodec.cs" />
+    <Compile Include="Source\Codecs\StillImage\TiffWicCodec.cs" />
+    <Compile Include="Source\Helpers\CompatHelper.cs" />
+    <Compile Include="Source\Helpers\KeyboardHook\IKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helpers\KeyboardHook\SystemKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helpers\TaskHelper.cs" />
+    <Compile Include="Source\Helpers\Template\CommonVariable.cs" />
+    <Compile Include="Source\Helpers\Template\TemplateHelper.cs" />
+    <Compile Include="Source\Native\User32\KBDLLHOOKSTRUCT.cs" />
     <Compile Include="Source\VideoProviders\GdiVideoProvider.cs" />
     <Compile Include="Source\VideoProviders\VideoProviderFactory.cs" />
     <Compile Include="Source\VideoProviders\DxgiVideoProvider.cs" />
-    <Compile Include="Source\Encoders\JpegCaptureEncoder.cs" />
-    <Compile Include="Source\Encoders\PngCaptureEncoder.cs" />
     <Compile Include="Source\Helpers\MouseHook\IMouseHookProvider.cs" />
     <Compile Include="Source\Helpers\MouseHook\SystemMouseHookProvider.cs" />
     <Compile Include="Source\Helpers\ShellLink.cs" />
     <Compile Include="Source\Native\UxTheme\MARGINS.cs" />
     <Compile Include="Source\Native\User32\MSLLHOOKSTRUCT.cs" />
-    <Compile Include="Source\OutputStreams\ClipboardOutputStream.cs" />
-    <Compile Include="Source\OutputStreams\FileOutputStream\FileOutputStream.cs" />
+    <Compile Include="UI\ActionDialog\ActionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ActionDialog\ActionDialog.Designer.cs">
+      <DependentUpon>ActionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ActionDialog\ActionControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ActionDialog\ActionControl.Designer.cs">
+      <DependentUpon>ActionControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\HUD\CropRectangleWrapper.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -174,11 +202,11 @@
     <Compile Include="UI\HUD\SnackBar\SnackBarWrapper.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.cs">
+    <Compile Include="UI\Options\Action\ActionPropertiesDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.Designer.cs">
-      <DependentUpon>OutputStreamPropertiesDialog.cs</DependentUpon>
+    <Compile Include="UI\Options\Action\ActionPropertiesDialog.Designer.cs">
+      <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
@@ -201,7 +229,6 @@
     <Compile Include="Source\Native\User32\RECT.cs" />
     <Compile Include="Source\Native\User32\User32.cs" />
     <Compile Include="Source\Native\User32\WINDOWPOS.cs" />
-    <Compile Include="Source\Options\NotificationDisplayOptions.cs" />
     <Compile Include="Source\Options\UpdatePolicy.cs" />
     <Compile Include="Source\Plugins\PluginObject.cs" />
     <Compile Include="Source\Plugins\PluginManager.cs" />
@@ -211,25 +238,21 @@
     <Compile Include="Source\Options\AutoStart\AutoStartPolicy.cs" />
     <Compile Include="Source\Options\Options.cs" />
     <Compile Include="Source\Options\SerializableDictionary\SerializableDictionary.cs" />
-    <Compile Include="Source\Tasks\Task.cs" />
-    <Compile Include="Source\Tasks\TaskParameters.cs" />
-    <Compile Include="Source\Tasks\TaskRegionType.cs" />
-    <Compile Include="Source\Tasks\TaskType.cs" />
     <Compile Include="Source\Update\UpdateManager.cs" />
     <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
     <Compile Include="Source\Helpers\WindowHelper.cs" />
-    <Compile Include="UI\Options\Tasks\TaskPropertiesDialog.cs">
+    <Compile Include="UI\Options\Task\TaskPropertiesDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\Tasks\TaskPropertiesDialog.Designer.cs">
+    <Compile Include="UI\Options\Task\TaskPropertiesDialog.Designer.cs">
       <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Options\Tasks\TaskControl.cs">
+    <Compile Include="UI\Options\Task\TaskEditControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\Options\Tasks\TaskControl.Designer.cs">
-      <DependentUpon>TaskControl.cs</DependentUpon>
+    <Compile Include="UI\Options\Task\TaskEditControl.Designer.cs">
+      <DependentUpon>TaskEditControl.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Helpers\ColorExtensions.cs" />
     <Compile Include="UI\CommonControls\EllipsisProgressLabel.cs">
@@ -241,11 +264,11 @@
     <Compile Include="UI\CommonControls\ListViewEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.cs">
+    <Compile Include="UI\Options\Action\ActionSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.Designer.cs">
-      <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
+    <Compile Include="UI\Options\Action\ActionSelectionDialog.Designer.cs">
+      <DependentUpon>ActionSelectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\TrayIcon\Renderers\AeroIndicatorRenderer.cs" />
     <Compile Include="UI\Helpers\UpdaterUiHelper.cs" />
@@ -271,9 +294,9 @@
     <Compile Include="UI\CommonControls\LinkLabel2\LinkLabel2.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Notifications\IToastProvider.cs" />
-    <Compile Include="UI\Notifications\LegacyNotificationProvider.cs" />
-    <Compile Include="UI\Notifications\ToastNotificationProvider.cs" />
+    <Compile Include="UI\NotificationProviders\INotificationProvider.cs" />
+    <Compile Include="UI\NotificationProviders\LegacyNotificationProvider.cs" />
+    <Compile Include="UI\NotificationProviders\ToastNotificationProvider.cs" />
     <Compile Include="UI\TrayIcon\Renderers\FluentIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\Renderers\IIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\TrayIcon.cs" />
@@ -284,23 +307,30 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Captain.Application</CustomToolNamespace>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\About\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\ActionDialog\ActionDialog.resx">
+      <DependentUpon>ActionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\ActionDialog\ActionControl.resx">
+      <DependentUpon>ActionControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Options\OptionsWindow.resx">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\OutputStreams\OutputStreamPropertiesDialog.resx">
-      <DependentUpon>OutputStreamPropertiesDialog.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Options\Action\ActionPropertiesDialog.resx">
+      <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\OutputStreams\OutputStreamSelectionDialog.resx">
-      <DependentUpon>OutputStreamSelectionDialog.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Options\Action\ActionSelectionDialog.resx">
+      <DependentUpon>ActionSelectionDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Tasks\TaskControl.resx">
-      <DependentUpon>TaskControl.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Options\Task\TaskEditControl.resx">
+      <DependentUpon>TaskEditControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Tasks\TaskPropertiesDialog.resx">
+    <EmbeddedResource Include="UI\Options\Task\TaskPropertiesDialog.resx">
       <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
@@ -335,6 +365,7 @@
     <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
       <HintPath>..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="SharpCompress, Version=0.18.2.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpCompress.0.18.2\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
@@ -366,8 +397,8 @@
       <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\Squirrel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -434,7 +465,9 @@
       <FileType>Assembly</FileType>
     </PublishFile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Source\Codecs\Video\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

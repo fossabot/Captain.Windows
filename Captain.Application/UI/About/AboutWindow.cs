@@ -20,11 +20,11 @@ namespace Captain.Application {
       this.logoPictureBox.Image = Resources.Logo;
 
       // format text labels
-      Text = String.Format(Text, Application.VersionInfo.ProductName);
-      this.versionLabel.Text = Application.VersionInfo.ProductVersion;
+      Text = String.Format(Text, System.Windows.Forms.Application.ProductName);
+      this.versionLabel.Text = Application.Version.ToString();
       this.distributionLabel.Text = Application.UpdateManager.Availability == UpdaterAvailability.NotSupported
-                                      ? "Standalone"
-                                      : "Full";
+        ? "Standalone"
+        : "Full";
 
       // set support URI text and center it!
       this.supportUriLinkLabel.Text = String.Format(this.supportUriLinkLabel.Text, Resources.AboutWindow_URI);
@@ -70,7 +70,7 @@ namespace Captain.Application {
 
         case UpdateStatus.ReadyToRestart:
           this.updateStatusLabel.Prefix = String.Format(Resources.AboutWindow_UpdateStatusReadyToRestart,
-                                                        Application.VersionInfo.ProductName);
+            System.Windows.Forms.Application.ProductName);
           this.updateStatusLabel.Animated = false;
           break;
       }
@@ -84,7 +84,7 @@ namespace Captain.Application {
     /// <param name="sender">Control to be painted</param>
     /// <param name="eventArgs">Event arguments</param>
     private void OnLabelPaint(object sender, PaintEventArgs eventArgs) {
-      var label = (Label)sender;
+      var label = (Label) sender;
       eventArgs.Graphics.Clear(label.BackColor);
 
       // label parameters
@@ -99,10 +99,10 @@ namespace Captain.Application {
 
       // size of the label rectangle
       Size labelSize = TextRenderer.MeasureText(eventArgs.Graphics,
-                                                (string)label.Tag,
-                                                label.Font,
-                                                labelRect.Size,
-                                                labelFlags);
+        (string) label.Tag,
+        label.Font,
+        labelRect.Size,
+        labelFlags);
 
       // size of the value rectangle
       Size valueSize = TextRenderer.MeasureText(eventArgs.Graphics, label.Text, label.Font, valueRect.Size, valueFlags);
@@ -110,24 +110,24 @@ namespace Captain.Application {
       // render label and value
       // TODO: don't hardcode color values, add support for high-contrast themes
       TextRenderer.DrawText(eventArgs.Graphics,
-                            (string)label.Tag,
-                            label.Font,
-                            labelRect,
-                            Color.FromArgb(0x666666),
-                            labelFlags);
+        (string) label.Tag,
+        label.Font,
+        labelRect,
+        Color.FromArgb(0x666666),
+        labelFlags);
       TextRenderer.DrawText(eventArgs.Graphics,
-                            label.Text,
-                            label.Font,
-                            valueRect,
-                            Color.FromArgb(0x333333),
-                            valueFlags);
+        label.Text,
+        label.Font,
+        valueRect,
+        Color.FromArgb(0x333333),
+        valueFlags);
 
       // draw separator
       eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x30, label.ForeColor)),
-                                  labelSize.Width,
-                                  1 + label.Height / 2,
-                                  label.Width - valueSize.Width,
-                                  1 + label.Height / 2);
+        labelSize.Width,
+        1 + label.Height / 2,
+        label.Width - valueSize.Width,
+        1 + label.Height / 2);
     }
 
     /// <summary>
@@ -152,8 +152,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs"></param>
-    private void OnBottomPanelPaint(object sender, PaintEventArgs eventArgs) {
+    private void OnBottomPanelPaint(object sender, PaintEventArgs eventArgs) =>
       eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x10, 0, 0, 0)), 0, 0, Width, 0);
-    }
   }
 }

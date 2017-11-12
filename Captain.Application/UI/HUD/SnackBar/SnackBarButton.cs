@@ -158,14 +158,14 @@ namespace Captain.Application {
           break;
       }
 
-      if (center.HasValue && (this.bitmap != null)) {
+      if (center.HasValue && this.bitmap != null) {
         // draw the bitmap associated to this button in its center
         this.render.DrawBitmap(this.bitmap,
           new RawRectangleF(
-            center.Value.X - (this.bitmap.Size.Width / 2),
-            center.Value.Y - (this.bitmap.Size.Height / 2),
-            center.Value.X + (this.bitmap.Size.Width / 2),
-            center.Value.Y + (this.bitmap.Size.Height / 2)),
+            center.Value.X - this.bitmap.Size.Width / 2,
+            center.Value.Y - this.bitmap.Size.Height / 2,
+            center.Value.X + this.bitmap.Size.Width / 2,
+            center.Value.Y + this.bitmap.Size.Height / 2),
           Enabled ? Hovered || Active ? 1 : 0.75f : 0.25f,
           BitmapInterpolationMode.Linear,
           new RawRectangleF(0, 0, this.bitmap.Size.Width, this.bitmap.Size.Height));

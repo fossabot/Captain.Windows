@@ -115,6 +115,42 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Copy URI.
+        /// </summary>
+        public static string ActionControl_ContextMenu_CopyUri {
+            get {
+                return ResourceManager.GetString("ActionControl_ContextMenu_CopyUri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Open.
+        /// </summary>
+        public static string ActionControl_ContextMenu_Open {
+            get {
+                return ResourceManager.GetString("ActionControl_ContextMenu_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open in &amp;folder….
+        /// </summary>
+        public static string ActionControl_ContextMenu_OpenInFolder {
+            get {
+                return ResourceManager.GetString("ActionControl_ContextMenu_OpenInFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown error ocurred while performing this action..
+        /// </summary>
+        public static string ActionControl_ErrorDetailsDefaultContent {
+            get {
+                return ResourceManager.GetString("ActionControl_ErrorDetailsDefaultContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Some tasks failed.
         /// </summary>
         public static string ActionErrorDialog_PartialFailureCaption {
@@ -180,12 +216,113 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Icon AppxIcon {
+        public static System.Drawing.Bitmap CapturePreviewUnavailable {
             get {
-                object obj = ResourceManager.GetObject("AppxIcon", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
+                object obj = ResourceManager.GetObject("CapturePreviewUnavailable", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap CaptureResultErrorDetails {
+            get {
+                object obj = ResourceManager.GetObject("CaptureResultErrorDetails", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap CaptureResultUri {
+            get {
+                object obj = ResourceManager.GetObject("CaptureResultUri", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to day.
+        /// </summary>
+        public static string CommonVariable_Day {
+            get {
+                return ResourceManager.GetString("CommonVariable_Day", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extension.
+        /// </summary>
+        public static string CommonVariable_Extension {
+            get {
+                return ResourceManager.GetString("CommonVariable_Extension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hour.
+        /// </summary>
+        public static string CommonVariable_Hour {
+            get {
+                return ResourceManager.GetString("CommonVariable_Hour", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to minute.
+        /// </summary>
+        public static string CommonVariable_Minute {
+            get {
+                return ResourceManager.GetString("CommonVariable_Minute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to month.
+        /// </summary>
+        public static string CommonVariable_Month {
+            get {
+                return ResourceManager.GetString("CommonVariable_Month", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to second.
+        /// </summary>
+        public static string CommonVariable_Second {
+            get {
+                return ResourceManager.GetString("CommonVariable_Second", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to two-digit year.
+        /// </summary>
+        public static string CommonVariable_ShortYear {
+            get {
+                return ResourceManager.GetString("CommonVariable_ShortYear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type.
+        /// </summary>
+        public static string CommonVariable_Type {
+            get {
+                return ResourceManager.GetString("CommonVariable_Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to year.
+        /// </summary>
+        public static string CommonVariable_Year {
+            get {
+                return ResourceManager.GetString("CommonVariable_Year", resourceCulture);
             }
         }
         
@@ -243,6 +380,16 @@ namespace Captain.Application {
         public static System.Drawing.Bitmap Logo {
             get {
                 object obj = ResourceManager.GetObject("Logo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap NeutralResultOverlay {
+            get {
+                object obj = ResourceManager.GetObject("NeutralResultOverlay", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -312,6 +459,15 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown Action.
+        /// </summary>
+        public static string PluginManager_DefaultActionName {
+            get {
+                return ResourceManager.GetString("PluginManager_DefaultActionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The configuration interface for this plugin cannot be displayed.
         ///Contact the plugin vendor for further information..
         /// </summary>
@@ -328,6 +484,24 @@ namespace Captain.Application {
             get {
                 object obj = ResourceManager.GetObject("SaveToFile", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Captures\{2}.{0}\{3}.{4}.{5}.{6}.
+        /// </summary>
+        public static string SaveToFile_DefaultNameTemplate {
+            get {
+                return ResourceManager.GetString("SaveToFile_DefaultNameTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save to file.
+        /// </summary>
+        public static string SaveToFile_Name {
+            get {
+                return ResourceManager.GetString("SaveToFile_Name", resourceCulture);
             }
         }
         
@@ -397,6 +571,16 @@ namespace Captain.Application {
         public static System.Drawing.Bitmap SnackBarUnmute {
             get {
                 object obj = ResourceManager.GetObject("SnackBarUnmute", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap SuccessfulResultOverlay {
+            get {
+                object obj = ResourceManager.GetObject("SuccessfulResultOverlay", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -522,12 +706,102 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Report….
+        /// </summary>
+        public static string TaskDialog_GenericReportButtonContent {
+            get {
+                return ResourceManager.GetString("TaskDialog_GenericReportButtonContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap TaskEdit {
             get {
                 object obj = ResourceManager.GetObject("TaskEdit", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The capture could not be processed..
+        /// </summary>
+        public static string TaskHelper_ActionFailedCaption {
+            get {
+                return ResourceManager.GetString("TaskHelper_ActionFailedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not initialize action..
+        /// </summary>
+        public static string TaskHelper_ActionInitializationFailedCaption {
+            get {
+                return ResourceManager.GetString("TaskHelper_ActionInitializationFailedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture failed.
+        /// </summary>
+        public static string TaskHelper_CaptureFailedCaption {
+            get {
+                return ResourceManager.GetString("TaskHelper_CaptureFailedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The video provider failed to capture your desktop..
+        /// </summary>
+        public static string TaskHelper_CaptureFailedContent {
+            get {
+                return ResourceManager.GetString("TaskHelper_CaptureFailedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encoding failed.
+        /// </summary>
+        public static string TaskHelper_EncodingFailedCaption {
+            get {
+                return ResourceManager.GetString("TaskHelper_EncodingFailedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The encoder failed to process the captured image..
+        /// </summary>
+        public static string TaskHelper_EncodingFailedContent {
+            get {
+                return ResourceManager.GetString("TaskHelper_EncodingFailedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We could not initialize the image encoder..
+        /// </summary>
+        public static string TaskHelper_EncodingInitializationFailedContent {
+            get {
+                return ResourceManager.GetString("TaskHelper_EncodingInitializationFailedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No such action loaded..
+        /// </summary>
+        public static string TaskHelper_NoSuchActionMessage {
+            get {
+                return ResourceManager.GetString("TaskHelper_NoSuchActionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This media is not supported by this action..
+        /// </summary>
+        public static string TaskHelper_UnsupportedMediaMessage {
+            get {
+                return ResourceManager.GetString("TaskHelper_UnsupportedMediaMessage", resourceCulture);
             }
         }
         
@@ -604,6 +878,16 @@ namespace Captain.Application {
         public static System.Drawing.Bitmap TaskTypeScreenshot {
             get {
                 object obj = ResourceManager.GetObject("TaskTypeScreenshot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap UnsuccessfulResultOverlay {
+            get {
+                object obj = ResourceManager.GetObject("UnsuccessfulResultOverlay", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

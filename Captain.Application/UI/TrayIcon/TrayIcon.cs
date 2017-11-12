@@ -42,12 +42,12 @@ namespace Captain.Application {
       var contextMenu = new ContextMenu();
       contextMenu.MenuItems.AddRange(new[] {
         new MenuItem("Take screenshot",
-          (s, e) => Application.Options.Tasks[Application.Options.DefaultScreenshotTask].Start()) {
+          (s, e) => TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultScreenshotTask])) {
             DefaultItem = true,
             Visible = true
           },
         new MenuItem("Record screen",
-          (s, e) => Application.Options.Tasks[Application.Options.DefaultRecordingTask].Start()),
+          (s, e) => TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultRecordingTask])),
         new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Options,
           (s, e) => {
@@ -129,7 +129,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="status">Indicator status</param>
     internal void SetIndicator(IndicatorStatus status) {
-      if ((status != this.currentStatus) && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
+      if (status != this.currentStatus && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
       NotifyIcon.Icon = this.iconRenderer.RenderFrame(this.currentStatus = status);
     }
 

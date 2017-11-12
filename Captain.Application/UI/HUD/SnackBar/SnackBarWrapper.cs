@@ -57,8 +57,8 @@ namespace Captain.Application {
       /* Windows 10 blur */
       if (Environment.OSVersion.Version.Major >= 10) {
         try {
-          // HACK(sanlyx): we're using undocumented APIs to display blur here - replace with something better when
-          //               you've got nothing better to do
+          // HACK(sanlyx): we're using undocumented APIs to display blur here - replace with something better
+          //               when you've got nothing better to do
           var accent = new User32.AccentPolicy {AccentState = User32.AccentState.ACCENT_ENABLE_BLURBEHIND};
           int accentStructSize = Marshal.SizeOf(accent);
 

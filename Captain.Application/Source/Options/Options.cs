@@ -8,6 +8,7 @@ using static Captain.Application.Application;
 
 // ReSharper disable MemberCanBeInternal
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+
 namespace Captain.Application {
   /// <summary>
   ///   Class representing application options.
@@ -25,9 +26,20 @@ namespace Captain.Application {
     internal const string OptionsFileName = "Options.xml";
 
     /// <summary>
+    ///   Default recording task index
+    /// </summary>
+    public int DefaultRecordingTask = 0;
+
+    /// <summary>
+    ///   Default screenshot task index
+    /// </summary>
+    public int DefaultScreenshotTask = 0;
+
+    /// <summary>
     ///   Saved position for windows
     /// </summary>
-    public SerializableDictionary<string, Point> WindowPositions { get; set; } = new SerializableDictionary<string, Point>();
+    public SerializableDictionary<string, Point> WindowPositions { get; set; } =
+      new SerializableDictionary<string, Point>();
 
     /// <summary>
     ///   Current Options dialog tab index
@@ -37,7 +49,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Notification display options
     /// </summary>
-    public NotificationDisplayOptions NotificationOptions { get; set; } = NotificationDisplayOptions.ExceptProgress;
+    public NotificationPolicy NotificationPolicy { get; set; } = NotificationPolicy.ExceptProgress;
 
     /// <summary>
     ///   Use legacy notification provider
@@ -60,23 +72,13 @@ namespace Captain.Application {
     public List<Task> Tasks { get; set; } = new List<Task>();
 
     /// <summary>
-    ///   Default screenshot task index
+    ///   Loads an <see cref="Options" /> instance from file
     /// </summary>
-    public int DefaultScreenshotTask = 0;
-
-    /// <summary>
-    ///   Default recording task index
-    /// </summary>
-    public int DefaultRecordingTask = 0;
-
-    /// <summary>
-    ///   Loads an <see cref="Options"/> instance from file
-    /// </summary>
-    /// <returns>An instance of the <see cref="Options"/> class</returns>
+    /// <returns>An instance of the <see cref="Options" /> class</returns>
     internal static Options Load() {
       try {
         using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
-                                               FileMode.OpenOrCreate)) {
+          FileMode.OpenOrCreate)) {
           if (fileStream.Length == 0) {
             Log.WriteLine(LogLevel.Warning, "stream is empty");
             return null;
@@ -99,15 +101,19 @@ namespace Captain.Application {
     internal void Save() {
       Log.WriteLine(LogLevel.Verbose, "saving options");
 
+#if !DEBUG
       try {
-        using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
-                                               FileMode.OpenOrCreate)) {
-          fileStream.SetLength(0);
-          new XmlSerializer(GetType()).Serialize(fileStream, this);
-        }
+#endif
+      using (var fileStream = new FileStream(Path.Combine(Application.FsManager.GetSafePath(), OptionsFileName),
+        FileMode.OpenOrCreate)) {
+        fileStream.SetLength(0);
+        new XmlSerializer(GetType()).Serialize(fileStream, this);
+      }
+#if !DEBUG
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Warning, $"could not save options - {exception}");
       }
+#endif
     }
   }
 }

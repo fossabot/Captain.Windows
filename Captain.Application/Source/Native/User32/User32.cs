@@ -79,6 +79,32 @@ namespace Captain.Application.Native {
       WM_NOTIFY = 0x004E,
 
       /// <summary>
+      ///   Posted to the window with the keyboard focus when a nonsystem key is pressed.
+      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed. 
+      /// </summary>
+      WM_KEYDOWN = 0x0100,
+
+      /// <summary>
+      ///   Posted to the window with the keyboard focus when a nonsystem key is released.
+      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed, or a keyboard key that is pressed 
+      ///   when a window has the keyboard focus. 
+      /// </summary>
+      WM_KEYUP = 0x101,
+
+      /// <summary>
+      ///   Posted to the window with the keyboard focus when the user presses the F10 key (which activates the menu
+      ///   bar) or holds down the ALT key and then presses another key. It also occurs when no window currently has
+      ///   the keyboard focus.
+      /// </summary>
+      WM_SYSKEYDOWN = 0x104,
+
+      /// <summary>
+      ///   Posted to the window with the keyboard focus when the user releases a key that was pressed while the ALT
+      ///   key was held down. 
+      /// </summary>
+      WM_SYSKEYUP = 0x105,
+
+      /// <summary>
       ///   An application sends the WM_CHANGEUISTATE message to indicate that the UI state should be changed.
       /// </summary>
       WM_CHANGEUISTATE = 0x0127,
@@ -449,16 +475,19 @@ namespace Captain.Application.Native {
 
     /// <summary>
     ///   The type of hook procedure to be installed by
-    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,int)" />.
+    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,Int32)" />.
     /// </summary>
     internal enum WindowsHookType {
+      /// <summary>Installs a hook procedure that monitors low-level keyboard input events.</summary>
+      WH_KEYBOARD_LL = 13,
+
       /// <summary>Installs a hook procedure that monitors low-level mouse input events.</summary>
       WH_MOUSE_LL = 14
     }
 
     /// <summary>
     ///   An application-defined or library-defined callback function used with the
-    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,int)" /> function.
+    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,Int32)" /> function.
     ///   This is a generic function to Hook callbacks. For specific callback functions see this
     ///   <see href="https://msdn.microsoft.com/en-us/library/windows/desktop/ms632589(v=vs.85).aspx">
     ///     API documentation
@@ -523,11 +552,11 @@ namespace Captain.Application.Native {
 
     /// <summary>
     ///   Removes a hook procedure installed in a hook chain by the
-    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,int)" /> function.
+    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,Int32)" /> function.
     /// </summary>
     /// <param name="hhk">
     ///   A handle to the hook to be removed. This parameter is a hook handle obtained by a previous call to
-    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,int)" />.
+    ///   <see cref="SetWindowsHookEx(WindowsHookType,WindowsHookDelegate,IntPtr,Int32)" />.
     /// </param>
     /// <returns>
     ///   If the function succeeds, the return value is true.

@@ -31,22 +31,26 @@ namespace Captain.Application {
     /// <param name="type">Type name</param>
     internal PluginObject(Type type) {
       Type = type;
+      Configurable = type.GetInterface("IHasOptions`1") != null;
 
       try {
         // get localized display name, preferring the one most close to the current UI locale
-        this.displayName = (type.GetCustomAttributes(typeof(DisplayName), true)
-                                .OrderBy(dn => (((DisplayName) dn).LanguageCode != null) &&
-                                               CultureInfo.CurrentUICulture.TwoLetterISOLanguageName
-                                                          .StartsWith(((DisplayName) dn).LanguageCode,
-                                                                      StringComparison.OrdinalIgnoreCase))
-                                .Last() as DisplayName)?.Name ?? throw new InvalidOperationException();
+        this.displayName =
+          type.GetCustomAttributes(typeof(DisplayName), true)
+            .Cast<DisplayName>()
+            .OrderBy(dn => dn.LanguageCode != null &&
+                           CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.StartsWith(
+                             dn.LanguageCode,
+                             StringComparison.OrdinalIgnoreCase))
+            .Last()
+            ?.Name ??
+          throw new InvalidOperationException();
       } catch (InvalidOperationException) {
         // no display name attributes
         this.displayName = type.Name;
       }
 
-      Configurable = type.GetInterface("IConfigurable") != null;
-      Log.WriteLine(LogLevel.Verbose, "loaded plugin object {0}", this);
+      Log.WriteLine(LogLevel.Verbose, $"initialized plugin type: {type.Name}");
     }
 
     /// <summary>

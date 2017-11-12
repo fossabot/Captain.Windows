@@ -37,6 +37,18 @@ namespace Captain.Application {
     public Bitmap Image { get; set; }
 
     /// <inheritdoc />
+    /// <summary>
+    ///   Class constructor.
+    /// </summary>
+    public LinkButton() =>
+      SetStyle(ControlStyles.SupportsTransparentBackColor |
+               ControlStyles.UserPaint |
+               ControlStyles.AllPaintingInWmPaint |
+               ControlStyles.DoubleBuffer |
+               ControlStyles.StandardClick,
+        true);
+
+    /// <inheritdoc />
     /// <summary>Processes Windows messages.</summary>
     /// <param name="m">The Windows <see cref="T:System.Windows.Forms.Message" /> to process.</param>
     protected override void WndProc(ref Message m) {
@@ -49,19 +61,6 @@ namespace Captain.Application {
       }
 
       base.WndProc(ref m);
-    }
-
-    /// <inheritdoc />
-    /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.HandleCreated" /> event.</summary>
-    /// <param name="eventArgs">An <see cref="T:System.EventArgs" /> that contains the event data.</param>
-    protected override void OnHandleCreated(EventArgs eventArgs) {
-      SetStyle(ControlStyles.SupportsTransparentBackColor |
-               ControlStyles.UserPaint |
-               ControlStyles.AllPaintingInWmPaint |
-               ControlStyles.DoubleBuffer |
-               ControlStyles.StandardClick,
-        true);
-      base.OnHandleCreated(eventArgs);
     }
 
     /// <inheritdoc />
@@ -133,19 +132,19 @@ namespace Captain.Application {
 
         if (this.mouseOver || this.mouseDown) {
           eventArgs.Graphics.FillPath(new SolidBrush(TintColor.Blend(ForeColor, this.mouseDown ? 0.5 : 0.75)
-                                                              .Blend(Color.Transparent)),
+              .Blend(Color.Transparent)),
             path);
         }
       }
 
       int horizontalMargin = Image == null ? 0 : 4;
-      int imageRectWidth = (horizontalMargin + Image?.Width) ?? 0;
+      int imageRectWidth = horizontalMargin + Image?.Width ?? 0;
 
       Point imageLocation = Point.Empty;
       if (!String.IsNullOrWhiteSpace(Text)) {
         Size textSize = TextRenderer.MeasureText(eventArgs.Graphics, Text, Font);
         imageLocation = new Point((Width - textSize.Width - (Image?.Width ?? 0)) / 2,
-          ((Height - Image?.Height) ?? 0) / 2);
+          (Height - Image?.Height ?? 0) / 2);
 
         TextRenderer.DrawText(eventArgs.Graphics,
           Text,
@@ -155,9 +154,7 @@ namespace Captain.Application {
           TextFormatFlags.HorizontalCenter |
           TextFormatFlags.EndEllipsis |
           TextFormatFlags.VerticalCenter);
-      } else if (Image != null) {
-        imageLocation = new Point((Width - Image.Width) / 2, (Height - Image.Height) / 2);
-      }
+      } else if (Image != null) { imageLocation = new Point((Width - Image.Width) / 2, (Height - Image.Height) / 2); }
 
       if (Image != null) {
         var attrs = new ImageAttributes();

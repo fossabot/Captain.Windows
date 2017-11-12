@@ -42,14 +42,14 @@ namespace Captain.Application {
         foreach (Output output in adapter.Outputs) {
           // convert to Rectangle
           var outputRect = new Rectangle(output.Description.DesktopBounds.Left,
-                                         output.Description.DesktopBounds.Top,
-                                         output.Description.DesktopBounds.Right -
-                                         output.Description.DesktopBounds.Left,
-                                         output.Description.DesktopBounds.Bottom -
-                                         output.Description.DesktopBounds.Top);
+            output.Description.DesktopBounds.Top,
+            output.Description.DesktopBounds.Right -
+            output.Description.DesktopBounds.Left,
+            output.Description.DesktopBounds.Bottom -
+            output.Description.DesktopBounds.Top);
           Log.WriteLine(LogLevel.Debug,
-                        $"{adapter.Description.Description} // {output.Description.DeviceName} " +
-                        outputRect.ToString().Trim('{', '}'));
+            $"{adapter.Description.Description} // {output.Description.DeviceName} " +
+            outputRect.ToString().Trim('{', '}'));
           triples.Add((adapterIndex, outputIndex, outputRect));
           outputIndex++;
         }
@@ -77,7 +77,7 @@ namespace Captain.Application {
         int outputIndex = 0;
         foreach (Screen screen in Screen.AllScreens) {
           // calculate intersection
-          Rectangle intersection = Rectangle.Intersect(rect, screen.Bounds);
+          var intersection = Rectangle.Intersect(rect, screen.Bounds);
 
           // make sure the rectangles intersect
           if (intersection != Rectangle.Empty) {
@@ -98,21 +98,21 @@ namespace Captain.Application {
         foreach (Output output in adapter.Outputs) {
           // convert to Rectangle
           var outputRect = new Rectangle(output.Description.DesktopBounds.Left,
-                                         output.Description.DesktopBounds.Top,
-                                         output.Description.DesktopBounds.Right -
-                                         output.Description.DesktopBounds.Left,
-                                         output.Description.DesktopBounds.Bottom -
-                                         output.Description.DesktopBounds.Top);
+            output.Description.DesktopBounds.Top,
+            output.Description.DesktopBounds.Right -
+            output.Description.DesktopBounds.Left,
+            output.Description.DesktopBounds.Bottom -
+            output.Description.DesktopBounds.Top);
 
           // calculate intersection
-          Rectangle intersection = Rectangle.Intersect(rect, outputRect);
+          var intersection = Rectangle.Intersect(rect, outputRect);
 
           // make sure the rectangles intersect
           if (intersection != Rectangle.Empty) {
             triples.Add((adapterIndex, outputIndex, intersection));
             Log.WriteLine(LogLevel.Debug,
-                          $"{adapter.Description.Description} // {output.Description.DeviceName} " +
-                          outputRect.ToString().Trim('{', '}'));
+              $"{adapter.Description.Description} // {output.Description.DeviceName} " +
+              outputRect.ToString().Trim('{', '}'));
           }
 
           outputIndex++;
@@ -135,15 +135,7 @@ namespace Captain.Application {
         return hwnd.HasValue ? User32.GetDpiForWindow(hwnd.Value) : User32.GetDpiForSystem();
       } catch (EntryPointNotFoundException) {
         // unsupported platform
-        using (Graphics graphics = Graphics.FromHwnd(hwnd ?? User32.GetDesktopWindow())) {
-          return graphics.DpiX;
-        }
-        /*IntPtr hdc = User32.GetDC(hwnd ?? IntPtr.Zero);
-
-        int virtualWidth = Gdi32.GetDeviceCaps(hdc, Gdi32.DeviceCaps.HORZRES);
-        int physicalWidth = Gdi32.GetDeviceCaps(hdc, Gdi32.DeviceCaps.DESKTOPHORZRES);
-
-        return 96.0f * virtualWidth / physicalWidth;*/
+        using (var graphics = Graphics.FromHwnd(hwnd ?? User32.GetDesktopWindow())) { return graphics.DpiX; }
       }
     }
   }

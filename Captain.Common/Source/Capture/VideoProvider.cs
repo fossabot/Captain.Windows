@@ -30,10 +30,16 @@ namespace Captain.Common {
     public abstract void ReleaseFrame();
 
     /// <summary>
-    ///   Creates a <see cref="Bitmap" /> instance from the last captured frame
+    ///   Creates a single bitmap from the captured frames and returns an object with its information
     /// </summary>
-    /// <returns>A <see cref="Bitmap" /> instance</returns>
-    public abstract Bitmap CreateFrameBitmap();
+    /// <returns>A <see cref="BitmapData"/> containing raw bitmap information</returns>
+    public abstract BitmapData LockFrameBitmap();
+
+    /// <summary>
+    ///   Releases the bitmap created for this frame
+    /// </summary>
+    /// <param name="data">Bitmap data returned by the <see cref="LockFrameBitmap"/> method</param>
+    public abstract void UnlockFrameBitmap(BitmapData data);
 
     /// <summary>
     ///   Updates the video provider capture position

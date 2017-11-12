@@ -53,10 +53,10 @@ namespace Captain.Application {
       this.tasksPage = new System.Windows.Forms.TabPage();
       this.emptyTaskListLabel = new System.Windows.Forms.Label();
       this.taskContainerPanel = new System.Windows.Forms.Panel();
-      this.encodersPage = new System.Windows.Forms.TabPage();
       this.capturePage = new System.Windows.Forms.TabPage();
       this.shortcutsPage = new System.Windows.Forms.TabPage();
       this.helpTip = new System.Windows.Forms.ToolTip(this.components);
+      this.advancedSettingsPage = new System.Windows.Forms.TabPage();
       _separator2 = new System.Windows.Forms.Panel();
       _separator1 = new System.Windows.Forms.Panel();
       taskToolBarPanel = new System.Windows.Forms.Panel();
@@ -139,9 +139,9 @@ namespace Captain.Application {
       // 
       this.toolBar.Controls.Add(this.generalPage);
       this.toolBar.Controls.Add(this.tasksPage);
-      this.toolBar.Controls.Add(this.encodersPage);
       this.toolBar.Controls.Add(this.capturePage);
       this.toolBar.Controls.Add(this.shortcutsPage);
+      this.toolBar.Controls.Add(this.advancedSettingsPage);
       this.toolBar.Dock = System.Windows.Forms.DockStyle.Fill;
       this.toolBar.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
       this.toolBar.ExtendTabs = true;
@@ -378,16 +378,6 @@ namespace Captain.Application {
       this.taskContainerPanel.Size = new System.Drawing.Size(464, 315);
       this.taskContainerPanel.TabIndex = 2;
       // 
-      // encodersPage
-      // 
-      this.encodersPage.BackColor = System.Drawing.Color.WhiteSmoke;
-      this.encodersPage.Location = new System.Drawing.Point(0, 33);
-      this.encodersPage.Name = "encodersPage";
-      this.encodersPage.Padding = new System.Windows.Forms.Padding(3);
-      this.encodersPage.Size = new System.Drawing.Size(464, 348);
-      this.encodersPage.TabIndex = 2;
-      this.encodersPage.Text = "Encoders";
-      // 
       // capturePage
       // 
       this.capturePage.BackColor = System.Drawing.Color.WhiteSmoke;
@@ -417,6 +407,16 @@ namespace Captain.Application {
       this.helpTip.ShowAlways = true;
       this.helpTip.Draw += new System.Windows.Forms.DrawToolTipEventHandler(this.OnHelpTipDraw);
       this.helpTip.Popup += new System.Windows.Forms.PopupEventHandler(this.OnHelpTipPopup);
+      // 
+      // advancedSettingsPage
+      // 
+      this.advancedSettingsPage.Location = new System.Drawing.Point(0, 33);
+      this.advancedSettingsPage.Name = "advancedSettingsPage";
+      this.advancedSettingsPage.Padding = new System.Windows.Forms.Padding(3);
+      this.advancedSettingsPage.Size = new System.Drawing.Size(464, 348);
+      this.advancedSettingsPage.TabIndex = 5;
+      this.advancedSettingsPage.Text = "Advanced";
+      this.advancedSettingsPage.UseVisualStyleBackColor = true;
       // 
       // OptionsWindow
       // 
@@ -449,7 +449,6 @@ namespace Captain.Application {
 
     private ToolBarControl toolBar;
     private TabPage generalPage;
-    private TabPage encodersPage;
     private TabPage capturePage;
     private TabPage shortcutsPage;
     private CheckBox autoStartCheckBox;
@@ -473,5 +472,6 @@ namespace Captain.Application {
     private Panel taskContainerPanel;
     private Panel panel1;
     private Label emptyTaskListLabel;
+    private TabPage advancedSettingsPage;
   }
 }

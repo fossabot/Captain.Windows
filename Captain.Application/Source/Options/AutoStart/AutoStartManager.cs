@@ -23,14 +23,14 @@ namespace Captain.Application {
       @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
 
     /// <summary>
-    ///   Current instance of the Startup registry key
-    /// </summary>
-    private RegistryKey startupRegistryKey;
-
-    /// <summary>
     ///   Current instnace of the StartupApproved registry key
     /// </summary>
     private RegistryKey approvedStartupRegistryKey;
+
+    /// <summary>
+    ///   Current instance of the Startup registry key
+    /// </summary>
+    private RegistryKey startupRegistryKey;
 
     /// <summary>
     ///   Whether or not this feature is available
@@ -50,11 +50,11 @@ namespace Captain.Application {
       try {
         Log.WriteLine(LogLevel.Verbose, "opening generic startup key");
         this.startupRegistryKey = Registry.CurrentUser.OpenSubKey(StartupRegistryKeyPath,
-                                                                  RegistryKeyPermissionCheck.ReadWriteSubTree);
+          RegistryKeyPermissionCheck.ReadWriteSubTree);
 
         Log.WriteLine(LogLevel.Verbose, "opening approved startup key");
         this.approvedStartupRegistryKey = Registry.CurrentUser.OpenSubKey(ApprovedStartupRegistryKeyPath,
-                                                                          RegistryKeyPermissionCheck.ReadWriteSubTree);
+          RegistryKeyPermissionCheck.ReadWriteSubTree);
       } catch (SecurityException) {
         Log.WriteLine(LogLevel.Warning, "access is denied to the registry key - some features may be unavailable");
       }
@@ -68,9 +68,11 @@ namespace Captain.Application {
       // make sure there's a valid path in the generic registry key and that matches exactly with the current
       // executable path
       try {
-        if (!String.Equals(Path.GetFullPath(this.startupRegistryKey.GetValue(VersionInfo.ProductName, null).ToString()),
-                           Path.GetFullPath(Assembly.GetExecutingAssembly().Location),
-                           StringComparison.InvariantCultureIgnoreCase)) {
+        if (!String.Equals(Path.GetFullPath(this.startupRegistryKey.GetValue(
+          System.Windows.Forms.Application.ProductName,
+          null).ToString()),
+          Path.GetFullPath(Assembly.GetExecutingAssembly().Location),
+          StringComparison.InvariantCultureIgnoreCase)) {
           // application executables do not match
           return AutoStartPolicy.Disapproved;
         }
@@ -81,9 +83,9 @@ namespace Captain.Application {
 
       try {
         if (this.approvedStartupRegistryKey != null &&
-            this.approvedStartupRegistryKey.GetValue(VersionInfo.ProductName) is byte[] data) {
+            this.approvedStartupRegistryKey.GetValue(System.Windows.Forms.Application.ProductName) is byte[] data) {
           // sanity check: make sure the application startup is approved!
-          return (AutoStartPolicy)BitConverter.ToInt32(data, 0);
+          return (AutoStartPolicy) BitConverter.ToInt32(data, 0);
         }
       } catch (Exception exception) when (exception is SecurityException ||
                                           exception is IOException ||
@@ -103,20 +105,20 @@ namespace Captain.Application {
     internal AutoStartPolicy ToggleAutoStart(AutoStartPolicy? policy = null, bool hard = false) {
       try {
         if (this.approvedStartupRegistryKey != null &&
-            this.approvedStartupRegistryKey.GetValue(VersionInfo.ProductName) is byte[] data) {
+            this.approvedStartupRegistryKey.GetValue(System.Windows.Forms.Application.ProductName) is byte[] data) {
           // has approved startup key - retrieve the policy to be set
           policy = policy ??
-                   ((AutoStartPolicy)BitConverter.ToInt32(data, 0) == AutoStartPolicy.Approved // invert current policy
-                      ? AutoStartPolicy.Disapproved
-                      : AutoStartPolicy.Approved);
+                   ((AutoStartPolicy) BitConverter.ToInt32(data, 0) == AutoStartPolicy.Approved // invert current policy
+                     ? AutoStartPolicy.Disapproved
+                     : AutoStartPolicy.Approved);
 
           // update auto-start policy
           if (hard && policy == AutoStartPolicy.Disapproved) {
             Log.WriteLine(LogLevel.Warning, "[hard mode] deleting approved startup value");
-            this.approvedStartupRegistryKey.DeleteValue(VersionInfo.ProductName);
+            this.approvedStartupRegistryKey.DeleteValue(System.Windows.Forms.Application.ProductName);
           } else if (!hard) {
             Log.WriteLine(LogLevel.Verbose, $"updating automatic startup policy: {policy}");
-            this.approvedStartupRegistryKey.SetValue(VersionInfo.ProductName, BitConverter.GetBytes((int)policy));
+            this.approvedStartupRegistryKey.SetValue(System.Windows.Forms.Application.ProductName, BitConverter.GetBytes((int) policy));
             return policy.Value;
           }
         }
@@ -124,33 +126,32 @@ namespace Captain.Application {
         if (!policy.HasValue) {
           // no value provided and no approved startup key whatsoever - get and invert the current policy
           policy = GetAutoStartPolicy() == AutoStartPolicy.Approved
-                     ? AutoStartPolicy.Disapproved
-                     : AutoStartPolicy.Approved;
+            ? AutoStartPolicy.Disapproved
+            : AutoStartPolicy.Approved;
         }
 
         // delete/set the registry entry
         if (policy == AutoStartPolicy.Approved) {
           Log.WriteLine(LogLevel.Verbose, "setting auto-start value in generic registry key");
-          this.startupRegistryKey.SetValue(VersionInfo.ProductName,
-                                           Assembly.GetExecutingAssembly().Location,
-                                           RegistryValueKind.String);
+          this.startupRegistryKey.SetValue(System.Windows.Forms.Application.ProductName,
+            Assembly.GetExecutingAssembly().Location,
+            RegistryValueKind.String);
 
           // create entry in the approved startup key if applicable
-          this.approvedStartupRegistryKey?.SetValue(VersionInfo.ProductName,
-                                                    BitConverter.GetBytes((int)AutoStartPolicy.Approved));
+          this.approvedStartupRegistryKey?.SetValue(System.Windows.Forms.Application.ProductName,
+            BitConverter.GetBytes((int) AutoStartPolicy.Approved));
         } else {
           Log.WriteLine(LogLevel.Verbose, "deleting auto-start value in generic registry key");
-          this.startupRegistryKey.DeleteValue(VersionInfo.ProductName, false);
+          this.startupRegistryKey.DeleteValue(System.Windows.Forms.Application.ProductName, false);
         }
 
         return policy.Value;
       } catch (SecurityException) {
         Log.WriteLine(LogLevel.Warning, "access to the registry key is denied!");
         return policy.GetValueOrDefault(AutoStartPolicy.Approved) == AutoStartPolicy.Approved
-                 ? AutoStartPolicy.Disapproved
-                 : AutoStartPolicy.Approved;
+          ? AutoStartPolicy.Disapproved
+          : AutoStartPolicy.Approved;
       }
     }
   }
-
 }

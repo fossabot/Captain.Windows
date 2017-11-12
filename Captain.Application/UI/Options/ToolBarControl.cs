@@ -153,7 +153,7 @@ namespace Captain.Application {
     /// </summary>
     internal void UpdateItemSize() {
       if (ExtendTabs && Width > 0 && TabCount > 0) {
-        ItemSize = new Size(Width / TabCount - 1, ItemSize.Height);
+        ItemSize = new Size(Width / TabCount - 1 , ItemSize.Height);
         Invalidate(true);
       }
     }

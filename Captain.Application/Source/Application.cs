@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using Captain.Common;
 using SharpDX;
 using SharpDX.Diagnostics;
-using Process = System.Diagnostics.Process;
 
 namespace Captain.Application {
   /// <summary>
@@ -32,7 +31,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Single instance mutex name
     /// </summary>
-    private static string SingleInstanceMutexName => $"{VersionInfo.ProductName} Single Instance Mutex ({Guid})";
+    private static string SingleInstanceMutexName
+      => $"{System.Windows.Forms.Application.ProductName} Single Instance Mutex ({Guid})";
 
     #endregion
 
@@ -47,6 +47,7 @@ namespace Captain.Application {
       try {
         Log.WriteLine(LogLevel.Warning, $"exiting with code 0x{exitCode:x8}");
 
+        DesktopKeyboardHook?.Dispose();
         TrayIcon?.Hide();
         Options?.Save();
         UpdateManager?.Dispose();
@@ -61,7 +62,7 @@ namespace Captain.Application {
         GC.WaitForPendingFinalizers();
       } catch (Exception exception) {
         // try to log exceptions
-        if ((Log.Streams?.Count > 0) && Log.Streams.All(s => s.CanWrite)) {
+        if (Log.Streams?.Count > 0 && Log.Streams.All(s => s.CanWrite)) {
           Log.WriteLine(LogLevel.Error, $"exception caught: {exception}");
         }
       } finally {
@@ -123,10 +124,15 @@ namespace Captain.Application {
     internal static bool AreToastNotificationsSupported { get; set; }
 
     /// <summary>
-    ///   Application's assembly GUID
+    ///   Assembly GUID
     /// </summary>
-    internal static string Guid => (Assembly.GetExecutingAssembly().GetCustomAttribute(typeof(GuidAttribute)) as
-      GuidAttribute)?.Value;
+    internal static string Guid =>
+      Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>().Value;
+
+    /// <summary>
+    ///   Assembly product version
+    /// </summary>
+    internal static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
     #endregion
 
@@ -136,11 +142,6 @@ namespace Captain.Application {
     ///   Application-wide logger
     /// </summary>
     internal static Logger Log { get; private set; }
-
-    /// <summary>
-    ///   Contains information about the application assembly version
-    /// </summary>
-    internal static FileVersionInfo VersionInfo { get; private set; }
 
     /// <summary>
     ///   Handles local application filesystem
@@ -160,7 +161,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Notification provider
     /// </summary>
-    internal static IToastProvider ToastProvider { get; set; }
+    internal static INotificationProvider NotificationProvider { get; set; }
 
     /// <summary>
     ///   Application <see cref="Options" /> instance
@@ -172,9 +173,7 @@ namespace Captain.Application {
     /// </summary>
     internal static Hud Hud {
       get {
-        if ((hud == null) || hud.IsDisposed) {
-          hud = new Hud();
-        }
+        if (hud == null || hud.IsDisposed) { hud = new Hud(); }
 
         return hud;
       }
@@ -185,6 +184,11 @@ namespace Captain.Application {
     /// </summary>
     internal static UpdateManager UpdateManager { get; private set; }
 
+    /// <summary>
+    ///   Keyboard hook provider for system UI.
+    /// </summary>
+    internal static IKeyboardHookProvider DesktopKeyboardHook { get; private set; }
+
     #endregion
 
     /// <summary>
@@ -193,38 +197,28 @@ namespace Captain.Application {
     /// <param name="args">CLI arguments</param>
     private static void HandleCommandLineArgs(string[] args) {
       // ReSharper disable PatternAlwaysMatches
-      if (Array.IndexOf(args, "--rmnodes") is int i && (i != -1)) {
+      if (Array.IndexOf(args, "--rmnodes") is int i && i != -1) {
         for (int j = i + 1; j < args.Length; j++) {
           try {
             FileAttributes attributes = File.GetAttributes(args[j]);
 
             if ((attributes & FileAttributes.Directory) != 0) {
-              try {
-                Directory.Delete(args[j], true);
-              } catch {
+              try { Directory.Delete(args[j], true); } catch {
                 Console.WriteLine(@"failed to delete directory - {0}", args[j]);
               }
             } else {
-              try {
-                File.Delete(args[j]);
-              } catch {
-                Console.WriteLine(@"failed to delete file - {0}", args[j]);
-              }
+              try { File.Delete(args[j]); } catch { Console.WriteLine(@"failed to delete file - {0}", args[j]); }
             }
-          } catch {
-            Console.WriteLine(@"failed to retrieve file attributes - {0}", args[j]);
-          }
+          } catch { Console.WriteLine(@"failed to retrieve file attributes - {0}", args[j]); }
         }
       }
 
       // ReSharper disable once PatternAlwaysMatches
       if (Array.IndexOf(args, "--kill") is int k &&
-          (k != -1) &&
-          ((1 + k) < args.Length) &&
+          k != -1 &&
+          1 + k < args.Length &&
           UInt16.TryParse(args[1 + k], out ushort pid)) {
-        try {
-          Process.GetProcessById(pid).Kill();
-        } catch {
+        try { Process.GetProcessById(pid).Kill(); } catch {
           Console.WriteLine(@"failed to kill process with ID {0} (already dead?)", pid);
         }
       }
@@ -236,21 +230,13 @@ namespace Captain.Application {
     /// </summary>
     private static void InitialSetup() {
       // has the application been updated or perhaps is it the first time the user opens it?
-      if (Options.LastVersion != VersionInfo.ProductVersion) {
+      if (Options.LastVersion != Version.ToString() || Debugger.IsAttached /* TODO: remove me */) {
         Log.WriteLine(LogLevel.Informational, "this is the first time the user opens the app - welcome!");
-        Options.LastVersion = VersionInfo.ProductVersion;
+        Options.LastVersion = Version.ToString();
 
-        // create default tasks
-        Log.WriteLine(LogLevel.Informational, "creating default tasks");
+        Log.WriteLine(LogLevel.Informational, "displaying first-time tour");
 
-        Options.Tasks.Add(Task.CreateDefaultScreenshotTask());
-        Options.Tasks.Add(Task.CreateDefaultRecordingTask());
-
-        // set default tasks
-        Options.DefaultScreenshotTask = 0;
-        Options.DefaultRecordingTask = 1;
-
-        Options.Save();
+        // TODO: create default tasks or show welcome dialog with a wizard for doing so
       }
 
       try {
@@ -261,23 +247,23 @@ namespace Captain.Application {
 
         // we may now display toast notifications on supported platforms
         try {
-          ToastProvider = new ToastNotificationProvider();
+          NotificationProvider = new ToastNotificationProvider();
           AreToastNotificationsSupported = true;
           Log.WriteLine(LogLevel.Verbose, "toast notifications are supported");
-        } catch {
+        } catch (Exception exception) {
           // it's likely the type ToastNotificationManager could not be found
-          Log.WriteLine(LogLevel.Verbose, "toast notifications are not supported by this platform");
+          Log.WriteLine(LogLevel.Verbose, $"toast notifications are not supported by this platform: {exception}");
         } finally {
           if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
-            ToastProvider = new LegacyNotificationProvider();
+            NotificationProvider = new LegacyNotificationProvider();
           }
 
-          Log.WriteLine(LogLevel.Verbose, $"initialized {ToastProvider.GetType().Name}");
+          Log.WriteLine(LogLevel.Verbose, $"initialized {NotificationProvider.GetType().Name}");
         }
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Warning, $"could not install app shortcut: {exception}");
         AreToastNotificationsSupported = false;
-        ToastProvider = new LegacyNotificationProvider();
+        NotificationProvider = new LegacyNotificationProvider();
       }
     }
 
@@ -294,9 +280,9 @@ namespace Captain.Application {
 
       HandleCommandLineArgs(args);
 
-      VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
       Log = new Logger();
-      Log.WriteLine(LogLevel.Informational, $"{VersionInfo.ProductName} {VersionInfo.ProductVersion}");
+      Log.WriteLine(LogLevel.Informational,
+        $"{System.Windows.Forms.Application.ProductName} {Version}");
 
       // is another instance of the application currently running?
       if (Mutex.TryOpenExisting(SingleInstanceMutexName, out Mutex _)) {
@@ -313,6 +299,9 @@ namespace Captain.Application {
       System.Windows.Forms.Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException, true);
       System.Windows.Forms.Application.ThreadException += (s, e) => {
         Log.WriteLine(LogLevel.Error, $"BUG: unhandled exception: ${e.Exception}");
+#if DEBUG
+        Debugger.Break();
+#endif
         Restart(e.Exception.HResult);
       };
 
@@ -321,25 +310,47 @@ namespace Captain.Application {
       try {
         // create/open log file stream
         loggerStream = new FileStream(Path.Combine(FsManager.GetSafePath(FsManager.LogsPath),
-          DateTime.UtcNow.ToString("yy.MM.dd") + ".log"),
+            DateTime.UtcNow.ToString("yy.MM.dd") + ".log"),
           FileMode.Append);
         Log.Streams.Add(loggerStream);
-      } catch (Exception exception) {
-        Log.WriteLine(LogLevel.Warning, $"could not open logger stream: {exception}");
-      }
+      } catch (Exception exception) { Log.WriteLine(LogLevel.Warning, $"could not open logger stream: {exception}"); }
 
       // initialize main components
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
+      InitialSetup();
       TrayIcon = new TrayIcon();
       UpdateManager = new UpdateManager();
-      InitialSetup();
+
+      DesktopKeyboardHook = new SystemKeyboardHookProvider();
+      DesktopKeyboardHook.OnKeyUp += (s, e) => {
+        // get the full key combination
+        Keys keys = (Keys) e.KeyValue | (e.KeyData & Keys.Modifiers);
+
+        if (keys == Keys.None ||
+            !((keys & Keys.Shift) != 0 ||
+              (keys & Keys.Alt) != 0 ||
+              (keys & Keys.Control) != 0 ||
+              (keys & Keys.LWin) != Keys.LWin ||
+              (keys & Keys.RWin) != Keys.RWin)) {
+          // don't process the key
+          return;
+        }
+
+        // retrieve the tasks matching the hotkey
+        IEnumerable<Task> tasks = Options.Tasks.Where(t => t.Hotkey == keys);
+
+        if (tasks.Any()) {
+          Log.WriteLine(LogLevel.Verbose, $"launching tasks matching hotkey: {keys}");
+          TaskHelper.StartTask(tasks.First());
+        }
+      };
+
+      DesktopKeyboardHook.Acquire();
 
       // release the mutex when the application is terminated
       System.Windows.Forms.Application.ApplicationExit += (s, e) => {
-        lock (SingleInstanceMutex) {
-          SingleInstanceMutex.ReleaseMutex();
-        }
+        lock (SingleInstanceMutex) { SingleInstanceMutex.ReleaseMutex(); }
       };
 
       // start application event loop

@@ -89,11 +89,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
-    public void Dispose() {
-      if (this.hookHandle != IntPtr.Zero) {
-        Release();
-      }
-    }
+    public void Dispose() => Release();
 
     /// <summary>
     ///   Mouse hook procedure

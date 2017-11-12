@@ -235,12 +235,12 @@ namespace Captain.Application {
 
       if (GetMetadataValue("githubRepo") is string githubUrl) {
         GitHubUpdateManager(githubUrl,
-          VersionInfo.ProductName,
+          System.Windows.Forms.Application.ProductName,
           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
           .ContinueWith(updateManagerHandler);
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
-          VersionInfo.ProductName,
+          System.Windows.Forms.Application.ProductName,
           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
@@ -269,7 +269,7 @@ namespace Captain.Application {
     /// <param name="key">Metadata key</param>
     /// <returns>The requested value, or <c>null</c> if none was present.</returns>
     private static string GetMetadataValue(string key) {
-      Assembly assembly = Assembly.GetExecutingAssembly();
+      var assembly = Assembly.GetExecutingAssembly();
       AssemblyMetadataAttribute[] metadataAttributes = assembly
         .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
         .Cast<AssemblyMetadataAttribute>()
