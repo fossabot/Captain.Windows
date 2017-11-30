@@ -1,4 +1,4 @@
-﻿<center><img src="https://i.imgur.com/Hg5XOIF.png" alt="About Dialog screenshot" /></center>
+﻿<p align="center"><img src="https://i.imgur.com/Hg5XOIF.png" alt="About Dialog screenshot" /></p>
 
 # Captain
 ![version: 0.6](https://img.shields.io/badge/version-0.6-blue.svg)
@@ -18,59 +18,13 @@ to the Internet or whatever you'd like as long as there is a plugin for that (an
 Did I mention it ~~can~~ is meant to capture accelerated graphics such as those in games, fullscreen or not? Well it
 ~~might~~ might eventually do that, too.
 
-## Why mixing C#/C/C++?
-~~Why not?~~ Actually, the original application was completely written in C. I decided to rewrite it from scratch using
-managed code because of reasons but some legacy code (for capturing the screen, "_advanced_" native procedures...)
-remained as a C++/CLI assembly referenced by the managed application (!)
-
-Motivated by the need of linking native stuff statically in favour of portability, all these snippets are being slowly
-reimplemented in purely managed code. In the meantime, there's a pure native library
-([cn2helper](https://github.com/CaptainApp/Captain/tree/master/cn2helper)) that implements native stuff that is a bit
-too complicated to be implemented in C# (see: COM objects, weird macros...) but that, again, will be eventually
-replaced by a managed counterpart.
-
-There are, however, parts of the application that would be impractical to reimplement, like the remote hook DLL
-([cn2rthelper](https://github.com/CaptainApp/Captain/tree/master/cn2helper)); and others that just do their job and do
-not benefit at all from the perks of .NET (see [cn2wowbr](https://github.com/CaptainApp/Captain/tree/master/cn2wowbr).)
-
 ## Building
 ```
-$ git clone --recursive https://github.com/CaptainApp/Captain
-$ cd Captain
+$ git clone https://github.com/CaptainApp/Captain.Windows
+$ cd Captain.Windows
 $ nuget restore
 $ devenv Captain.sln /Build
 ```
-
-## What's done?
-_(In order of priority)_
-- [x] Bare-bones [GUI application](https://github.com/CaptainApp/Captain/tree/master/Captain.Application) (WIP)
-- [x] Basic [extensibility](https://github.com/CaptainApp/Captain/tree/master/Captain.Common) support (WIP)
-- [x] Basic [functionality](https://github.com/CaptainApp/Captain/tree/master/Captain.Plugins.BuiltIn) (WIP)
-- [x] Screen [capture foundations](https://github.com/CaptainApp/Captain/tree/master/Captain.Application/Source/Capture/VideoProviders)
-- [x] User-defined [tasks](https://github.com/CaptainApp/Captain/tree/master/Captain.Application/Source/Tasks) (WIP)
-  - [ ] Import from existing [ShareX](https://github.com/ShareX/ShareX) installation
-  - [ ] Import from [ShareX Custom Uploader](https://github.com/ShareX/CustomUploaders) files
-- [ ] Migrating remaining WPF to Windows Forms - reimplement grabber UI in
-      [cn2rthelper](https://github.com/CaptainApp/Captain/tree/master/cn2rthelper) with Direct2D
-- [ ] Getting rid of [cn2helper](https://github.com/CaptainApp/Captain/tree/master/cn2helper)
-- [x] Consider moving [Captain.Plugins.BuiltIn](https://github.com/CaptainApp/Captain/tree/master/Captain.Plugins.BuiltIn)
-      to [Captain.Application](https://github.com/CaptainApp/Captain/tree/master/Captain.Application)
-- [x] Recording and encoding desktop audio and
-      [video](https://github.com/CaptainApp/Captain/tree/master/Captain.Application/Source/Capture/Encoders/H264CaptureEncoder.cs)
-      (still a PoC)
-- [ ] Command-line interface
-- [ ] Built-in support for [ShareX](https://github.com/ShareX/ShareX)
-      [custom uploaders](https://getsharex.com/docs/custom-uploader)
-- [ ] Documentation for plugin developers
-- [ ] Basic built-in image/video editor (filters, text, shapes...)
-- [x] Installer/[updater](https://github.com/CaptainApp/Captain/tree/master/Captain.Application/Source/Update) UX (WIP)
-- [ ] Portable variant of the application that *very unperformantly* could extract dependencies, user options and
-      installed plugins in a temporary path and, with a helper utility, *repack* all these files in the application
-      executable ('cause why not?)
-- [ ] Tests. Lots of them.
-- [ ] Consider splitting all the projects in the solution across different repositories.
-- [ ] Localization
-- [ ] Capturing exclusive-mode DirectX applications via hooks
 
 ## What's with that version number?
 ~~The author likes pretending to have released a lots of versions for a product.~~
@@ -81,7 +35,7 @@ This project results from the intent of providing the community a **functional**
 unmaintained app tailored to personal usage.
 
 ## Extending Captain
-Refer to the [Captain.Common](https://github.com/CaptainApp/Captain.Common) source tree for more on this.  
+Refer to the [Captain.Common](https://github.com/CaptainApp/Captain.Windows/Captain.Common) project tree.
 There will be documentation, eventually.
 
 ## Contributing
@@ -94,3 +48,35 @@ licensing.
 
 Major components are licensed under the [simplified BSD license](https://opensource.org/licenses/BSD-2-Clause)
 (a.k.a. BSD 2-Clause), with other smaller parts released [into the public domain](http://unlicense.org/).
+
+## What's done?
+_(Note that most unchecked features are still work in progress, but have already been started.)_
+
+- [X] Still image capture
+- [ ] Video capture
+  - [ ] Audio capture
+- [ ] UI
+  - [X] About dialog
+  - [ ] Options
+    - [X] General
+    - [X] Tasks
+    - [ ] Capture
+    - [ ] Advanced
+  - [ ] Post-capture graphics tooling
+  - [X] HUD
+    - [ ] In-game HUD
+  - [ ] CLI
+- [ ] Extensibility
+  - [ ] Stable API
+  - [ ] Documentation
+  - [ ] Compatibility with ShareX Custom Uploaders
+- [ ] Installer/updater UX
+- [ ] Screen capture foundations
+  - [X] GDI
+  - [X] DXGI desktop duplication
+  - [ ] DWM SharedSurface's
+  - [ ] DirectX hooks on platforms without DXGI 1.5/desktop duplication
+- [ ] Post-capture
+  - [X] Actions
+    - [X] Pre-encoding actions
+    - [ ] Filters

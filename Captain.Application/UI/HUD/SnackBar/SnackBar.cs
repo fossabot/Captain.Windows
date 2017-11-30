@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using Captain.Application.Native;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;
@@ -18,7 +19,7 @@ namespace Captain.Application {
     ///   Handler for action intent events
     /// </summary>
     internal delegate void IntentReceivedEventHandler(SnackBar sender, SnackBarIntent intent);
-
+    
     /// <summary>
     ///   Record/Stop button
     /// </summary>
@@ -42,7 +43,7 @@ namespace Captain.Application {
     internal SnackBar(Control wrapper) : this() {
       this.wrapper = wrapper;
       this.renderTarget = new WindowRenderTarget(
-        new Factory(),
+        new Factory(FactoryType.MultiThreaded, DebugLevel.Information),
         new RenderTargetProperties(new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied)),
         new HwndRenderTargetProperties {
           PixelSize = new Size2(this.wrapper.Width, this.wrapper.Height),
@@ -93,9 +94,7 @@ namespace Captain.Application {
       this.wrapper.Paint -= OnWrapperOnPaint;
 
       // release button resources
-      if (this.buttons?.Any() == true) {
-        this.buttons.ForEach(b => b.Dispose());
-      }
+      if (this.buttons?.Any() == true) { this.buttons.ForEach(b => b.Dispose()); }
 
       // release resources
       this.genericHoverButtonBrush?.Dispose();
@@ -127,7 +126,8 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnWrapperOnMouseUp(object sender, MouseEventArgs eventArgs) => OnMouseUp(eventArgs.Button);
+    private void OnWrapperOnMouseUp(object sender, MouseEventArgs eventArgs) =>
+      OnMouseUp(eventArgs.X, eventArgs.Y, eventArgs.Button);
 
     /// <summary>
     ///   Triggered when the wrapper window receives a mouse down event
@@ -180,9 +180,7 @@ namespace Captain.Application {
     /// <param name="mouseButtons">The buttons</param>
     private void OnMouseDown(int x, int y, MouseButtons mouseButtons) {
       if (mouseButtons != MouseButtons.Left) { return; }
-      foreach (SnackBarButton button in this.buttons) {
-        button.Active = button.HitTest(x, y);
-      }
+      foreach (SnackBarButton button in this.buttons) { button.Active = button.HitTest(x, y); }
 
       Render();
     }
@@ -190,8 +188,10 @@ namespace Captain.Application {
     /// <summary>
     ///   Triggered when a mouse button is released
     /// </summary>
+    /// <param name="x">X coordinate</param>
+    /// <param name="y">Y coordinate</param>
     /// <param name="mouseButtons">The buttons</param>
-    private void OnMouseUp(MouseButtons mouseButtons) {
+    private void OnMouseUp(int x, int y, MouseButtons mouseButtons) {
       if (mouseButtons != MouseButtons.Left) { return; }
 
       try {
@@ -199,9 +199,7 @@ namespace Captain.Application {
         button.Active = false;
         Render();
 
-        if (button.Enabled) {
-          button.PerformClick();
-        }
+        if (button.Enabled && button.HitTest(x, y)) { button.PerformClick(); }
       } catch (InvalidOperationException) {
         /* no held buttons */
       }
@@ -234,21 +232,26 @@ namespace Captain.Application {
     ///   Creates the buttons and binds fill brushes
     /// </summary>
     private void CreateButtons() {
+      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(0, 0, 16, 32)) {
+        Bitmap = Resources.SnackBarGrip,
+        Enabled = false
+      });
+
       // screenshot
-      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(0, 0, 32, 32)) {
+      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(16, 0, 32, 32)) {
         Bitmap = Resources.SnackBarScreenshot,
         Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Screenshot)
       });
 
       // mute/unmute
-      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(32, 0, 36, 32)) {
+      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(48, 0, 36, 32)) {
         Enabled = false,
         Bitmap = Resources.SnackBarMute,
         Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.ToggleMute)
       });
 
       // options
-      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(124, 0, 36, 32)) {
+      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(140, 0, 36, 32)) {
         Bitmap = Resources.SnackBarOptions,
         Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Options)
       });
@@ -260,7 +263,7 @@ namespace Captain.Application {
       }
 
       // close
-      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(160, 0, 32, 32)) {
+      this.buttons.Add(new SnackBarButton(this.renderTarget, new RectangleF(176, 0, 32, 32)) {
         Bitmap = Resources.SnackBarClose,
         Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.Close)
       });
@@ -272,7 +275,7 @@ namespace Captain.Application {
       // record/stop
       // This button is rendered last so that it's above the rest of buttons. This creates a nice style for the side
       // buttons (mute and options) that seem to fit perfectly with the elliptic shape
-      this.recordButton = new SnackBarButton(this.renderTarget, new Ellipse(new Vector2(96, 16), 32, 32)) {
+      this.recordButton = new SnackBarButton(this.renderTarget, new Ellipse(new Vector2(112, 16), 32, 32)) {
         Bitmap = Resources.SnackBarRecord,
         Action = () => OnIntentReceived?.Invoke(this, SnackBarIntent.ToggleRecord)
       };
@@ -417,10 +420,9 @@ namespace Captain.Application {
     private void Render() {
       this.renderTarget.BeginDraw();
       this.renderTarget.Clear(this.backgroundColor);
-
+      
       foreach (SnackBarButton button in this.buttons) { button.Draw(); }
-
-      this.renderTarget.Flush();
+      
       this.renderTarget.EndDraw();
     }
 

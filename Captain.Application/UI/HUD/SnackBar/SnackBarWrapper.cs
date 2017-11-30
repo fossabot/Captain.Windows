@@ -31,14 +31,40 @@ namespace Captain.Application {
     ///   Class constructor
     /// </summary>
     internal SnackBarWrapper() {
-      MinimumSize = MaximumSize = ClientSize = new Size(192, 32);
+      MinimumSize = MaximumSize = ClientSize = new Size(208, 32);
+      MinimizeBox = false;
+      MaximizeBox = false;
+      ControlBox = false;
       ShowInTaskbar = false;
       ShowIcon = false;
-      ControlBox = false;
       TopMost = true;
       StartPosition = FormStartPosition.Manual;
       FormBorderStyle = FormBorderStyle.None;
       BackColor = Color.Black;
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Processes window messages for moving the snack bar when the grip is held.
+    /// </summary>
+    /// <param name="msg">Window message.</param>
+    protected override void WndProc(ref Message msg) {
+      base.WndProc(ref msg);
+      switch (msg.Msg) {
+        case (int) User32.WindowMessage.WM_NCHITTEST:
+          Point position = PointToClient(MousePosition);
+          if (position.X <= 16 && position.Y <= 32) {
+            // this is the snack bar grip
+            msg.Result = new IntPtr((int) User32.HitTestValues.HTCAPTION);
+          }
+          break;
+
+        case (int) User32.WindowMessage.WM_SETCURSOR
+        when (msg.LParam.ToInt32() & 0x0000FFFF) == (int) User32.HitTestValues.HTCAPTION:
+          // set move cursor when the snack bar grip is hovered
+          Cursor.Current = Cursors.SizeAll;
+          break;
+      }
     }
 
     /// <inheritdoc />
@@ -47,12 +73,19 @@ namespace Captain.Application {
     protected override void OnHandleCreated(EventArgs eventArgs) {
       // make the window actually borderless and set transparency attributes so we can use alpha blending when
       // doing the Direct2D rendering
-      var margins = new MARGINS {bottomWidth = -1, leftWidth = -1, rightWidth = -1, topWidth = -1};
+      var margins = new MARGINS {bottomWidth = 1, leftWidth = 1, rightWidth = 1, topWidth = 2};
       DwmApi.DwmExtendFrameIntoClientArea(Handle, ref margins);
+
+      var attrValue = new IntPtr((int) DwmApi.DwmNcRenderingPolicy.DWMNCRP_DISABLED);
+      DwmApi.DwmSetWindowAttribute(Handle,
+        DwmApi.DwmWindowAttribute.DWMWA_NCRENDERING_POLICY,
+        ref attrValue,
+        Marshal.SizeOf(typeof(int)));
+
       User32.SetLayeredWindowAttributes(Handle,
         0,
         0xFF,
-        User32.LayeredWindowActions.LWA_ALPHA | User32.LayeredWindowActions.LWA_COLORKEY);
+        User32.LayeredWindowActions.LWA_ALPHA);
 
       /* Windows 10 blur */
       if (Environment.OSVersion.Version.Major >= 10) {

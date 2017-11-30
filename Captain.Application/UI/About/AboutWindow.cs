@@ -17,14 +17,17 @@ namespace Captain.Application {
 
       // set dialog icon and logo resource
       Icon = Resources.AppIcon;
-      this.logoPictureBox.Image = Resources.Logo;
 
       // format text labels
       Text = String.Format(Text, System.Windows.Forms.Application.ProductName);
+
+      this.logoPictureBox.Image = Resources.AppIcon.ToBitmap();
+
+      this.nameLabel.Text = System.Windows.Forms.Application.ProductName;
       this.versionLabel.Text = Application.Version.ToString();
       this.distributionLabel.Text = Application.UpdateManager.Availability == UpdaterAvailability.NotSupported
-        ? "Standalone"
-        : "Full";
+        ? Resources.AboutWindow_DistType_Standalone
+        : Resources.AboutWindow_DistType_Full;
 
       // set support URI text and center it!
       this.supportUriLinkLabel.Text = String.Format(this.supportUriLinkLabel.Text, Resources.AboutWindow_URI);
@@ -36,8 +39,8 @@ namespace Captain.Application {
 
       // bind updater events
       SetUpdateStatus(Application.UpdateManager.Status);
-      Application.UpdateManager.OnUpdateStatusChanged += (_, s) => SetUpdateStatus(s);
-      Application.UpdateManager.OnUpdateProgressChanged += (_, s, p) => SetUpdateStatus(s, p);
+      Application.UpdateManager.OnUpdateStatusChanged += (um, us) => SetUpdateStatus(us);
+      Application.UpdateManager.OnUpdateProgressChanged += (um, us, p) => SetUpdateStatus(us, p);
     }
 
     /// <summary>

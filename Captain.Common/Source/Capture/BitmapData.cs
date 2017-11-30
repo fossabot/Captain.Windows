@@ -17,14 +17,9 @@ namespace Captain.Common
     public int Height;
 
     /// <summary>
-    ///   Pixel format GUID (used by WIC).
+    ///   Pixel format GUID
     /// </summary>
     public Guid PixelFormat;
-
-    /// <summary>
-    ///   Pixel format ID (used by GDI).
-    /// </summary>
-    public int PixelFormatId;
 
     /// <summary>
     ///   Address of the first scanline.

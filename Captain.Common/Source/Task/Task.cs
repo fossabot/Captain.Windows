@@ -19,13 +19,13 @@ namespace Captain.Common {
     ///   List of post-capture actions to be performed. The list contains tuples of the full type name of the
     ///   <see cref="Action" /> and a serializable object that may or not hold custom options for it.
     /// </summary>
-    public List<(string ActionType, object Options)> Actions { get; set; } = new List<(string, object)>();
+    public List<(string ActionType, Dictionary<string, object> Options)> Actions { get; set; } = new List<(string, Dictionary<string, object>)>();
 
     /// <summary>
     ///   A pair made up of the full type name of the codec to be used and an optional object containing options and
     ///   other user data to be used by the codec.
     /// </summary>
-    public (string CodecType, object Options) Codec { get; set; }
+    public (string CodecType, Dictionary<string, object> Options) Codec { get; set; }
 
     /// <summary>
     ///   Hotkey for the task. When registered, a unique combination of keys will be bound to this task. When pressed,

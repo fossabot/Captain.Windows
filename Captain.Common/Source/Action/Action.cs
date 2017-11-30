@@ -24,10 +24,15 @@ namespace Captain.Common {
     ///   Optional status message.
     /// </summary>
     private string statusMessage;
-    
+
     #endregion
 
     #region Properties
+
+    /// <summary>
+    ///   Codec instance.
+    /// </summary>
+    public ICodecBase Codec { get; private set; }
 
     /// <summary>
     ///   Current action status.
@@ -69,6 +74,7 @@ namespace Captain.Common {
     #endregion
 
     #region Events
+
     /// <summary>
     ///   Triggered when the action status changes.
     /// </summary>
@@ -78,6 +84,7 @@ namespace Captain.Common {
     ///   Triggered when the action status message changes.
     /// </summary>
     public event EventHandler<string> OnStatusMessageChanged;
+
     #endregion
 
     #region Overriden Stream properties
@@ -115,6 +122,13 @@ namespace Captain.Common {
     public override long Position { get; set; }
 
     #endregion
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Creates a new instance of this class.
+    /// </summary>
+    /// <param name="codec">Codec instance.</param>
+    public Action(ICodecBase codec) => Codec = codec;
 
     /// <summary>
     ///   Sets task status.
@@ -161,8 +175,19 @@ namespace Captain.Common {
     /// <param name="offset">A byte offset relative to the <paramref name="origin" /> parameter.</param>
     /// <param name="origin">A value indicating the reference point used to obtain the new position.</param>
     /// <returns>The new position within the current stream.</returns>
-    public sealed override long Seek(long offset, SeekOrigin origin) =>
-      throw new NotSupportedException("Action streams are write-only");
+    public override long Seek(long offset, SeekOrigin origin) {
+      switch (origin) {
+        case SeekOrigin.End: throw new InvalidOperationException("Can't seek from the end of the stream.");
+        case SeekOrigin.Begin:
+          Position = offset;
+          break;
+        case SeekOrigin.Current:
+          Position -= offset;
+          break;
+      }
+
+      return Position;
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -182,7 +207,7 @@ namespace Captain.Common {
     ///   stream.
     /// </param>
     /// <param name="count">The number of bytes to be written to the current stream.</param>
-    public override void Write(byte[] buffer, int offset, int count) { }
+    public override void Write(byte[] buffer, int offset, int count) {}
 
     #endregion
   }

@@ -11,8 +11,7 @@ The application is designed to work with Windows Vista SP2 onwards. Windows XP s
 we depend upon the .NET Framework 4.5, which is not compatible with this platform.
 
 ## Project structure
-- `Content/` - Contains WPF assets and XAML files.
-- `Resources/` - Contains images, icons and other assets used by the *non-WPF parts* of the application.
+- `Resources/` - Contains images, icons and other assets used by the application.
 - `Source/` - Contains application logic and utilities not directly related with the user interface.
 - `UI/` - Contains user interface logic, Windows Forms generated files and utility classes used by the UI.
 

@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Captain.Common;
 using SharpDX;
 using SharpDX.Diagnostics;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace Captain.Application {
   /// <summary>
@@ -32,7 +33,7 @@ namespace Captain.Application {
     ///   Single instance mutex name
     /// </summary>
     private static string SingleInstanceMutexName
-      => $"{System.Windows.Forms.Application.ProductName} Single Instance Mutex ({Guid})";
+      => $"{System.Windows.Forms.Application.ProductName} Instance Mutex ({Guid})";
 
     #endregion
 
@@ -189,6 +190,11 @@ namespace Captain.Application {
     /// </summary>
     internal static IKeyboardHookProvider DesktopKeyboardHook { get; private set; }
 
+    /// <summary>
+    ///   Handles actions globally.
+    /// </summary>
+    internal static ActionManager ActionManager { get; private set; }
+
     #endregion
 
     /// <summary>
@@ -230,13 +236,45 @@ namespace Captain.Application {
     /// </summary>
     private static void InitialSetup() {
       // has the application been updated or perhaps is it the first time the user opens it?
-      if (Options.LastVersion != Version.ToString() || Debugger.IsAttached /* TODO: remove me */) {
-        Log.WriteLine(LogLevel.Informational, "this is the first time the user opens the app - welcome!");
-        Options.LastVersion = Version.ToString();
+      if (Options.LastVersion != Version.ToString()) { Options.LastVersion = Version.ToString(); }
 
-        Log.WriteLine(LogLevel.Informational, "displaying first-time tour");
+      // create and prepend default screenshot task, if none
+      if (Options.Tasks.All(t => t.TaskType != TaskType.StillImage)) {
+        Log.WriteLine(LogLevel.Warning, "no screenshot task found - creating default");
+        Options.Tasks.Insert(0,
+          new Task {
+            Codec = (typeof(PngWicCodec).FullName, null),
+            Hotkey = Keys.Control | Keys.Shift | Keys.D1,
+            Actions = new List<(string, Dictionary<string, object>)> {
+              (typeof(SaveToFileAction).FullName, null),
+              (typeof(CopyToClipboardAction).FullName, null)
+            },
+            TaskType = TaskType.StillImage,
+            Name = Resources.Task_DefaultScreenshotTaskName,
+            NotificationPolicy = NotificationPolicy.Inherit,
+            Region = Rectangle.Empty,
+            RegionType = RegionType.UserSelected
+          });
+        Options.Save();
+      }
 
-        // TODO: create default tasks or show welcome dialog with a wizard for doing so
+      // create and prepend default recording task, if none
+      if (Options.Tasks.All(t => t.TaskType != TaskType.Video)) {
+        Log.WriteLine(LogLevel.Warning, "no recording task found - creating default");
+        Options.Tasks.Insert(1,
+          new Task {
+            Codec = (typeof(H264MfCodec).FullName, null),
+            Hotkey = Keys.Control | Keys.Shift | Keys.D2,
+            Actions = new List<(string, Dictionary<string, object>)> {
+              (typeof(SaveToFileAction).FullName, null)
+            },
+            TaskType = TaskType.Video,
+            Name = Resources.Task_DefaultRecordingTaskName,
+            NotificationPolicy = NotificationPolicy.Inherit,
+            Region = Rectangle.Empty,
+            RegionType = RegionType.UserSelected
+          });
+        Options.Save();
       }
 
       try {
@@ -249,16 +287,14 @@ namespace Captain.Application {
         try {
           NotificationProvider = new ToastNotificationProvider();
           AreToastNotificationsSupported = true;
-          Log.WriteLine(LogLevel.Verbose, "toast notifications are supported");
+          Log.WriteLine(LogLevel.Debug, "toast notifications are supported");
         } catch (Exception exception) {
           // it's likely the type ToastNotificationManager could not be found
-          Log.WriteLine(LogLevel.Verbose, $"toast notifications are not supported by this platform: {exception}");
+          Log.WriteLine(LogLevel.Debug, $"toast notifications are not supported by this platform: {exception}");
         } finally {
           if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
             NotificationProvider = new LegacyNotificationProvider();
           }
-
-          Log.WriteLine(LogLevel.Verbose, $"initialized {NotificationProvider.GetType().Name}");
         }
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Warning, $"could not install app shortcut: {exception}");
@@ -280,15 +316,8 @@ namespace Captain.Application {
 
       HandleCommandLineArgs(args);
 
-      Log = new Logger();
-      Log.WriteLine(LogLevel.Informational,
-        $"{System.Windows.Forms.Application.ProductName} {Version}");
-
       // is another instance of the application currently running?
-      if (Mutex.TryOpenExisting(SingleInstanceMutexName, out Mutex _)) {
-        Log.WriteLine(LogLevel.Warning, "another instance of the application is running - aborting");
-        Environment.Exit(1);
-      }
+      if (Mutex.TryOpenExisting(SingleInstanceMutexName, out Mutex _)) { Environment.Exit(1); }
 
       // create a mutex that will prevent multiple instances of the application to be run
       SingleInstanceMutex = new Mutex(true, SingleInstanceMutexName);
@@ -296,16 +325,17 @@ namespace Captain.Application {
       // Windows Forms setup
       System.Windows.Forms.Application.EnableVisualStyles();
       System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+
+#if !DEBUG
       System.Windows.Forms.Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException, true);
       System.Windows.Forms.Application.ThreadException += (s, e) => {
         Log.WriteLine(LogLevel.Error, $"BUG: unhandled exception: ${e.Exception}");
-#if DEBUG
-        Debugger.Break();
-#endif
         Restart(e.Exception.HResult);
       };
+#endif
 
       // initialize file system manager and log file stream
+      Log = new Logger();
       FsManager = new FsManager();
       try {
         // create/open log file stream
@@ -315,15 +345,22 @@ namespace Captain.Application {
         Log.Streams.Add(loggerStream);
       } catch (Exception exception) { Log.WriteLine(LogLevel.Warning, $"could not open logger stream: {exception}"); }
 
+      // write versioning info to log
+      Log.WriteLine(LogLevel.Informational,
+        $"{System.Windows.Forms.Application.ProductName} {Version} {(Environment.Is64BitProcess ? "(x64)" : "")}");
+      Log.WriteLine(LogLevel.Informational,
+        $"{Environment.OSVersion} {(Environment.Is64BitOperatingSystem ? "(x64)" : "")}");
+
       // initialize main components
       Options = Options.Load() ?? new Options();
       PluginManager = new PluginManager();
       InitialSetup();
       TrayIcon = new TrayIcon();
       UpdateManager = new UpdateManager();
+      ActionManager = new ActionManager();
 
       DesktopKeyboardHook = new SystemKeyboardHookProvider();
-      DesktopKeyboardHook.OnKeyUp += (s, e) => {
+      DesktopKeyboardHook.OnKeyDown += (s, e) => {
         // get the full key combination
         Keys keys = (Keys) e.KeyValue | (e.KeyData & Keys.Modifiers);
 
@@ -339,11 +376,10 @@ namespace Captain.Application {
 
         // retrieve the tasks matching the hotkey
         IEnumerable<Task> tasks = Options.Tasks.Where(t => t.Hotkey == keys);
-
         if (tasks.Any()) {
           Log.WriteLine(LogLevel.Verbose, $"launching tasks matching hotkey: {keys}");
           TaskHelper.StartTask(tasks.First());
-        }
+        } else if (Hud.IsCropUiVisible) { Hud.Display(false); }
       };
 
       DesktopKeyboardHook.Acquire();

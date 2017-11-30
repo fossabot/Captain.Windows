@@ -35,6 +35,31 @@ namespace Captain.Application.Native {
       [In] int cbAttribute);
 
     /// <summary>
+    ///   Sets the value of non-client rendering attributes for a window.
+    /// </summary>
+    /// <param name="hwnd">The handle to the window that will receive the attributes.</param>
+    /// <param name="dwAttribute">
+    ///   A single <see cref="DwmWindowAttribute" /> flag to apply to the window
+    /// </param>
+    /// <param name="pvAttribute">
+    ///   A pointer to the value of the attribute specified in the <paramref name="dwAttribute"/>
+    ///   parameter. Different <see cref="DwmWindowAttribute" /> flags require different value types.
+    /// </param>
+    /// <param name="cbAttribute">
+    ///   The size, in bytes, of the value type pointed to by the <paramref name="pvAttribute"/> parameter.
+    /// </param>
+    /// <returns>
+    ///   If this function succeeds, it returns <c>S_OK</c>. Otherwise, it returns an <c>HRESULT</c> error code.
+    /// </returns>
+    [DllImport(nameof(DwmApi))]
+    [return: MarshalAs(UnmanagedType.Error)]
+    internal static extern int DwmSetWindowAttribute(
+      [In] IntPtr hwnd,
+      [In] DwmWindowAttribute dwAttribute,
+      [In, Out] ref IntPtr pvAttribute,
+      [In] int cbAttribute);
+
+    /// <summary>
     ///   Obtains a value that indicates whether Desktop Window Manager (DWM) composition is enabled.
     /// </summary>
     /// <param name="pfEnabed">

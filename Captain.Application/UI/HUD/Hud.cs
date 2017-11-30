@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using Captain.Common;
 using static Captain.Application.Application;
@@ -16,9 +17,9 @@ namespace Captain.Application {
     private readonly IMouseHookProvider mouseHook;
 
     /// <summary>
-    ///   Task bound to the HUD instance
+    ///   Recording session currently bound to the HUD.
     /// </summary>
-    private Task task;
+    private RecordingSession recordingSession;
 
     /// <summary>
     ///   Whether this HUD instance has been disposed or not
@@ -36,6 +37,15 @@ namespace Captain.Application {
       this.mouseHook.OnMouseUp += OnMouseUp;
     }
 
+    /// <summary>
+    ///   Binds a recording session to the HUD.
+    /// </summary>
+    /// <param name="session">Recording session.</param>
+    internal void BindRecordingSession(RecordingSession session) {
+      Log.WriteLine(LogLevel.Debug, "bound recording session to HUD");
+      this.recordingSession = session;
+    }
+
     /// <inheritdoc />
     /// <summary>
     ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -45,23 +55,11 @@ namespace Captain.Application {
       OnClose?.Invoke(this, EventArgs.Empty);
       this.mouseHook?.Release();
       this.mouseHook?.Dispose();
+      InstructionOverlay?.Dispose();
+      this.instructionOverlayWrapper?.Dispose();
       SnackBar?.Dispose();
       this.snackBarWrapper?.Dispose();
       this.cropRectangleWrapper?.Dispose();
-    }
-
-    /// <summary>
-    ///   Displays the HUD for a generic task
-    /// </summary>
-    internal void DisplayForTask(Task taskInstance = null) {
-      Display();
-      this.task = taskInstance;
-
-      void OnCrop(object sender, Rectangle rectangle) {
-        DisplaySnackBar(location: new Point(rectangle.X + (rectangle.Width - 192) / 2, rectangle.Y + rectangle.Height));
-      }
-
-      OnScreenCrop += OnCrop;
     }
 
     #region Events
@@ -81,14 +79,24 @@ namespace Captain.Application {
     #region HUD components
 
     /// <summary>
-    ///   Snack bar
+    ///   Snack bar.
     /// </summary>
     internal SnackBar SnackBar { get; private set; }
+
+    /// <summary>
+    ///   Instruction overlay.
+    /// </summary>
+    private InstructionOverlay InstructionOverlay { get; set; }
 
     /// <summary>
     ///   Snack bar wrapper window
     /// </summary>
     private SnackBarWrapper snackBarWrapper;
+
+    /// <summary>
+    ///   Instruction overlay wrapper window.
+    /// </summary>
+    private InstructionOverlayWrapper instructionOverlayWrapper;
 
     /// <summary>
     ///   Crop rectangle wrapper window
@@ -109,6 +117,17 @@ namespace Captain.Application {
     /// </summary>
     private Rectangle selectedRegion;
 
+    /// <summary>
+    ///   Whether or not the user is currently handpicking a screen region.
+    /// </summary>
+    internal bool IsCropUiVisible => this.cropRectangleWrapper?.Visible == true;
+
+    /// <summary>
+    ///   Determines whether the specified region is valid.
+    /// </summary>
+    /// <param name="region">The region to be validated.</param>
+    internal static bool IsValidRegion(Rectangle region) => region.Width >= 8 && region.Height >= 8;
+
     #endregion
 
     #region Mouse hook event handlers
@@ -122,6 +141,10 @@ namespace Captain.Application {
       if (mouseEventArgs.Button == MouseButtons.Left) {
         Log.WriteLine(LogLevel.Debug, $"mouse down at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
         this.initialMouseLocation = new Point(mouseEventArgs.X, mouseEventArgs.Y);
+        this.instructionOverlayWrapper.Close();
+        this.cropRectangleWrapper.Show();
+      } else if (this.initialMouseLocation.HasValue) {
+        OnMouseUp(this, mouseEventArgs);
       }
     }
 
@@ -149,7 +172,6 @@ namespace Captain.Application {
         }
 
         if (this.cropRectangleWrapper != null) {
-          this.cropRectangleWrapper.DisplayHelpLabel = false;
           this.cropRectangleWrapper.Bounds = this.selectedRegion;
         }
       }
@@ -165,13 +187,19 @@ namespace Captain.Application {
       Log.WriteLine(LogLevel.Debug, $"mouse up at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
       this.mouseHook.Release();
 
-      // trigger event handlers
-      this.cropRectangleWrapper?.Close();
-      OnScreenCrop?.Invoke(this, this.selectedRegion);
+      if (IsValidRegion(this.selectedRegion)) {
+        // trigger event handlers
+        this.cropRectangleWrapper?.Hide();
+        OnScreenCrop?.Invoke(this, this.selectedRegion);
+      } else {
+        Log.WriteLine(LogLevel.Debug, "invalid screen region selected");
+        this.cropRectangleWrapper?.Close();
+      }
+
+      this.instructionOverlayWrapper?.Close();
 
       // reset values
       this.initialMouseLocation = null;
-      this.selectedRegion = default;
     }
 
     #endregion
@@ -184,19 +212,22 @@ namespace Captain.Application {
     /// <param name="show">Whether to display the HUD or not</param>
     internal void Display(bool show = true) {
       if (show) {
+        if (this.instructionOverlayWrapper == null || this.instructionOverlayWrapper.IsDisposed) {
+          this.instructionOverlayWrapper = new InstructionOverlayWrapper();
+        }
+
+        if (InstructionOverlay == null) {
+          InstructionOverlay = new InstructionOverlay(this.instructionOverlayWrapper, Resources.HUD_CropRectangleHint);
+        }
+
         if (this.cropRectangleWrapper == null || this.cropRectangleWrapper.IsDisposed) {
           this.cropRectangleWrapper = new CropRectangleWrapper();
         }
 
-        this.cropRectangleWrapper.Size = new Size(512, 48);
-        this.cropRectangleWrapper.StartPosition = FormStartPosition.CenterScreen;
-        this.cropRectangleWrapper.Show();
-
+        this.instructionOverlayWrapper.Show();
         this.snackBarWrapper?.Show();
         this.mouseHook?.Acquire();
-      } else {
-        Dispose();
-      }
+      } else { Dispose(); }
     }
 
     /// <summary>
@@ -209,21 +240,18 @@ namespace Captain.Application {
         if (this.snackBarWrapper == null) {
           this.snackBarWrapper = new SnackBarWrapper();
 
-          if (location == default) {
-            this.snackBarWrapper.StartPosition = FormStartPosition.CenterScreen;
-          }
+          if (location == default) { this.snackBarWrapper.StartPosition = FormStartPosition.CenterScreen; }
         }
 
         if (SnackBar == null) {
+          this.cropRectangleWrapper.Fixed = true;
           SnackBar = new SnackBar(this.snackBarWrapper);
           SnackBar.OnIntentReceived += OnSnackBarIntentReceived;
         }
 
         this.snackBarWrapper.Location = location;
         this.snackBarWrapper.Show();
-      } else {
-        this.snackBarWrapper?.Close();
-      }
+      } else { this.snackBarWrapper?.Close(); }
     }
 
     /// <summary>
@@ -234,12 +262,8 @@ namespace Captain.Application {
     private void OnSnackBarIntentReceived(SnackBar sender, SnackBarIntent intent) {
       switch (intent) {
         case SnackBarIntent.Screenshot:
-          if (this.task == null) {
-            TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultScreenshotTask]);
-          } else {
-            TaskHelper.StartTask(this.task);
-          }
-
+          TaskHelper.StartTask(Application.Options.Tasks.First(t => t.TaskType == TaskType.StillImage),
+            this.selectedRegion);
           break;
 
         case SnackBarIntent.Close:
@@ -247,17 +271,18 @@ namespace Captain.Application {
           break;
 
         case SnackBarIntent.Options:
-          try {
-            new OptionsWindow().Show();
-          } catch (ApplicationException) {
+          try { new OptionsWindow().Show(); } catch (ApplicationException) {
             /* already open */
           }
           break;
 
-        case SnackBarIntent.ToggleMute:
-          break;
+        case SnackBarIntent.ToggleMute: break;
 
         case SnackBarIntent.ToggleRecord:
+          if (this.recordingSession?.State == RecordingState.None) { this.recordingSession.Start(); } else {
+            this.recordingSession?.Stop();
+          }
+
           break;
       }
     }

@@ -242,9 +242,6 @@ Would you like to install it?</value>
   <data name="TaskPropertiesDialog_MultipleActions" xml:space="preserve">
     <value>{0} actions</value>
   </data>
-  <data name="Logo" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Logo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="PluginManager_EncoderConfigurationUIError" xml:space="preserve">
     <value>The configuration interface for this plugin cannot be displayed.
 Contact the plugin vendor for further information.</value>
@@ -356,7 +353,7 @@ Tap here to see details.</value>
     <value>type</value>
   </data>
   <data name="SaveToFile_DefaultNameTemplate" xml:space="preserve">
-    <value>Captures\{2}.{0}\{3}.{4}.{5}.{6}</value>
+    <value>{10}\Captures\{2}.{0}\{3}.{4}.{5}.{6}{8}</value>
   </data>
   <data name="SaveToFile_Name" xml:space="preserve">
     <value>Save to file</value>
@@ -408,5 +405,44 @@ Tap here to see details.</value>
   </data>
   <data name="ActionControl_ContextMenu_Open" xml:space="preserve">
     <value>&amp;Open</value>
+  </data>
+  <data name="HUD_CropRectangleHint" xml:space="preserve">
+    <value>Drag your mouse to select a screen region.</value>
+  </data>
+  <data name="AboutWindow_DistType_Standalone" xml:space="preserve">
+    <value>Standalone</value>
+  </data>
+  <data name="AboutWindow_DistType_Full" xml:space="preserve">
+    <value>Full</value>
+  </data>
+  <data name="TemplateHelper_Type_Screenshot" xml:space="preserve">
+    <value>Screenshot</value>
+  </data>
+  <data name="TemplateHelper_Type_Recording" xml:space="preserve">
+    <value>Recording</value>
+  </data>
+  <data name="ActionPropertiesDialog_DefaultActionName" xml:space="preserve">
+    <value>Unknown Action ({0})</value>
+  </data>
+  <data name="CommonVariable_HomeDirectory" xml:space="preserve">
+    <value>user folder</value>
+  </data>
+  <data name="CommonVariable_PicturesDirectory" xml:space="preserve">
+    <value>pictures folder</value>
+  </data>
+  <data name="OptionsWindow_Tasks_BasicOptions" xml:space="preserve">
+    <value>Basic options</value>
+  </data>
+  <data name="OptionsWindow_Tasks_AdvancedOptions" xml:space="preserve">
+    <value>Advanced options</value>
+  </data>
+  <data name="Task_DefaultScreenshotTaskName" xml:space="preserve">
+    <value>Take screenshot</value>
+  </data>
+  <data name="Task_DefaultRecordingTaskName" xml:space="preserve">
+    <value>Record screen</value>
+  </data>
+  <data name="SnackBarGrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>SnackBarGrip.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

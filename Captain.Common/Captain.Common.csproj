@@ -68,12 +68,13 @@
     <Compile Include="Source\Action\Action.cs" />
     <Compile Include="Source\Action\ActionStatus.cs" />
     <Compile Include="Source\Action\IYieldsUri.cs" />
-    <Compile Include="Source\Attributes\DisplayName.cs" />
+    <Compile Include="Source\Attribute\DisplayName.cs" />
     <Compile Include="Source\Capture\BitmapData.cs" />
     <Compile Include="Source\Codec\ICodecBase.cs" />
     <Compile Include="Source\Codec\ICodecParameters.cs" />
-    <Compile Include="Source\Codec\StillImage\IStillImageCodec.cs" />
+    <Compile Include="Source\Codec\IStillImageCodec.cs" />
     <Compile Include="Source\Capture\VideoProvider.cs" />
+    <Compile Include="Source\Codec\IVideoCodec.cs" />
     <Compile Include="Source\IHasOptions.cs" />
     <Compile Include="Source\IHasImage.cs" />
     <Compile Include="Source\Logger\Logger.cs" />
@@ -96,8 +97,13 @@
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <Features>pdb-path-determinism</Features>
+  </PropertyGroup>
 </Project>

@@ -36,6 +36,7 @@ namespace Captain.Application {
       this.toolTip = new System.Windows.Forms.ToolTip(this.components);
       this.updateStatusLabel = new Captain.Application.EllipsisProgressLabel();
       this.distributionLabel = new System.Windows.Forms.Label();
+      this.nameLabel = new System.Windows.Forms.Label();
       ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
       this.bottomPanel.SuspendLayout();
       this.SuspendLayout();
@@ -43,16 +44,16 @@ namespace Captain.Application {
       // logoPictureBox
       // 
       this.logoPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-      this.logoPictureBox.Location = new System.Drawing.Point(83, 86);
+      this.logoPictureBox.Location = new System.Drawing.Point(120, 41);
       this.logoPictureBox.Name = "logoPictureBox";
-      this.logoPictureBox.Size = new System.Drawing.Size(140, 36);
+      this.logoPictureBox.Size = new System.Drawing.Size(64, 64);
       this.logoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
       this.logoPictureBox.TabIndex = 0;
       this.logoPictureBox.TabStop = false;
       // 
       // versionLabel
       // 
-      this.versionLabel.Location = new System.Drawing.Point(62, 161);
+      this.versionLabel.Location = new System.Drawing.Point(62, 176);
       this.versionLabel.Name = "versionLabel";
       this.versionLabel.Size = new System.Drawing.Size(180, 15);
       this.versionLabel.TabIndex = 1;
@@ -99,7 +100,7 @@ namespace Captain.Application {
       // 
       this.supportUriLinkLabel.ForeColor = System.Drawing.SystemColors.HotTrack;
       this.supportUriLinkLabel.HoverColor = System.Drawing.Color.Empty;
-      this.supportUriLinkLabel.Location = new System.Drawing.Point(141, 128);
+      this.supportUriLinkLabel.Location = new System.Drawing.Point(141, 143);
       this.supportUriLinkLabel.Name = "supportUriLinkLabel";
       this.supportUriLinkLabel.RegularColor = System.Drawing.Color.Empty;
       this.supportUriLinkLabel.Size = new System.Drawing.Size(22, 16);
@@ -122,12 +123,23 @@ namespace Captain.Application {
       // 
       // distributionLabel
       // 
-      this.distributionLabel.Location = new System.Drawing.Point(62, 185);
+      this.distributionLabel.Location = new System.Drawing.Point(62, 200);
       this.distributionLabel.Name = "distributionLabel";
       this.distributionLabel.Size = new System.Drawing.Size(180, 15);
       this.distributionLabel.TabIndex = 6;
       this.distributionLabel.Tag = "Dist. Type";
       this.distributionLabel.Paint += new System.Windows.Forms.PaintEventHandler(this.OnLabelPaint);
+      // 
+      // nameLabel
+      // 
+      this.nameLabel.Font = new System.Drawing.Font("Segoe UI", 12F);
+      this.nameLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+      this.nameLabel.Location = new System.Drawing.Point(62, 108);
+      this.nameLabel.Name = "nameLabel";
+      this.nameLabel.Size = new System.Drawing.Size(181, 32);
+      this.nameLabel.TabIndex = 7;
+      this.nameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+      this.nameLabel.UseMnemonic = false;
       // 
       // AboutWindow
       // 
@@ -136,6 +148,7 @@ namespace Captain.Application {
       this.BackColor = System.Drawing.Color.WhiteSmoke;
       this.CancelButton = this.closeButton;
       this.ClientSize = new System.Drawing.Size(304, 321);
+      this.Controls.Add(this.nameLabel);
       this.Controls.Add(this.distributionLabel);
       this.Controls.Add(this.updateStatusLabel);
       this.Controls.Add(this.supportUriLinkLabel);
@@ -168,5 +181,6 @@ namespace Captain.Application {
     private EllipsisProgressLabel updateStatusLabel;
     private Label distributionLabel;
     private Panel bottomPanel;
+    private Label nameLabel;
   }
 }

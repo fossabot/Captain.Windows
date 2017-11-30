@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -40,28 +41,26 @@ namespace Captain.Application {
     /// </summary>
     internal TrayIcon() {
       var contextMenu = new ContextMenu();
+
+      contextMenu.MenuItems.AddRange(Application.Options.Tasks.Select((t, i) =>
+          new MenuItem(t.Name, (s, e) => TaskHelper.StartTask(t)) {
+            DefaultItem = i == 0,
+            Tag = true // the tag is used to distinguish action menu items from the rest of stock items
+          })
+        .ToArray());
+
+      // add separator if at least one task has been added to the context menu
+      if (contextMenu.MenuItems.Count > 0) { contextMenu.MenuItems.Add("-"); }
       contextMenu.MenuItems.AddRange(new[] {
-        new MenuItem("Take screenshot",
-          (s, e) => TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultScreenshotTask])) {
-            DefaultItem = true,
-            Visible = true
-          },
-        new MenuItem("Record screen",
-          (s, e) => TaskHelper.StartTask(Application.Options.Tasks[Application.Options.DefaultRecordingTask])),
-        new MenuItem("-"),
         new MenuItem(Resources.AppMenu_Options,
           (s, e) => {
-            try {
-              new OptionsWindow().Show();
-            } catch (ApplicationException) {
+            try { new OptionsWindow().Show(); } catch (ApplicationException) {
               /* already open */
             }
           }),
         new MenuItem(Resources.AppMenu_About,
           (s, e) => {
-            try {
-              new AboutWindow().Show();
-            } catch (ApplicationException) {
+            try { new AboutWindow().Show(); } catch (ApplicationException) {
               /*already open */
             }
           }),
@@ -71,10 +70,34 @@ namespace Captain.Application {
 
       NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
       NotifyIcon.MouseClick += (s, e) => {
-        if (e.Button == MouseButtons.Left && NotifyIcon.ContextMenu.MenuItems[0].Enabled) {
-          NotifyIcon.ContextMenu.MenuItems[0].PerformClick();
-        } else if (e.Button == MouseButtons.Middle && NotifyIcon.ContextMenu.MenuItems[1].Enabled) {
-          NotifyIcon.ContextMenu.MenuItems[1].PerformClick();
+        int index = -1;
+
+        switch (e.Button) {
+          case MouseButtons.Left:
+            index = 0;
+            break;
+          case MouseButtons.Middle:
+            index = 1;
+            break;
+          case MouseButtons.XButton1:
+            index = 2;
+            break;
+          case MouseButtons.XButton2:
+            index = 3;
+            break;
+        }
+
+        if (index == 0 && Application.ActionManager.IsBusy) {
+          // there are ongoing actions - display progress dialog
+          Application.ActionManager.DisplayActionDialog();
+          return;
+        }
+
+        if (index >= 0 &&
+            index < NotifyIcon.ContextMenu.MenuItems.Count &&
+            NotifyIcon.ContextMenu.MenuItems[index].Enabled &&
+            (bool) NotifyIcon.ContextMenu.MenuItems[index].Tag) {
+          NotifyIcon.ContextMenu.MenuItems[index].PerformClick();
         }
       };
 
@@ -82,14 +105,12 @@ namespace Captain.Application {
       Show();
 
       // get the platform-dependent indicator style variant
-      if (Environment.OSVersion.Version.Major > 6) {
-        this.iconRenderer = new FluentIndicatorRenderer(GetIconHandle());
-      } else if (Environment.OSVersion.Version.Minor > 2) {
+      if (Environment.OSVersion.Version.Major > 6
+      ) { this.iconRenderer = new FluentIndicatorRenderer(GetIconHandle()); } else if (
+        Environment.OSVersion.Version.Minor > 2) {
         // TODO: create assets for Windows 8/8.1
         this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle());
-      } else {
-        this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle());
-      }
+      } else { this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle()); }
 
       // set initial icon
       SetIndicator(IndicatorStatus.Idle);

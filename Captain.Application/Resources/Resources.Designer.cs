@@ -70,6 +70,24 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Full.
+        /// </summary>
+        public static string AboutWindow_DistType_Full {
+            get {
+                return ResourceManager.GetString("AboutWindow_DistType_Full", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standalone.
+        /// </summary>
+        public static string AboutWindow_DistType_Standalone {
+            get {
+                return ResourceManager.GetString("AboutWindow_DistType_Standalone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying updates.
         /// </summary>
         public static string AboutWindow_UpdateStatusApplying {
@@ -169,6 +187,15 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unknown Action ({0}).
+        /// </summary>
+        public static string ActionPropertiesDialog_DefaultActionName {
+            get {
+                return ResourceManager.GetString("ActionPropertiesDialog_DefaultActionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap AeroIndicatorStrip {
@@ -264,6 +291,15 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to user folder.
+        /// </summary>
+        public static string CommonVariable_HomeDirectory {
+            get {
+                return ResourceManager.GetString("CommonVariable_HomeDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to hour.
         /// </summary>
         public static string CommonVariable_Hour {
@@ -287,6 +323,15 @@ namespace Captain.Application {
         public static string CommonVariable_Month {
             get {
                 return ResourceManager.GetString("CommonVariable_Month", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pictures folder.
+        /// </summary>
+        public static string CommonVariable_PicturesDirectory {
+            get {
+                return ResourceManager.GetString("CommonVariable_PicturesDirectory", resourceCulture);
             }
         }
         
@@ -375,12 +420,11 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized string similar to Drag your mouse to select a screen region..
         /// </summary>
-        public static System.Drawing.Bitmap Logo {
+        public static string HUD_CropRectangleHint {
             get {
-                object obj = ResourceManager.GetObject("Logo", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                return ResourceManager.GetString("HUD_CropRectangleHint", resourceCulture);
             }
         }
         
@@ -427,6 +471,24 @@ namespace Captain.Application {
         public static string OptionsWindow_RestoreDialogOptionsButton {
             get {
                 return ResourceManager.GetString("OptionsWindow_RestoreDialogOptionsButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Advanced options.
+        /// </summary>
+        public static string OptionsWindow_Tasks_AdvancedOptions {
+            get {
+                return ResourceManager.GetString("OptionsWindow_Tasks_AdvancedOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Basic options.
+        /// </summary>
+        public static string OptionsWindow_Tasks_BasicOptions {
+            get {
+                return ResourceManager.GetString("OptionsWindow_Tasks_BasicOptions", resourceCulture);
             }
         }
         
@@ -488,7 +550,7 @@ namespace Captain.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Captures\{2}.{0}\{3}.{4}.{5}.{6}.
+        ///   Looks up a localized string similar to {10}\Captures\{2}.{0}\{3}.{4}.{5}.{6}{8}.
         /// </summary>
         public static string SaveToFile_DefaultNameTemplate {
             get {
@@ -511,6 +573,16 @@ namespace Captain.Application {
         public static System.Drawing.Bitmap SnackBarClose {
             get {
                 object obj = ResourceManager.GetObject("SnackBarClose", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap SnackBarGrip {
+            get {
+                object obj = ResourceManager.GetObject("SnackBarGrip", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -619,6 +691,24 @@ namespace Captain.Application {
         public static string Task_CaptureFailedExtendedCaption {
             get {
                 return ResourceManager.GetString("Task_CaptureFailedExtendedCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record screen.
+        /// </summary>
+        public static string Task_DefaultRecordingTaskName {
+            get {
+                return ResourceManager.GetString("Task_DefaultRecordingTaskName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Take screenshot.
+        /// </summary>
+        public static string Task_DefaultScreenshotTaskName {
+            get {
+                return ResourceManager.GetString("Task_DefaultScreenshotTaskName", resourceCulture);
             }
         }
         
@@ -879,6 +969,24 @@ namespace Captain.Application {
             get {
                 object obj = ResourceManager.GetObject("TaskTypeScreenshot", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recording.
+        /// </summary>
+        public static string TemplateHelper_Type_Recording {
+            get {
+                return ResourceManager.GetString("TemplateHelper_Type_Recording", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Screenshot.
+        /// </summary>
+        public static string TemplateHelper_Type_Screenshot {
+            get {
+                return ResourceManager.GetString("TemplateHelper_Type_Screenshot", resourceCulture);
             }
         }
         

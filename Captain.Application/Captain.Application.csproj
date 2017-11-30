@@ -26,7 +26,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F2886E2B-0664-4B90-8F96-65598E485E06}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>Captain.Application</RootNamespace>
     <AssemblyName>Captain</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -59,6 +59,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>..\Release\</OutputPath>
@@ -70,6 +71,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -81,6 +83,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>..\x64\Release\</OutputPath>
@@ -92,6 +95,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -115,13 +119,13 @@
     </None>
     <None Include="README.md" />
     <None Include="Resources\README.md" />
-    <None Include="Source\Helpers\README.md" />
+    <None Include="Source\Helper\README.md" />
     <None Include="Source\Native\README.md" />
-    <None Include="Source\Options\SerializableDictionary\README.md" />
-    <None Include="UI\CommonControls\LinkLabel2\LICENSE.md" />
-    <None Include="UI\CommonControls\LinkLabel2\README.md" />
+    <None Include="UI\Common\LinkLabel2\LICENSE.md" />
+    <None Include="UI\Common\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\SnackBarGrip.png" />
     <None Include="Resources\NeutralResultOverlay.png" />
     <None Include="Resources\UnsuccessfulResultOverlay.png" />
     <None Include="Resources\SuccessfulResultOverlay.png" />
@@ -156,56 +160,74 @@
     <None Include="Resources\FluentIndicatorStrip.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\Actions\CopyToClipboardAction.cs" />
-    <Compile Include="Source\Actions\SaveToFile\SaveToFileAction.cs" />
-    <Compile Include="Source\Actions\SaveToFile\SaveToFileOptions.cs" />
-    <Compile Include="Source\Codecs\StillImage\BmpWicCodec.cs" />
-    <Compile Include="Source\Codecs\StillImage\GenericWicCodec.cs" />
-    <Compile Include="Source\Codecs\StillImage\GifWicCodec.cs" />
-    <Compile Include="Source\Codecs\StillImage\JpegWicCodec.cs" />
-    <Compile Include="Source\Codecs\StillImage\PngWicCodec.cs" />
-    <Compile Include="Source\Codecs\StillImage\TiffWicCodec.cs" />
-    <Compile Include="Source\Helpers\CompatHelper.cs" />
-    <Compile Include="Source\Helpers\KeyboardHook\IKeyboardHookProvider.cs" />
-    <Compile Include="Source\Helpers\KeyboardHook\SystemKeyboardHookProvider.cs" />
-    <Compile Include="Source\Helpers\TaskHelper.cs" />
-    <Compile Include="Source\Helpers\Template\CommonVariable.cs" />
-    <Compile Include="Source\Helpers\Template\TemplateHelper.cs" />
+    <Compile Include="Source\Action\ActionManager.cs" />
+    <Compile Include="Source\Action\BuiltIn\CopyToClipboardAction.cs" />
+    <Compile Include="Source\Action\BuiltIn\SaveToFileAction.cs" />
+    <Compile Include="Source\Codec\StillImage\BmpWicCodec.cs" />
+    <Compile Include="Source\Codec\StillImage\GenericWicCodec.cs" />
+    <Compile Include="Source\Codec\StillImage\GifWicCodec.cs" />
+    <Compile Include="Source\Codec\StillImage\JpegWicCodec.cs" />
+    <Compile Include="Source\Codec\StillImage\PngWicCodec.cs" />
+    <Compile Include="Source\Codec\Video\GenericMfCodec.cs" />
+    <Compile Include="Source\Codec\Video\H265MfCodec.cs" />
+    <Compile Include="Source\Codec\Video\H264MfCodec.cs" />
+    <Compile Include="Source\Helper\CompatHelper.cs" />
+    <Compile Include="Source\Helper\Injection\InjectionHelper.cs">
+      <Generator>MSBuild:Compile</Generator>
+    </Compile>
+    <Compile Include="Source\Helper\Injection\InjectionState.cs" />
+    <Compile Include="Source\Helper\KeyboardHook\IKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helper\KeyboardHook\SystemKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helper\TaskHelper.cs" />
+    <Compile Include="Source\Helper\Template\CommonVariable.cs" />
+    <Compile Include="Source\Helper\Template\TemplateHelper.cs" />
+    <Compile Include="Source\MultiStream.cs" />
+    <Compile Include="Source\Native\DwmApi\DwmNcRenderingPolicy.cs" />
+    <Compile Include="Source\Native\Kernel32\Kernel32.cs" />
+    <Compile Include="Source\Native\MediaFoundation\Evr.cs" />
     <Compile Include="Source\Native\User32\KBDLLHOOKSTRUCT.cs" />
-    <Compile Include="Source\VideoProviders\GdiVideoProvider.cs" />
-    <Compile Include="Source\VideoProviders\VideoProviderFactory.cs" />
-    <Compile Include="Source\VideoProviders\DxgiVideoProvider.cs" />
-    <Compile Include="Source\Helpers\MouseHook\IMouseHookProvider.cs" />
-    <Compile Include="Source\Helpers\MouseHook\SystemMouseHookProvider.cs" />
-    <Compile Include="Source\Helpers\ShellLink.cs" />
+    <Compile Include="Source\Native\User32\MONITORINFO.cs" />
+    <Compile Include="Source\Recording\RecordingSession.cs" />
+    <Compile Include="Source\Recording\RecordingState.cs" />
+    <Compile Include="Source\VideoProvider\DxVideoProvider.cs" />
+    <Compile Include="Source\VideoProvider\TestVideoProvider.cs" />
+    <Compile Include="Source\VideoProvider\VideoProviderFactory.cs" />
+    <Compile Include="Source\VideoProvider\DxgiVideoProvider.cs" />
+    <Compile Include="Source\Helper\MouseHook\IMouseHookProvider.cs" />
+    <Compile Include="Source\Helper\MouseHook\SystemMouseHookProvider.cs" />
+    <Compile Include="Source\Helper\ShellLink.cs" />
     <Compile Include="Source\Native\UxTheme\MARGINS.cs" />
     <Compile Include="Source\Native\User32\MSLLHOOKSTRUCT.cs" />
-    <Compile Include="UI\ActionDialog\ActionDialog.cs">
+    <Compile Include="UI\Action\ActionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\ActionDialog\ActionDialog.Designer.cs">
+    <Compile Include="UI\Action\ActionDialog.Designer.cs">
       <DependentUpon>ActionDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ActionDialog\ActionControl.cs">
+    <Compile Include="UI\Action\ActionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\ActionDialog\ActionControl.Designer.cs">
+    <Compile Include="UI\Action\ActionControl.Designer.cs">
       <DependentUpon>ActionControl.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\HUD\CropRectangleWrapper.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\HUD\Hud.cs" />
+    <Compile Include="UI\HUD\InstructionOverlay\InstructionOverlay.cs" />
+    <Compile Include="UI\HUD\InstructionOverlay\InstructionOverlayWrapper.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\HUD\SnackBar\SnackBar.cs" />
     <Compile Include="UI\HUD\SnackBar\SnackBarButton.cs" />
     <Compile Include="UI\HUD\SnackBar\SnackBarIntent.cs" />
     <Compile Include="UI\HUD\SnackBar\SnackBarWrapper.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\Action\ActionPropertiesDialog.cs">
+    <Compile Include="UI\Option\Action\ActionPropertiesDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\Action\ActionPropertiesDialog.Designer.cs">
+    <Compile Include="UI\Option\Action\ActionPropertiesDialog.Designer.cs">
       <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -214,14 +236,14 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Source\Helpers\BitHelper.cs" />
-    <Compile Include="Source\Helpers\DisplayHelper.cs" />
+    <Compile Include="Source\Helper\BitHelper.cs" />
+    <Compile Include="Source\Helper\DisplayHelper.cs" />
     <Compile Include="Source\Native\DwmApi\DwmApi.cs" />
     <Compile Include="Source\Native\DwmApi\DWMCOLORIZATIONPARAMS.cs" />
     <Compile Include="Source\Native\DwmApi\DwmWindowAttribute.cs" />
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
     <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
-    <Compile Include="Source\Helpers\ShellHelper.cs" />
+    <Compile Include="Source\Helper\ShellHelper.cs" />
     <Compile Include="Source\Native\Shell32\NOTIFYICONIDENTIFIER.cs" />
     <Compile Include="Source\Native\Shell32\Shell32.cs" />
     <Compile Include="Source\Native\UxTheme\UxTheme.cs" />
@@ -229,74 +251,85 @@
     <Compile Include="Source\Native\User32\RECT.cs" />
     <Compile Include="Source\Native\User32\User32.cs" />
     <Compile Include="Source\Native\User32\WINDOWPOS.cs" />
-    <Compile Include="Source\Options\UpdatePolicy.cs" />
-    <Compile Include="Source\Plugins\PluginObject.cs" />
-    <Compile Include="Source\Plugins\PluginManager.cs" />
+    <Compile Include="Source\Option\UpdatePolicy.cs" />
+    <Compile Include="Source\Plugin\PluginObject.cs" />
+    <Compile Include="Source\Plugin\PluginManager.cs" />
     <Compile Include="Source\Application.cs" />
     <Compile Include="Source\FsManager.cs" />
-    <Compile Include="Source\Options\AutoStart\AutoStartManager.cs" />
-    <Compile Include="Source\Options\AutoStart\AutoStartPolicy.cs" />
-    <Compile Include="Source\Options\Options.cs" />
-    <Compile Include="Source\Options\SerializableDictionary\SerializableDictionary.cs" />
+    <Compile Include="Source\Option\AutoStart\AutoStartManager.cs" />
+    <Compile Include="Source\Option\AutoStart\AutoStartPolicy.cs" />
+    <Compile Include="Source\Option\Options.cs" />
     <Compile Include="Source\Update\UpdateManager.cs" />
     <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
-    <Compile Include="Source\Helpers\WindowHelper.cs" />
-    <Compile Include="UI\Options\Task\TaskPropertiesDialog.cs">
+    <Compile Include="Source\Helper\WindowHelper.cs" />
+    <Compile Include="UI\Option\Codec\StillImage\PngWicCodecOptionsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\Task\TaskPropertiesDialog.Designer.cs">
+    <Compile Include="UI\Option\Codec\StillImage\PngWicCodecOptionsWindow.Designer.cs">
+      <DependentUpon>PngWicCodecOptionsWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Option\Codec\StillImage\JpegWicCodecOptionsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Option\Codec\StillImage\JpegWicCodecOptionsWindow.Designer.cs">
+      <DependentUpon>JpegWicCodecOptionsWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Option\Task\TaskPropertiesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Option\Task\TaskPropertiesDialog.Designer.cs">
       <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Options\Task\TaskEditControl.cs">
+    <Compile Include="UI\Option\Task\TaskEditControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\Options\Task\TaskEditControl.Designer.cs">
+    <Compile Include="UI\Option\Task\TaskEditControl.Designer.cs">
       <DependentUpon>TaskEditControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Helpers\ColorExtensions.cs" />
-    <Compile Include="UI\CommonControls\EllipsisProgressLabel.cs">
+    <Compile Include="UI\Helper\ColorExtensions.cs" />
+    <Compile Include="UI\Common\EllipsisProgressLabel.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\CommonControls\LinkButton.cs">
+    <Compile Include="UI\Common\LinkButton.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\CommonControls\ListViewEx.cs">
+    <Compile Include="UI\Common\ListViewEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Options\Action\ActionSelectionDialog.cs">
+    <Compile Include="UI\Option\Action\ActionSelectionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\Action\ActionSelectionDialog.Designer.cs">
+    <Compile Include="UI\Option\Action\ActionSelectionDialog.Designer.cs">
       <DependentUpon>ActionSelectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\TrayIcon\Renderers\AeroIndicatorRenderer.cs" />
-    <Compile Include="UI\Helpers\UpdaterUiHelper.cs" />
-    <Compile Include="UI\CommonControls\Window.cs">
+    <Compile Include="UI\Helper\UpdaterUiHelper.cs" />
+    <Compile Include="UI\Common\Window.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OptionsWindow.cs">
+    <Compile Include="UI\Option\OptionsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Options\OptionsWindow.Designer.cs">
+    <Compile Include="UI\Option\OptionsWindow.Designer.cs">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Options\ToolBarControl.cs">
+    <Compile Include="UI\Option\ToolBarControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\Helpers\StyleHelper.cs" />
+    <Compile Include="UI\Helper\StyleHelper.cs" />
     <Compile Include="UI\About\AboutWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\About\AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CommonControls\LinkLabel2\LinkLabel2.cs">
+    <Compile Include="UI\Common\LinkLabel2\LinkLabel2.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\NotificationProviders\INotificationProvider.cs" />
-    <Compile Include="UI\NotificationProviders\LegacyNotificationProvider.cs" />
-    <Compile Include="UI\NotificationProviders\ToastNotificationProvider.cs" />
+    <Compile Include="UI\NotificationProvider\INotificationProvider.cs" />
+    <Compile Include="UI\NotificationProvider\LegacyNotificationProvider.cs" />
+    <Compile Include="UI\NotificationProvider\ToastNotificationProvider.cs" />
     <Compile Include="UI\TrayIcon\Renderers\FluentIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\Renderers\IIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\TrayIcon.cs" />
@@ -312,25 +345,31 @@
     <EmbeddedResource Include="UI\About\AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\ActionDialog\ActionDialog.resx">
+    <EmbeddedResource Include="UI\Action\ActionDialog.resx">
       <DependentUpon>ActionDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\ActionDialog\ActionControl.resx">
+    <EmbeddedResource Include="UI\Action\ActionControl.resx">
       <DependentUpon>ActionControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\OptionsWindow.resx">
+    <EmbeddedResource Include="UI\Option\Codec\StillImage\PngWicCodecOptionsWindow.resx">
+      <DependentUpon>PngWicCodecOptionsWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Option\Codec\StillImage\JpegWicCodecOptionsWindow.resx">
+      <DependentUpon>JpegWicCodecOptionsWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Option\OptionsWindow.resx">
       <DependentUpon>OptionsWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Action\ActionPropertiesDialog.resx">
+    <EmbeddedResource Include="UI\Option\Action\ActionPropertiesDialog.resx">
       <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Action\ActionSelectionDialog.resx">
+    <EmbeddedResource Include="UI\Option\Action\ActionSelectionDialog.resx">
       <DependentUpon>ActionSelectionDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Task\TaskEditControl.resx">
+    <EmbeddedResource Include="UI\Option\Task\TaskEditControl.resx">
       <DependentUpon>TaskEditControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Options\Task\TaskPropertiesDialog.resx">
+    <EmbeddedResource Include="UI\Option\Task\TaskPropertiesDialog.resx">
       <DependentUpon>TaskPropertiesDialog.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
@@ -359,6 +398,9 @@
     <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Squirrel, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\NuGet.Squirrel.dll</HintPath>
     </Reference>
@@ -366,6 +408,7 @@
       <HintPath>..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="SharpCompress, Version=0.18.2.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpCompress.0.18.2\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
@@ -397,12 +440,15 @@
       <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\Squirrel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
     <Reference Include="Windows.Data" />
@@ -465,12 +511,10 @@
       <FileType>Assembly</FileType>
     </PublishFile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Source\Codecs\Video\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <Deterministic>true</Deterministic>
+    <Features>pdb-path-determinism</Features>
   </PropertyGroup>
 </Project>

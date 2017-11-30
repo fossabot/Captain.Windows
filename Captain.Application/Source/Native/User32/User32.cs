@@ -26,6 +26,12 @@ namespace Captain.Application.Native {
     [Flags]
     internal enum WindowStylesEx : uint {
       /// <summary>
+      ///   The window should not be painted until siblings beneath the window (that were created by the same thread)
+      ///   have been painted.
+      /// </summary>
+      WS_EX_TRANSPARENT = 0x00000020,
+
+      /// <summary>
       ///   The window is intended to be used as a floating toolbar.
       /// </summary>
       WS_EX_TOOLWINDOW = 0x00000080,
@@ -37,9 +43,19 @@ namespace Captain.Application.Native {
       LVS_EX_DOUBLEBUFFER = 0x00010000,
 
       /// <summary>
+      ///   This window is a layered window.
+      /// </summary>
+      WS_EX_LAYERED = 0x00080000,
+
+      /// <summary>
       ///   Paints all descendants of a window in bottom-to-top painting order using double-buffering.
       /// </summary>
-      WS_EX_COMPOSITED = 0x02000000
+      WS_EX_COMPOSITED = 0x02000000,
+
+      /// <summary>
+      ///   A  top-level window created with this style does not become the foreground window when the user clicks it.
+      /// </summary>
+      WS_EX_NOACTIVATE = 0x08000000,
     }
 
     #endregion
@@ -79,6 +95,11 @@ namespace Captain.Application.Native {
       WM_NOTIFY = 0x004E,
 
       /// <summary>
+      ///   Sent to a window in order to determine what part of the window corresponds to a particular screen coordinate.
+      /// </summary>
+      WM_NCHITTEST = 0x0084,
+
+      /// <summary>
       ///   Posted to the window with the keyboard focus when a nonsystem key is pressed.
       ///   A nonsystem key is a key that is pressed when the ALT key is not pressed. 
       /// </summary>
@@ -89,20 +110,20 @@ namespace Captain.Application.Native {
       ///   A nonsystem key is a key that is pressed when the ALT key is not pressed, or a keyboard key that is pressed 
       ///   when a window has the keyboard focus. 
       /// </summary>
-      WM_KEYUP = 0x101,
+      WM_KEYUP = 0x0101,
 
       /// <summary>
       ///   Posted to the window with the keyboard focus when the user presses the F10 key (which activates the menu
       ///   bar) or holds down the ALT key and then presses another key. It also occurs when no window currently has
       ///   the keyboard focus.
       /// </summary>
-      WM_SYSKEYDOWN = 0x104,
+      WM_SYSKEYDOWN = 0x0104,
 
       /// <summary>
       ///   Posted to the window with the keyboard focus when the user releases a key that was pressed while the ALT
       ///   key was held down. 
       /// </summary>
-      WM_SYSKEYUP = 0x105,
+      WM_SYSKEYUP = 0x0105,
 
       /// <summary>
       ///   An application sends the WM_CHANGEUISTATE message to indicate that the UI state should be changed.
@@ -114,27 +135,27 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   Posted to a window when the cursor moves.
       /// </summary>
-      WM_MOUSEMOVE = 0x200,
+      WM_MOUSEMOVE = 0x0200,
 
       /// <summary>
       ///   Posted when the user presses the left mouse button while the cursor is in the client area of a window.
       /// </summary>
-      WM_LBUTTONDOWN = 0x201,
+      WM_LBUTTONDOWN = 0x0201,
 
       /// <summary>
       ///   Posted when the user releases the left mouse button while the cursor is in the client area of a window.
       /// </summary>
-      WM_LBUTTONUP = 0x202,
+      WM_LBUTTONUP = 0x0202,
 
       /// <summary>
       ///   Posted when the user presses the right mouse button while the cursor is in the client area of a window.
       /// </summary>
-      WM_RBUTTONDOWN = 0x204,
+      WM_RBUTTONDOWN = 0x0204,
 
       /// <summary>
       ///   Posted when the user releases the right mouse button while the cursor is in the client area of a window.
       /// </summary>
-      WM_RBUTTONUP = 0x205,
+      WM_RBUTTONUP = 0x0205,
 
       #endregion
 
@@ -146,12 +167,12 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   Informs all top-level windows that Desktop Window Manager (DWM) composition has been enabled or disabled.
       /// </summary>
-      WM_DWMCOMPOSITIONCHANGED = 0x31E,
+      WM_DWMCOMPOSITIONCHANGED = 0x031E,
 
       /// <summary>
       ///   Informs all top-level windows that the colorization color has changed.
       /// </summary>
-      WM_DWMCOLORIZATIONCHANGED = 0x320,
+      WM_DWMCOLORIZATIONCHANGED = 0x0320,
 
       /// <summary>
       ///   Sets extended styles in list-view controls.
@@ -169,6 +190,16 @@ namespace Captain.Application.Native {
       ///   would correspond to a specified display area.
       /// </summary>
       TCM_ADJUSTRECT = 0x1328
+    }
+
+    /// <summary>
+    ///   Return values for WM_NCHITTEST window messages.
+    /// </summary>
+    internal enum HitTestValues {
+      /// <summary>
+      ///   In a title bar.
+      /// </summary>
+      HTCAPTION = 0x02
     }
 
     /// <summary>
@@ -306,6 +337,22 @@ namespace Captain.Application.Native {
     }
 
     #endregion
+
+    #endregion
+
+    #region Monitors
+
+    /// <summary>
+    ///   The GetMonitorInfo function retrieves information about a display monitor.
+    /// </summary>
+    /// <param name="hMonitor">A handle to the display monitor of interest.</param>
+    /// <param name="lpmi">
+    ///   A pointer to a MONITORINFO or MONITORINFOEX structure that receives information about the
+    ///   specified display monitor.
+    /// </param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport(nameof(User32), SetLastError = true)]
+    internal static extern bool GetMonitorInfo([In] IntPtr hMonitor, [In, Out] MONITORINFO lpmi);
 
     #endregion
 

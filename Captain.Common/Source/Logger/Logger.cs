@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Captain.Common {
@@ -25,26 +24,13 @@ namespace Captain.Common {
     ///   Provides a list of streams where each log message is to be forwarded
     /// </summary>
     public List<Stream> Streams { get; } = new List<Stream>();
-
-    public void WriteLineEx(
-      LogLevel level,
-      string msg,
-      [CallerFilePath] string filePath = "???",
-      [CallerLineNumber] int lineNumber = 0, 
-      [CallerMemberName] string member = "???") {
-      Console.ForegroundColor = level.GetAssociatedConsoleColor();
-      string line = $"[{level} {filePath}:{lineNumber} {member}] {msg}\n";
-      Console.Write(line);
-      
-      Streams.ForEach(stream => {
-        stream.Write(Encoding.UTF8.GetBytes(line), 0, line.Length);
-        stream.FlushAsync();
-      });
-    }
     
     /// <summary>
     ///   Writes a message to the logger
     /// </summary>
+    /// <remarks>
+    ///   TODO: revise ALL application logging and make sure we output *useful* information for real problem diagnosis
+    /// </remarks>
     /// <param name="level">Logging level</param>
     /// <param name="format">Message format, compatible with String.Format()</param>
     /// <param name="args">Arguments used to format the message</param>

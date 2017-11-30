@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using Captain.Application.Native;
 
@@ -23,20 +22,27 @@ namespace Captain.Application {
     /// <summary>
     ///   Current border pen.
     /// </summary>
+    private readonly Pen fixedBorderPen = new Pen(Color.FromArgb(0x08, 0x08, 0x08));
+
+    /// <summary>
+    ///   Current border pen.
+    /// </summary>
     private Pen borderPen = new Pen(Color.FromArgb(0x08, 0x08, 0x08));
 
     /// <summary>
-    ///   Whether to display the area selection hint
+    ///   Whether the screen region has been fixed.
     /// </summary>
-    private bool displayHelpLabel = true;
+    private bool isFixed;
 
     /// <summary>
-    ///   Whether to display the area selection hint
+    ///   Whether the screen region has been fixed.
     /// </summary>
-    internal bool DisplayHelpLabel {
+    internal bool Fixed {
+      get => this.isFixed;
       set {
-        // ReSharper disable once AssignmentInConditionalExpression
-        if (this.displayHelpLabel = value) { Opacity = 0.75; } else { Opacity = 0.5; }
+        this.isFixed = value;
+        //BackColor = this.isFixed ? Color.Black : Color.FromArgb(0x08, 0x08, 0x08);
+        Invalidate();
       }
     }
 
@@ -69,19 +75,36 @@ namespace Captain.Application {
       StartPosition = FormStartPosition.Manual;
       Size = new Size(1, 1);
       FormBorderStyle = FormBorderStyle.None;
-      BackColor = Color.FromArgb(0x10, 0x10, 0x10);
-      Opacity = 0.5;
+      TransparencyKey = Color.Black;
+      BackColor = Color.FromArgb(0x08, 0x08, 0x08);
+      Opacity = 0.3333;
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Processes window messages for moving the snack bar when the grip is held.
+    /// </summary>
+    /// <param name="msg">Window message.</param>
+    protected override void WndProc(ref Message msg) {
+      base.WndProc(ref msg);
+      switch (msg.Msg) {
+        case (int) User32.WindowMessage.WM_NCHITTEST:
+          msg.Result = new IntPtr((int) User32.HitTestValues.HTCAPTION);
+          break;
+
+        case (int) User32.WindowMessage.WM_SETCURSOR when Fixed:
+          // set move cursor
+          Cursor.Current = Cursors.SizeAll;
+          break;
+      }
     }
 
     /// <inheritdoc />
     /// <summary>Raises the <see cref="E:System.Windows.Forms.Control.Resize" /> event.</summary>
     /// <param name="eventArgs">An <see cref="T:System.EventArgs" /> that contains the event data.</param>
     protected override void OnResize(EventArgs eventArgs) {
-      Refresh();
-      if (!this.displayHelpLabel) {
-        this.borderPen = Size.Width >= 42 && Size.Height >= 42 ? this.validBorderPen : this.invalidBorderPen;
-      }
-
+      this.borderPen = Hud.IsValidRegion(Bounds) ? this.validBorderPen : this.invalidBorderPen;
+      Invalidate();
       base.OnResize(eventArgs);
     }
 
@@ -91,18 +114,8 @@ namespace Captain.Application {
     ///   A <see cref="T:System.Windows.Forms.PaintEventArgs" /> that contains the event data.
     /// </param>
     protected override void OnPaint(PaintEventArgs eventArgs) {
-      eventArgs.Graphics.DrawRectangle(borderPen, new Rectangle(0, 0, Width - 1, Height - 1));
-
-      if (this.displayHelpLabel) {
-        eventArgs.Graphics.DrawString("Drag your mouse to select a region",
-          new Font(SystemFonts.MessageBoxFont.FontFamily, 12.0f),
-          new SolidBrush(Color.White),
-          new Rectangle(Point.Empty, Size),
-          new StringFormat {
-            Alignment = StringAlignment.Center,
-            LineAlignment = StringAlignment.Center
-          });
-      }
+      eventArgs.Graphics.DrawRectangle(Fixed ? this.fixedBorderPen : this.borderPen,
+        new Rectangle(0, 0, Width - 1, Height - 1));
 
       base.OnPaint(eventArgs);
     }

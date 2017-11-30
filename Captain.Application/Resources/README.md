@@ -7,7 +7,6 @@ This directory contains binary assets that are used in the user interface.
 - `AeroIndicatorStrip.png`
 - `AppIcon.ico`
 - `FluentIndicatorStrip.png`
-- `Logo.png`
 - `UpdateIcon.ico`
 
 ### [Icons8](https://icons8.com)
