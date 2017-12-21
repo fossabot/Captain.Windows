@@ -26,13 +26,13 @@ namespace Captain.Application {
     /// <summary>
     ///   Frame rate, in frames per second.
     /// </summary>
-    public override int FrameRate => 60;
+    public override int FrameRate => 30;
 
     /// <inheritdoc />
     /// <summary>
     ///   Frame rate, in frames per second.
     /// </summary>
-    public override int BitRate => 8_000_000;
+    public override int BitRate => 4_000_000;
 
     /// <inheritdoc />
     /// <summary>

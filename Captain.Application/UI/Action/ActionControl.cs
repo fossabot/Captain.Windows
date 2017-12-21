@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using Captain.Common;
@@ -274,6 +273,6 @@ namespace Captain.Application {
     /// <param name="eventArgs">Event arguments.</param>
     private void OnPreviewOverlaySizeChanged(object sender, EventArgs eventArgs) => UpdateThumbnail();
 
-    private void timer1_Tick(object sender, EventArgs e) { Invalidate(); }
+    private void timer1_Tick(object sender, EventArgs e) => Invalidate();
   }
 }

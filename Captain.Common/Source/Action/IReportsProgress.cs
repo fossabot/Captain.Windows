@@ -17,7 +17,7 @@ namespace Captain.Common {
     ///   Triggered when the progress changes.
     /// </summary>
     /// <value>
-    ///   The value of the <see cref="double" /> event argument ranges from [0, 1]
+    ///   The value of the <see cref="Double" /> event argument ranges from [0, 1]
     /// </value>
     /// <remarks>
     ///   If an <see cref="Action" /> reports a progress outside the acceptable range, Captain will treat the action as

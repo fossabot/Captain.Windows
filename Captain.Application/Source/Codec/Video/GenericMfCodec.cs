@@ -8,7 +8,7 @@ using SharpDX.Direct3D11;
 using SharpDX.Direct3D9;
 using SharpDX.Mathematics.Interop;
 using SharpDX.MediaFoundation;
-using SharpDX.Multimedia;
+using FourCC = SharpDX.Multimedia.FourCC;
 
 namespace Captain.Application {
   /// <inheritdoc />
@@ -37,14 +37,14 @@ namespace Captain.Application {
     private MediaBuffer buffer;
 
     /// <summary>
+    ///   Current MF sample.
+    /// </summary>
+    private Sample sample;
+
+    /// <summary>
     ///   Straem index.
     /// </summary>
     private int streamIdx;
-
-    /// <summary>
-    ///   Current frame index.
-    /// </summary>
-    private long frameIdx;
 
     /// <summary>
     ///   DXGI device manager instance.
@@ -52,9 +52,9 @@ namespace Captain.Application {
     private DXGIDeviceManager dxgiManager;
 
     /// <summary>
-    ///   Recording start time.
+    ///   Current frame index.
     /// </summary>
-    private DateTime startTime;
+    private long frameIdx;
 
     /// <summary>
     ///   Value for the TranscodeContainertype media attribute.
@@ -102,11 +102,13 @@ namespace Captain.Application {
         // enable hardware transforms
         attrs.Set(TranscodeAttributeKeys.TranscodeContainertype, ContainerType);
         attrs.Set(SinkWriterAttributeKeys.ReadwriteEnableHardwareTransforms, 1);
+        attrs.Set(SinkWriterAttributeKeys.LowLatency, true);
 
         if (SourceTexture != null) {
           // create and bind a DXGI device manager
           this.dxgiManager = new DXGIDeviceManager();
           this.dxgiManager.ResetDevice(SourceTexture.Device);
+
           attrs.Set(SinkWriterAttributeKeys.D3DManager, this.dxgiManager);
         }
 
@@ -139,7 +141,6 @@ namespace Captain.Application {
 
           this.sinkWriter.SetInputMediaType(this.streamIdx, inMediaType, null);
           this.sinkWriter.BeginWriting();
-          this.startTime = DateTime.Now;
         }
       }
 
@@ -150,29 +151,32 @@ namespace Captain.Application {
           0,
           new RawBool(false),
           out this.buffer);
-      } else {
-        // generic 2D media buffer
-        MediaFactory.Create2DMediaBuffer(frameSize.Width,
-          frameSize.Height,
-          new FourCC((int) Format.A8R8G8B8),
-          new RawBool(false),
-          out this.buffer);
+
+        this.buffer.CurrentLength = this.buffer.QueryInterface<Buffer2D>().ContiguousLength;
+        Evr.CreateVideoSampleFromSurface(SourceTexture, out this.sample);
       }
     }
-
+    
     /// <inheritdoc />
     /// <summary>
     ///   Encodes a video frame.
     /// </summary>
     /// <param name="data">Bitmap data.</param>
+    /// <param name="time">Time in ticks.</param>
     /// <param name="stream">Output stream.</param>
-    public void Encode(BitmapData data, Stream stream) {
-      Sample sample = null;
-      DateTime now = DateTime.Now;
+    public void Encode(BitmapData data, long time, Stream stream) {
+      if (SourceTexture == null) {
+        this.sample?.Dispose();
+        this.buffer?.Dispose();
 
-      if (SourceTexture is null) {
-        sample = MediaFactory.CreateSample();
-        sample.SampleTime = (long) (DateTime.Now - this.startTime).TotalMilliseconds * 10_000;
+        MediaFactory.Create2DMediaBuffer(data.Width,
+          data.Height,
+          new FourCC((int) Format.A8R8G8B8),
+          new RawBool(false),
+          out this.buffer);
+
+        this.sample = MediaFactory.CreateSample();
+        this.sample.SampleTime = time;
 
         int length = data.Stride * data.Height;
 
@@ -184,23 +188,16 @@ namespace Captain.Application {
 
         // unlock bits
         this.buffer.Unlock();
-      } else if (this.buffer.QueryInterfaceOrNull<Buffer2D>() is Buffer2D mediaBuffer2D) {
-        //MediaFactory.CreateVideoSampleFromSurface(SourceTexture, out sample);
-        Evr.CreateVideoSampleFromSurface(SourceTexture, out sample);
 
-        // remove buffers added by MFCreateVideoSampleFromSurface (???)
-        sample.RemoveAllBuffers();
-        sample.SampleTime = (long) (DateTime.Now - this.startTime).TotalMilliseconds * 10_000;
-
-        // buffer now has data
-        this.buffer.CurrentLength = mediaBuffer2D.ContiguousLength;
+        // add buffer to the sample
+        this.sample?.AddBuffer(this.buffer);
+      } else {
+        this.sample.SampleTime = time;
       }
 
-      // add buffer to the sample and write it
-      sample?.AddBuffer(this.buffer);
-      this.sinkWriter.WriteSample(this.streamIdx, sample);
-
-      sample?.Dispose();
+      // write the sample to the output stream
+      this.sinkWriter.WriteSample(this.streamIdx, this.sample);
+      this.frameIdx++;
     }
 
     /// <inheritdoc />
@@ -209,7 +206,6 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="stream">Output stream.</param>
     public void Finalize(Stream stream) {
-      this.frameIdx = 0;
       this.sinkWriter?.Finalize();
       this.byteStream?.Flush();
       stream.Flush();

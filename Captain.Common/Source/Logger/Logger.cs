@@ -50,10 +50,10 @@ namespace Captain.Common {
       string methodName;
 
       // format method as "<enclosing type>::<method name>"
-      if (!ReferenceEquals(null, method) && !ReferenceEquals(null, method.DeclaringType)) {
-        methodName = $"{method.DeclaringType.Name}.{method.Name}";
-      } else {
+      if (method is null || method.DeclaringType is null) {
         methodName = "????";
+      } else {
+        methodName = $"{method.DeclaringType.Name}.{method.Name}";
       }
 
       // format message as "[<milliseconds diff> <level> <method>] <message>"
@@ -64,14 +64,15 @@ namespace Captain.Common {
                                  methodName);
       string body = String.Format(format?.ToString() ?? "<null>", args) + Environment.NewLine;
       Console.ForegroundColor = level.GetAssociatedConsoleColor();
-      Console.Write($"[{msg}] {body}");
+      Console.Write(msg = $"[{msg}] {body}");
 
       // update ticks for next message
       this.previousTicks = ticks;
 
       // write message to each stream
       Streams.ForEach(stream => {
-        stream.Write(Encoding.UTF8.GetBytes(msg = $"[{msg}] {body}"), 0, msg.Length);
+        // TODO: queue stream writing so that logger does not slow down overall application performance
+        stream.Write(Encoding.UTF8.GetBytes(msg), 0, msg.Length);
         stream.FlushAsync();
       });
     }

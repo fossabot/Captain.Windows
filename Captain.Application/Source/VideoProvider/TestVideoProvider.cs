@@ -7,7 +7,7 @@ using BitmapData = Captain.Common.BitmapData;
 namespace Captain.Application {
   internal class TestVideoProvider : VideoProvider {
     private Bitmap bmp;
-    private int i = 200;
+    private int i;
 
     public TestVideoProvider(Rectangle captureBounds, IntPtr? windowHandle = null) :
       base(captureBounds, windowHandle) { }
@@ -15,8 +15,8 @@ namespace Captain.Application {
     public override void AcquireFrame() {
       this.bmp = new Bitmap(CaptureBounds.Width, CaptureBounds.Height);
       using (var graphics = Graphics.FromImage(this.bmp)) {
-        this.i = (this.i + 1) % Byte.MaxValue;
-        graphics.Clear(Color.FromArgb(0, this.i, this.i));
+        this.i = (this.i + 1) % CaptureBounds.Width;
+        graphics.DrawLine(new Pen(Color.Red, 5f), this.i, 0, this.i, CaptureBounds.Height);
       }
     }
 

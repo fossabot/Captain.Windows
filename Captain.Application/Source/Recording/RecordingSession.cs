@@ -6,12 +6,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Threading;
-using System.Windows.Forms;
-using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
 using Action = Captain.Common.Action;
-using Timer = System.Timers.Timer;
 
 namespace Captain.Application {
   internal sealed class RecordingSession {
@@ -51,6 +48,11 @@ namespace Captain.Application {
     private Thread recordingThread;
 
     /// <summary>
+    ///   True if only textures are being used by the encoder.
+    /// </summary>
+    private bool dxgiEncoding;
+
+    /// <summary>
     ///   Recording state.
     /// </summary>
     internal RecordingState State { get; private set; } = RecordingState.None;
@@ -61,11 +63,11 @@ namespace Captain.Application {
     /// <param name="task">Task associated with this recording session.</param>
     /// <param name="region">Effective region.</param>
     internal RecordingSession(Task task, Rectangle region) {
-      this.region = region;
+      //this.region = region;
+      this.region = new Rectangle(0, 0, 1920, 1080);
       this.task = task;
 
       try {
-        // get uninitialized object in case we need to set Options property first
         // get uninitialized object in case we need to set Options property first
         this.codec = Activator.CreateInstance(Type.GetType(task.Codec.CodecType, true, true) ??
                                               throw new InvalidOperationException("No such codec loaded.")) as
@@ -140,16 +142,22 @@ namespace Captain.Application {
           this.videoProvider is DxgiVideoProvider dxgiProvider) {
         // accelerate MediaFoundation encoding if we could get the whole screen in a single texture
         mediaFoundationCodec.SourceTexture = dxgiProvider.SharedTexture;
+        this.dxgiEncoding = true;
       }
+
+      this.dxgiEncoding = true;
       this.codec?.Initialize(this.videoProvider.CaptureBounds.Size, this.stream);
 
-      this.recordingThread = new Thread(Record);
+      this.recordingThread = new Thread(Record) {Priority = ThreadPriority.Highest};
       this.recordingThread.SetApartmentState(ApartmentState.MTA);
       this.recordingThread.Start();
 
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording, 500);
       Application.Hud.SnackBar.MorphRecordButton(true);
     }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool QueryPerformanceFrequency(out long frequency);
 
     /// <summary>
     ///   Starts recording.
@@ -158,16 +166,44 @@ namespace Captain.Application {
     ///   This method is meant to be the entry for a background thread!
     /// </remarks>
     private void Record() {
+      BitmapData data = default;
+      long startTime = 0,
+           lastPresentTime = 0;
+
+      QueryPerformanceFrequency(out long freq);
+      Log.WriteLine(LogLevel.Debug, $"performance frequency: {freq}");
       State = RecordingState.Recording;
 
       while (State == RecordingState.Recording) {
         this.videoProvider.AcquireFrame();
-        BitmapData data = this.videoProvider.LockFrameBitmap();
-        this.codec.Encode(data, this.stream);
-        this.videoProvider.UnlockFrameBitmap(data);
-        this.videoProvider.ReleaseFrame();
-        
-        Thread.Sleep(new TimeSpan(10_000_000 / this.codec.FrameRate));
+
+        // query last desktop update time
+        long presentTime = ((DxgiVideoProvider)this.videoProvider).LastPresentTime;
+
+        if (startTime == 0) {
+          // begin counting time at the first frame
+          startTime = presentTime;
+        }
+
+        if (lastPresentTime != presentTime) {
+          // desktop has been updated
+          // TODO: query updated regions so we don't count on updates outside the selected screen region
+
+          // lock bitmap memory so we can read from it, if hardware-assisted encoding is not available
+          if (!this.dxgiEncoding) { data = this.videoProvider.LockFrameBitmap(); }
+
+          // encode frame at the frame update time, in 100-nanosecond units
+          this.codec.Encode(data, (long) ((presentTime - startTime) * 10e6 / freq), this.stream);
+
+          // on non-hardware-assisted encoding, unlock de bitmap memory
+          if (!this.dxgiEncoding) { this.videoProvider.UnlockFrameBitmap(data); }
+
+          // release resources used by the video provider
+          this.videoProvider.ReleaseFrame();
+        } else {
+          // desktop unchanged
+          lastPresentTime = presentTime;
+        }
       }
     }
 

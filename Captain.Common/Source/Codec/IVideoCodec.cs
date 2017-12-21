@@ -28,8 +28,9 @@ namespace Captain.Common {
     ///   Encodes a video frame.
     /// </summary>
     /// <param name="data">Bitmap data.</param>
+    /// <param name="time">Time in ticks for this frame.</param>
     /// <param name="stream">Output stream.</param>
-    void Encode(BitmapData data, Stream stream);
+    void Encode(BitmapData data, long time, Stream stream);
 
     /// <summary>
     ///   Finalizes video encoding.

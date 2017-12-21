@@ -101,6 +101,7 @@ namespace Captain.Application {
       this.Padding = new System.Windows.Forms.Padding(0, 1, 0, 0);
       this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
       this.Text = "Results";
+      this.TopMost = true;
       this.buttonPane.ResumeLayout(false);
       this.ResumeLayout(false);
       this.PerformLayout();

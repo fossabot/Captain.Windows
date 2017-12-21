@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Captain.Application.Native;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;

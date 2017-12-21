@@ -90,7 +90,7 @@ namespace Captain.Application {
         // restore saved window position, if any
         if (Application.Options.WindowPositions.ContainsKey(Name)) {
           // got saved position
-          var position = Application.Options.WindowPositions[Name];
+          Point position = Application.Options.WindowPositions[Name];
 
           if (DisplayHelper.GetOutputInfoFromRect(new Rectangle(position, Size)).Length > 0) {
             // the window would be visible - no problem

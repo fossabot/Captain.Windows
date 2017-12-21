@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Linq;
-using System.Windows.Forms;
 using Captain.Common;
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using SharpDX.Mathematics.Interop;
 using SharpDX.WIC;
 using static Captain.Application.Application;
 using Bitmap = SharpDX.WIC.Bitmap;
@@ -69,7 +67,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Staging textures
     /// </summary>
-    internal Texture2D[] StagingTextures { get; }
+    private Texture2D[] StagingTextures { get; }
 
     /// <summary>
     ///   Shared texture containing the whole screen region.
@@ -79,6 +77,11 @@ namespace Captain.Application {
     ///   the platform or if a single monitor has been captured.
     /// </remarks>
     internal Texture2D SharedTexture { get; }
+
+    /// <summary>
+    ///   Ticks representing the last frame time.
+    /// </summary>
+    internal long LastPresentTime { get; private set; }
 
     /// <inheritdoc />
     /// <summary>
@@ -108,7 +111,7 @@ namespace Captain.Application {
             output.Description.DesktopBounds.Bottom -
             output.Description.DesktopBounds.Top)
           let intersection = Rectangle.Intersect(rect, outputRect)
-          where intersection != Rectangle.Empty
+          where intersection.Width > 0 && intersection.Height > 0
           select (adapter, output, intersection, outputRect));
       }
 
@@ -139,12 +142,19 @@ namespace Captain.Application {
         .ToArray();
 
       // create devices for each adapter
-      this.devices = this.adapters.Select(a => {
-          DeviceCreationFlags flags = DeviceCreationFlags.None;
+      this.devices = this.adapters.Select((a, i) => {
+          DeviceCreationFlags flags = DeviceCreationFlags.VideoSupport;
 #if DEBUG
           flags |= DeviceCreationFlags.Debug;
 #endif
-          return new Device(a, flags, FeatureLevel.Level_12_1, FeatureLevel.Level_12_0, FeatureLevel.Level_11_0);
+          var device = new Device(a, flags, FeatureLevel.Level_12_1, FeatureLevel.Level_12_0, FeatureLevel.Level_11_0) {
+#if DEBUG
+            DebugName = $"[#{i}] {a.Description.Description}"
+#endif
+          };
+
+          device.QueryInterface<Multithread>().SetMultithreadProtected(new RawBool(true));
+          return device;
         })
         .ToArray();
 
@@ -165,17 +175,15 @@ namespace Captain.Application {
         .ToArray();
 
       // let video encoders use the screen texture if a single monitor is being captured
-      if (StagingTextures.Length == 1) { SharedTexture = StagingTextures[0]; } else if (
-        false /*this.devices.All(d => (int) d.FeatureLevel >= (int) FeatureLevel.Level_12_0)*/) {
-        // XXX: feature level comparison seems hacky
-        // all adapters support DirectX 12
-        throw new NotImplementedException("(sanlyx) Implement multi-adapter support");
+      // TODO: implement D3D12 multi-adapter support
+      if (StagingTextures.Length == 1) {
+        SharedTexture = StagingTextures[0];
       } else if (createSharedTexture) {
         // create full capture texture
         SharedTexture = new Texture2D(this.devices[0],
           new Texture2DDescription {
             CpuAccessFlags = CpuAccessFlags.Write,
-            BindFlags = BindFlags.None,
+            BindFlags = BindFlags.VideoEncoder,
             Format = Format.B8G8R8A8_UNorm,
             Width = CaptureBounds.Width,
             Height = CaptureBounds.Height,
@@ -228,28 +236,21 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="index">Index of the desktop duplication instance</param>
     private void AcquireFrame(int index) {
-      OutputDuplicateFrameInformation frameInfo;
-      Resource desktopResource = null;
       OutputDuplication duplication = this.duplications[index];
+      duplication.AcquireNextFrame(DuplicationFrameTimeout,
+        out OutputDuplicateFrameInformation info,
+        out Resource desktopResource);
+      LastPresentTime = info.LastPresentTime;
 
-      do {
-        // release previous frame if last capture attempt failed
-        if (desktopResource != null) { duplication.ReleaseFrame(); }
-
-        // try to capture a frame
-        duplication.AcquireNextFrame(DuplicationFrameTimeout, out frameInfo, out desktopResource);
-      } while (frameInfo.TotalMetadataBufferSize == 0); // make sure we got a suitable frame
-
-      using (Texture2D tempTexture = desktopResource?.QueryInterface<Texture2D>()) {
-        tempTexture?.Device.ImmediateContext.CopySubresourceRegion(tempTexture,
+      this.devices[index]
+        .ImmediateContext.CopySubresourceRegion(desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>(),
           0,
           this.regions[index],
           StagingTextures[index],
           0);
-      }
 
       // release resources
-      desktopResource?.Dispose();
+      desktopResource.Dispose();
       duplication.ReleaseFrame();
     }
 

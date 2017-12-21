@@ -337,6 +337,7 @@ namespace Captain.Application {
       // initialize file system manager and log file stream
       Log = new Logger();
       FsManager = new FsManager();
+
       try {
         // create/open log file stream
         loggerStream = new FileStream(Path.Combine(FsManager.GetSafePath(FsManager.LogsPath),

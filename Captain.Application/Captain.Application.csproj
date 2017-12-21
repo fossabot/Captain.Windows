@@ -13,7 +13,7 @@
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateMode>Foreground</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdateIntervalUnitfs>Days</UpdateIntervalUnitfs>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
@@ -26,7 +26,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F2886E2B-0664-4B90-8F96-65598E485E06}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType Condition=" '$(Configuration)' == 'Release' ">WinExe</OutputType>
+    <OutputType Condition=" '$(Configuration)' == 'Debug' ">Exe</OutputType>
     <RootNamespace>Captain.Application</RootNamespace>
     <AssemblyName>Captain</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
