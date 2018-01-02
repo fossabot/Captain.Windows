@@ -142,7 +142,7 @@ namespace Captain.Application {
     /// <param name="rect">Rectangle to be captured.</param>
     /// <returns>An enumeration of the <see cref="Common.Action"/>s running.</returns>
     private static void StartScreenshotTask(Task task, Rectangle rect) {
-      VideoProvider provider = null;
+      IBitmapVideoProvider provider = null;
       BitmapData bmpData = default;
       Bitmap thumbnail;
 

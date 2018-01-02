@@ -196,7 +196,8 @@ namespace Captain.Application {
     /// </summary>
     private void InitializeUnderlyingManager() {
       try {
-        new Squirrel.UpdateManager("").Dispose();
+        // TODO: implement updater support
+        //new Squirrel.UpdateManager("").Dispose();
       } catch (FileNotFoundException) {
         Log.WriteLine(LogLevel.Warning, "operation is not supported - aborting");
         Availability = UpdaterAvailability.NotSupported;

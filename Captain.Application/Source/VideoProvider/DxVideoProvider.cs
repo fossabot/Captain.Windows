@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if false
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Captain.Application.Native;
@@ -210,3 +212,5 @@ namespace Captain.Application {
     public override void Dispose() => this.direct3d?.Dispose();
   }
 }
+
+#endif

@@ -7,14 +7,16 @@ using SharpDX.Direct3D11;
 using SharpDX.Direct3D9;
 using SharpDX.Mathematics.Interop;
 using SharpDX.MediaFoundation;
-using FourCC = SharpDX.Multimedia.FourCC;
+using SharpDX.Multimedia;
+using static Captain.Application.Application;
+using Guid = System.Guid;
 
 namespace Captain.Application {
-  /// <inheritdoc />
+  /// <inheritdoc cref="IVideoCodec" />
   /// <summary>
   ///   Provides a dummy Media Foundation wrapper.
   /// </summary>
-  internal abstract class GenericMfCodec : IVideoCodec {
+  internal abstract class GenericMfCodec : IVideoCodec, ID3D11Codec {
     /// <summary>
     ///   MFSTARTUP_NOSOCKET: flag for MediaFoundation.Startup()
     /// </summary>
@@ -31,19 +33,14 @@ namespace Captain.Application {
     private SinkWriter sinkWriter;
 
     /// <summary>
-    ///   Media buffer
-    /// </summary>
-    private MediaBuffer buffer;
-
-    /// <summary>
-    ///   Current MF sample.
-    /// </summary>
-    private Sample sample;
-
-    /// <summary>
-    ///   Straem index.
+    ///   Stream index.
     /// </summary>
     private int streamIdx;
+
+    /// <summary>
+    ///   Source D3D11 surface.
+    /// </summary>
+    private Texture2D surface;
 
     /// <summary>
     ///   DXGI device manager instance.
@@ -51,19 +48,19 @@ namespace Captain.Application {
     private DXGIDeviceManager dxgiManager;
 
     /// <summary>
-    ///   Current frame index.
+    ///   Media Foundation Transform.
     /// </summary>
-    private long frameIdx;
+    private Transform transform;
 
     /// <summary>
     ///   Value for the TranscodeContainertype media attribute.
     /// </summary>
-    public abstract Guid ContainerType { get; }
+    protected abstract Guid ContainerType { get; }
 
     /// <summary>
     ///   Video format GUID.
     /// </summary>
-    public abstract Guid VideoFormat { get; }
+    protected abstract Guid VideoFormat { get; }
 
     /// <inheritdoc />
     /// <summary>
@@ -83,10 +80,11 @@ namespace Captain.Application {
     /// </summary>
     public abstract int BitRate { get; }
 
+    /// <inheritdoc />
     /// <summary>
-    ///   Source DXGI texture.
+    ///   Gets or sets the Direct3D surface pointer to be passed to the underlying encoder.
     /// </summary>
-    public Texture2D SourceTexture { get; set; }
+    public IntPtr SurfacePointer { get; set; }
 
     /// <inheritdoc />
     /// <summary>
@@ -103,10 +101,13 @@ namespace Captain.Application {
         attrs.Set(SinkWriterAttributeKeys.DisableThrottling, 1);
         attrs.Set(SinkWriterAttributeKeys.LowLatency, true);
 
-        if (SourceTexture != null) {
+        if (SurfacePointer != IntPtr.Zero) {
+          // get the source surface
+          this.surface = new Texture2D(SurfacePointer);
+
           // create and bind a DXGI device manager
           this.dxgiManager = new DXGIDeviceManager();
-          this.dxgiManager.ResetDevice(SourceTexture.Device);
+          this.dxgiManager.ResetDevice(this.surface.Device);
 
           attrs.Set(SinkWriterAttributeKeys.D3DManager, this.dxgiManager);
         }
@@ -115,6 +116,7 @@ namespace Captain.Application {
         this.byteStream = new ByteStream(stream);
         this.sinkWriter = MediaFactory.CreateSinkWriterFromURL(null, this.byteStream.NativePointer, attrs);
 
+        // create output media type
         using (var outMediaType = new MediaType()) {
           outMediaType.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);
           outMediaType.Set(MediaTypeAttributeKeys.Subtype, VideoFormat);
@@ -128,6 +130,7 @@ namespace Captain.Application {
           this.sinkWriter.AddStream(outMediaType, out this.streamIdx);
         }
 
+        // create input media type
         using (var inMediaType = new MediaType()) {
           inMediaType.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);
           inMediaType.Set(MediaTypeAttributeKeys.Subtype, VideoFormatGuids.Rgb32);
@@ -139,21 +142,17 @@ namespace Captain.Application {
 
           this.sinkWriter.SetInputMediaType(this.streamIdx, inMediaType, null);
           this.sinkWriter.BeginWriting();
+
+          this.sinkWriter.GetServiceForStream(this.streamIdx,
+            Guid.Empty,
+            typeof(Transform).GUID,
+            out IntPtr nativePtr);
+          this.transform = new Transform(nativePtr);
         }
       }
-
-      if (SourceTexture != null) {
-        MediaFactory.CreateDXGISurfaceBuffer(SourceTexture.GetType().GUID,
-          SourceTexture,
-          0,
-          new RawBool(false),
-          out this.buffer);
-        this.buffer.CurrentLength = this.buffer.QueryInterface<Buffer2D>().ContiguousLength;
-
-        this.sample = MediaFactory.CreateSample();
-        this.sample.AddBuffer(this.buffer);
-      }
     }
+
+    private long lastSampleTime;
 
     /// <inheritdoc />
     /// <summary>
@@ -163,36 +162,52 @@ namespace Captain.Application {
     /// <param name="time">Time in ticks.</param>
     /// <param name="stream">Output stream.</param>
     public void Encode(BitmapData data, long time, Stream stream) {
-      if (SourceTexture == null) {
-        this.buffer?.Dispose();
-        this.sample?.Dispose();
+      // create sample
+      Sample sample = MediaFactory.CreateSample();
+      MediaBuffer buffer;
 
+      if (this.surface == null) {
         // create buffer
         MediaFactory.Create2DMediaBuffer(
           data.Width,
           data.Height,
-          new FourCC((int)Format.X8R8G8B8),
+          new FourCC((int) Format.X8R8G8B8),
           new RawBool(false),
-          out this.buffer);
+          out buffer);
 
         // calculate length
-        this.buffer.CurrentLength = data.Stride * data.Height;
-        this.sample = MediaFactory.CreateSample();
+        buffer.CurrentLength = data.Stride * data.Height;
 
         // copy data
-        Utilities.CopyMemory(this.buffer.Lock(out _, out _), data.Scan0, this.buffer.CurrentLength);
+        Utilities.CopyMemory(buffer.Lock(out _, out _), data.Scan0, buffer.CurrentLength);
 
         // unlock bits
-        this.buffer.Unlock();
+        buffer.Unlock();
+      } else {
+        // create buffer
+        MediaFactory.CreateDXGISurfaceBuffer(typeof(Texture2D).GUID,
+          this.surface,
+          0,
+          new RawBool(false),
+          out buffer);
 
-        // add buffer to the sample
-        this.sample.AddBuffer(this.buffer);
+        // set buffer length
+        buffer.CurrentLength = buffer.QueryInterface<Buffer2D>().ContiguousLength;
       }
 
+      // add buffer to sample
+      sample.AddBuffer(buffer);
+
       // write the sample to the output stream
-      this.sample.SampleTime = time;
-      this.sinkWriter.WriteSample(this.streamIdx, this.sample);
-      this.frameIdx++;
+      if (this.lastSampleTime == 0) { sample.SampleDuration = (long) (10e6 / FrameRate); } else {
+        sample.SampleDuration = time - this.lastSampleTime;
+      }
+
+      sample.SampleTime = this.lastSampleTime = time;
+      try { this.sinkWriter.WriteSample(this.streamIdx, sample); } catch (SharpDXException) { } finally {
+        buffer.Dispose();
+        sample.Dispose();
+      }
     }
 
     /// <inheritdoc />
@@ -204,16 +219,22 @@ namespace Captain.Application {
       this.sinkWriter?.Finalize();
       this.byteStream?.Flush();
       stream.Flush();
+      Dispose();
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Releases resources.
+    /// </summary>
+    public void Dispose() {
       this.byteStream?.Dispose();
       this.sinkWriter?.Dispose();
       this.dxgiManager?.Dispose();
-      this.buffer?.Dispose();
       MediaFactory.Shutdown();
 
       this.sinkWriter = null;
       this.byteStream = null;
       this.dxgiManager = null;
-      this.buffer = null;
     }
   }
 }

@@ -610,9 +610,29 @@ namespace Captain.Application {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap SnackBarPause {
+            get {
+                object obj = ResourceManager.GetObject("SnackBarPause", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap SnackBarRecord {
             get {
                 object obj = ResourceManager.GetObject("SnackBarRecord", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap SnackBarResume {
+            get {
+                object obj = ResourceManager.GetObject("SnackBarResume", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

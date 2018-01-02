@@ -9,6 +9,9 @@ namespace Captain.Application {
   /// <summary>
   ///   Generic WIC image encoder
   /// </summary>
+  /// <remarks>
+  ///   TODO: implement ID3D11Codec and perform encoding on GPU?
+  /// </remarks>
   internal abstract class GenericWicCodec : IStillImageCodec {
     /// <summary>
     ///   Container format GUID
@@ -50,5 +53,11 @@ namespace Captain.Application {
         }
       }
     }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Releases resources.
+    /// </summary>
+    public void Dispose() { }
   }
 }

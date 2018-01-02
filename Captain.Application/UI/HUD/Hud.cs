@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Captain.Common;
+using Ookii.Dialogs.Wpf;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
@@ -143,9 +144,7 @@ namespace Captain.Application {
         this.initialMouseLocation = new Point(mouseEventArgs.X, mouseEventArgs.Y);
         this.instructionOverlayWrapper.Close();
         this.cropRectangleWrapper.Show();
-      } else if (this.initialMouseLocation.HasValue) {
-        OnMouseUp(this, mouseEventArgs);
-      }
+      } else if (this.initialMouseLocation.HasValue) { OnMouseUp(this, mouseEventArgs); }
     }
 
     /// <summary>
@@ -171,9 +170,7 @@ namespace Captain.Application {
           this.selectedRegion.Height = this.initialMouseLocation.Value.Y - mouseEventArgs.Y;
         }
 
-        if (this.cropRectangleWrapper != null) {
-          this.cropRectangleWrapper.Bounds = this.selectedRegion;
-        }
+        if (this.cropRectangleWrapper != null) { this.cropRectangleWrapper.Bounds = this.selectedRegion; }
       }
     }
 
@@ -267,7 +264,31 @@ namespace Captain.Application {
           break;
 
         case SnackBarIntent.Close:
-          Display(false);
+          if (this.recordingSession?.State != RecordingState.None) {
+            this.recordingSession?.Pause();
+
+            var dialog = new TaskDialog {
+              MainInstruction = "Do you want to save this recording?",
+              Buttons = {
+                new TaskDialogButton(ButtonType.Yes),
+                new TaskDialogButton(ButtonType.No),
+                new TaskDialogButton(ButtonType.Cancel)
+              }
+            };
+
+            switch (dialog.ShowDialog().ButtonType) {
+              case ButtonType.Yes:
+                Display(false);
+                this.recordingSession?.Stop();
+                break;
+
+              case ButtonType.No:
+                Display(false);
+                this.recordingSession?.Dispose();
+                break;
+            }
+          }
+          
           break;
 
         case SnackBarIntent.Options:
@@ -279,9 +300,9 @@ namespace Captain.Application {
         case SnackBarIntent.ToggleMute: break;
 
         case SnackBarIntent.ToggleRecord:
-          if (this.recordingSession?.State == RecordingState.None) { this.recordingSession.Start(); } else {
-            this.recordingSession?.Stop();
-          }
+          if (this.recordingSession?.State == RecordingState.None) { this.recordingSession.Start(); } else if (
+            this.recordingSession?.State == RecordingState.Recording) { this.recordingSession?.Pause(); } else if (
+            this.recordingSession?.State == RecordingState.Paused) { this.recordingSession?.Resume(); }
 
           break;
       }

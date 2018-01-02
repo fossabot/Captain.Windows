@@ -445,4 +445,10 @@ Tap here to see details.</value>
   <data name="SnackBarGrip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>SnackBarGrip.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="SnackBarPause" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>SnackBarPause.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SnackBarResume" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>SnackBarResume.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

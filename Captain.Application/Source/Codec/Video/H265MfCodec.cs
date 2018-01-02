@@ -14,13 +14,13 @@ namespace Captain.Application {
     /// <summary>
     ///   Value for the TranscodeContainertype media attribute.
     /// </summary>
-    public override Guid ContainerType => TranscodeContainerTypeGuids.Mpeg4;
+    protected override Guid ContainerType => TranscodeContainerTypeGuids.Mpeg4;
 
     /// <inheritdoc />
     /// <summary>
     ///   Video format GUID.
     /// </summary>
-    public override Guid VideoFormat => VideoFormatGuids.FromFourCC(new FourCC("HEVC"));
+    protected override Guid VideoFormat => VideoFormatGuids.FromFourCC(new FourCC("HEVC"));
 
     /// <inheritdoc />
     /// <summary>

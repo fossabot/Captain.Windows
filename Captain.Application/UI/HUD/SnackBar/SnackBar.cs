@@ -63,18 +63,29 @@ namespace Captain.Application {
     /// <summary>
     ///   Toggles Record/Stop button behaviour
     /// </summary>
-    /// <param name="recording">Whether a recording is in progress</param>
-    internal void MorphRecordButton(bool recording = false) {
-      if (recording) {
-        this.recordButton.NormalFill = this.stopNormalButtonBrush;
-        this.recordButton.HoverFill = this.stopHoverButtonBrush;
-        this.recordButton.ActiveFill = this.stopActiveButtonBrush;
-        this.recordButton.Bitmap = Resources.SnackBarStop;
-      } else {
-        this.recordButton.NormalFill = this.recordNormalButtonBrush;
-        this.recordButton.HoverFill = this.recordHoverButtonBrush;
-        this.recordButton.ActiveFill = this.recordActiveButtonBrush;
-        this.recordButton.Bitmap = Resources.SnackBarRecord;
+    /// <param name="state">Recording state</param>
+    internal void MorphRecordButton(RecordingState state = RecordingState.None) {
+      switch (state) {
+        case RecordingState.Recording:
+          this.recordButton.NormalFill = this.stopNormalButtonBrush;
+          this.recordButton.HoverFill = this.stopHoverButtonBrush;
+          this.recordButton.ActiveFill = this.stopActiveButtonBrush;
+          this.recordButton.Bitmap = Resources.SnackBarPause;
+          break;
+
+        case RecordingState.None:
+          this.recordButton.NormalFill = this.recordNormalButtonBrush;
+          this.recordButton.HoverFill = this.recordHoverButtonBrush;
+          this.recordButton.ActiveFill = this.recordActiveButtonBrush;
+          this.recordButton.Bitmap = Resources.SnackBarRecord;
+          break;
+
+        case RecordingState.Paused:
+          this.recordButton.NormalFill = this.recordNormalButtonBrush;
+          this.recordButton.HoverFill = this.recordHoverButtonBrush;
+          this.recordButton.ActiveFill = this.recordActiveButtonBrush;
+          this.recordButton.Bitmap = Resources.SnackBarResume;
+          break;
       }
 
       Render();

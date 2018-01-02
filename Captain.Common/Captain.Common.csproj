@@ -70,10 +70,12 @@
     <Compile Include="Source\Action\IYieldsUri.cs" />
     <Compile Include="Source\Attribute\DisplayName.cs" />
     <Compile Include="Source\Capture\BitmapData.cs" />
+    <Compile Include="Source\Capture\IBitmapVideoProvider.cs" />
+    <Compile Include="Source\Capture\ID3D11VideoProvider.cs" />
     <Compile Include="Source\Codec\ICodecBase.cs" />
     <Compile Include="Source\Codec\ICodecParameters.cs" />
+    <Compile Include="Source\Codec\ID3D11Codec.cs" />
     <Compile Include="Source\Codec\IStillImageCodec.cs" />
-    <Compile Include="Source\Capture\VideoProvider.cs" />
     <Compile Include="Source\Codec\IVideoCodec.cs" />
     <Compile Include="Source\IHasOptions.cs" />
     <Compile Include="Source\IHasImage.cs" />

@@ -23,7 +23,7 @@ namespace Captain.Application {
   /// <summary>
   ///   Provides screen capture operations using DXGI
   /// </summary>
-  internal sealed class DxgiVideoProvider : VideoProvider {
+  internal sealed class DxgiVideoProvider : ID3D11VideoProvider {
     /// <summary>
     ///   Timeout, in milliseconds, to consider a desktop duplication frame lost
     /// </summary>
@@ -76,24 +76,34 @@ namespace Captain.Application {
     ///   This property is always <c>null</c> unless heterogeneous adapters are supported by
     ///   the platform or if there's only one display being captured.
     /// </remarks>
-    internal Texture2D SharedTexture { get; }
+    private Texture2D SharedTexture { get; }
 
+    /// <inheritdoc />
     /// <summary>
-    ///   Ticks representing the last frame time.
+    ///   Rectangle to be captured.
     /// </summary>
-    internal long LastPresentTime { get; private set; }
+    public Rectangle CaptureBounds { get; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Last time the desktop surface was updated, in 100-nanosecond units.
+    /// </summary>
+    public long LastPresentTime { get; private set; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Pointer to the shared Direct3D 11 surface.
+    /// </summary>
+    public IntPtr SurfacePointer => SharedTexture?.NativePointer ?? IntPtr.Zero;
 
     /// <inheritdoc />
     /// <summary>
     ///   Class constructor
     /// </summary>
     /// <param name="rect">Screen region</param>
-    /// <param name="windowHandle">Attached window handle (unused)</param>
     /// <exception cref="NotSupportedException">Thrown when no video adapters were found</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the capture region is empty</exception>
-    internal DxgiVideoProvider(Rectangle rect, IntPtr? windowHandle = null) : base(
-      rect,
-      windowHandle) {
+    internal DxgiVideoProvider(Rectangle rect) {
       Log.WriteLine(LogLevel.Debug, "creating DXGI video provider");
 
       var factory = new Factory1();
@@ -215,16 +225,21 @@ namespace Captain.Application {
     /// <summary>
     ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
-    public override void Dispose() {
+    public void Dispose() {
       ReleaseFrame();
 
       if (this.duplications != null) {
         foreach (OutputDuplication duplication in this.duplications) { duplication?.Dispose(); }
       }
+
+      SharedTexture?.Dispose();
       if (StagingTextures != null) { foreach (Texture2D texture in StagingTextures) { texture.Dispose(); } }
       if (this.devices != null) { foreach (Device dev in this.devices) { dev?.Dispose(); } }
       if (this.outputs != null) { foreach (Output output in this.outputs) { output?.Dispose(); } }
       if (this.adapters != null) { foreach (Adapter adapter in this.adapters) { adapter?.Dispose(); } }
+
+      GC.Collect();
+      GC.WaitForPendingFinalizers();
     }
 
     /// <summary>
@@ -266,7 +281,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Acquires a whole frame with the current bounds
     /// </summary>
-    public override void AcquireFrame() {
+    public void AcquireFrame() {
       for (int i = 0; i < this.duplications?.Length; i++) { AcquireFrame(i); }
     }
 
@@ -274,14 +289,14 @@ namespace Captain.Application {
     /// <summary>
     ///   Releases the last captured frame
     /// </summary>
-    public override void ReleaseFrame() { }
+    public void ReleaseFrame() { }
 
     /// <inheritdoc />
     /// <summary>
     ///   Creates a single bitmap from the captured frames and returns an object with its information
     /// </summary>
     /// <returns>A <see cref="BitmapData" /> containing raw bitmap information</returns>
-    public override BitmapData LockFrameBitmap() {
+    public BitmapData LockFrameBitmap() {
       using (var factory = new ImagingFactory2()) {
         using (var bmp = new Bitmap(factory,
           CaptureBounds.Width,
@@ -338,20 +353,6 @@ namespace Captain.Application {
     ///   Releases the bitmap created for the last frame
     /// </summary>
     /// <param name="data"></param>
-    public override void UnlockFrameBitmap(BitmapData data) => new BitmapLock(data.LockPointer).Dispose();
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Updates the video provider capture position
-    /// </summary>
-    /// <remarks>
-    ///   TODO: Implement this feature - it may seem trivial but when moving *across* different display devices,
-    ///   textures may have to be created each time the position is updated (!) Find a way to performantly
-    ///   achieve this (e.g. find a way to use a global, shared texture the size of the actual region instead of
-    ///   splitting this into different textures for each output device)
-    /// </remarks>
-    /// <param name="x">New X axis value</param>
-    /// <param name="y">New Y axis value</param>
-    public override void UpdatePosition(int x, int y) => throw new NotImplementedException();
+    public void UnlockFrameBitmap(BitmapData data) => new BitmapLock(data.LockPointer).Dispose();
   }
 }

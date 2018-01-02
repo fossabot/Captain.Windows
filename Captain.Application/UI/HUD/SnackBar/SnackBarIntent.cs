@@ -14,7 +14,7 @@
     ToggleMute,
 
     /// <summary>
-    ///   Record/stop
+    ///   Record/pause/resume
     /// </summary>
     ToggleRecord,
 

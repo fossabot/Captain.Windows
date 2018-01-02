@@ -6,12 +6,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Threading;
+using Captain.Application.Native;
 using Captain.Common;
 using static Captain.Application.Application;
 using Action = Captain.Common.Action;
 
 namespace Captain.Application {
-  internal sealed class RecordingSession {
+  internal sealed class RecordingSession : IDisposable {
     /// <summary>
     ///   Video codec instance.
     /// </summary>
@@ -30,7 +31,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Video provider.
     /// </summary>
-    private VideoProvider videoProvider;
+    private IBitmapVideoProvider videoProvider;
 
     /// <summary>
     ///   Multi-stream that contains all the action streams.
@@ -51,6 +52,11 @@ namespace Captain.Application {
     ///   Whether the video provider needs its frames to be locked.
     /// </summary>
     private bool isAcceleratedEncoding;
+
+    /// <summary>
+    ///   Suspends the recording thread.
+    /// </summary>
+    private Mutex recordingMutex = new Mutex(true, $"Captain Recording Thread Mutex ({new Guid()})");
 
     /// <summary>
     ///   Recording state.
@@ -137,25 +143,24 @@ namespace Captain.Application {
         Application.ActionManager.AddAction(a);
       });
 
-      if (this.codec is GenericMfCodec mediaFoundationCodec &&
-          this.videoProvider is DxgiVideoProvider dxgiProvider) {
-        // TODO: abstract accelerated video provider functionality
-        mediaFoundationCodec.SourceTexture = dxgiProvider.SharedTexture;
+      if (this.codec is ID3D11Codec acceleratedCodec &&
+          this.videoProvider is ID3D11VideoProvider acceleratedVideoProvider &&
+          acceleratedVideoProvider.SurfacePointer != IntPtr.Zero) {
+        acceleratedCodec.SurfacePointer = acceleratedVideoProvider.SurfacePointer;
         this.isAcceleratedEncoding = true;
+        Log.WriteLine(LogLevel.Informational, "performing hardware-assisted encoding");
       }
-      
+
       this.codec?.Initialize(this.videoProvider.CaptureBounds.Size, this.stream);
 
       this.recordingThread = new Thread(Record) {Priority = ThreadPriority.Highest};
       this.recordingThread.SetApartmentState(ApartmentState.MTA);
       this.recordingThread.Start();
 
+      State = RecordingState.Recording;
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording, 500);
-      Application.Hud.SnackBar.MorphRecordButton(true);
+      Application.Hud.SnackBar.MorphRecordButton(State);
     }
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool QueryPerformanceFrequency(out long frequency);
 
     /// <summary>
     ///   Starts recording.
@@ -166,42 +171,45 @@ namespace Captain.Application {
     private void Record() {
       BitmapData data = default;
       long startTime = 0,
-           lastPresentTime = 0;
+        lastPresentTime = 0;
 
-      QueryPerformanceFrequency(out long freq);
+      Kernel32.QueryPerformanceFrequency(out long freq);
       Log.WriteLine(LogLevel.Debug, $"performance frequency: {freq}");
-      State = RecordingState.Recording;
 
-      while (State == RecordingState.Recording) {
-        this.videoProvider.AcquireFrame();
-
-        // query last desktop update time
-        // TODO: abstract timing functionality
-        long presentTime = ((DxgiVideoProvider)this.videoProvider).LastPresentTime;
-
-        if (startTime == 0) {
-          // begin counting time at the first frame
-          startTime = presentTime;
-        }
-
-        if (lastPresentTime != presentTime) {
-          // desktop has been updated
-          // TODO: query updated regions so we don't count on updates outside the selected screen region
-
-          // lock bitmap memory so we can read from it, if hardware-assisted encoding is not available
-          if (!this.isAcceleratedEncoding) { data = this.videoProvider.LockFrameBitmap(); }
-
-          // encode frame at the frame update time, in 100-nanosecond units
-          this.codec.Encode(data, (long) ((presentTime - startTime) * 10e6 / freq), this.stream);
-
-          // on non-hardware-assisted encoding, unlock de bitmap memory
-          if (!this.isAcceleratedEncoding) { this.videoProvider.UnlockFrameBitmap(data); }
-
-          // release resources used by the video provider
-          this.videoProvider.ReleaseFrame();
+      while (State != RecordingState.None) {
+        if (State != RecordingState.Recording) {
+          // wait until thread is awoken by being interrupted
+          try { Thread.Sleep(Timeout.Infinite); } catch (ThreadInterruptedException) { }
         } else {
-          // desktop unchanged
-          lastPresentTime = presentTime;
+          this.videoProvider.AcquireFrame();
+
+          // query last desktop update time
+          long presentTime = this.videoProvider.LastPresentTime;
+
+          if (startTime == 0) {
+            // begin counting time at the first frame
+            startTime = presentTime;
+          }
+
+          if (lastPresentTime != presentTime) {
+            // desktop has been updated
+            // TODO: query updated regions so we don't count on updates outside the selected screen region
+
+            // lock bitmap memory so we can read from it, if hardware-assisted encoding is not available
+            if (!this.isAcceleratedEncoding) { data = this.videoProvider.LockFrameBitmap(); }
+
+            // encode frame at the frame update time, in 100-nanosecond units
+            this.codec.Encode(data, (long) ((presentTime - startTime) * 10e6 / freq), this.stream);
+
+            // on non-hardware-assisted encoding, unlock de bitmap memory
+            if (!this.isAcceleratedEncoding) { this.videoProvider.UnlockFrameBitmap(data); }
+
+            // release resources used by the video provider
+            this.videoProvider.ReleaseFrame();
+          } else {
+            // desktop unchanged
+            lastPresentTime = presentTime;
+          }
         }
       }
     }
@@ -212,7 +220,27 @@ namespace Captain.Application {
     /// <remarks>
     ///   Beware of resources created by Record(), which belong to another thread!
     /// </remarks>
-    internal void Pause() { }
+    internal void Pause() {
+      if (State != RecordingState.Recording) { return; }
+      State = RecordingState.Paused;
+      this.recordingThread.Interrupt();
+      this.recordingThread.Priority = ThreadPriority.Lowest;
+      Application.Hud.SnackBar.MorphRecordButton(State);
+      Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
+      GC.Collect();
+    }
+
+    /// <summary>
+    ///   Resumes recording.
+    /// </summary>
+    internal void Resume() {
+      if (State != RecordingState.Paused) { return; }
+      State = RecordingState.Recording;
+      this.recordingThread.Interrupt();
+      this.recordingThread.Priority = ThreadPriority.Highest;
+      Application.Hud.SnackBar.MorphRecordButton(State);
+      Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording);
+    }
 
     /// <summary>
     ///   Finalizes this recording session.
@@ -222,12 +250,22 @@ namespace Captain.Application {
     /// </remarks>
     internal void Stop() {
       State = RecordingState.None;
+      this.recordingThread.Interrupt();
       this.recordingThread.Join();
-      Application.Hud.SnackBar.MorphRecordButton();
+      Application.Hud.SnackBar?.MorphRecordButton(State);
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Progress);
-      this.codec.Finalize(this.stream);
-      this.stream.Dispose();
-      this.videoProvider.Dispose();
+      this.codec?.Finalize(this.stream);
+      Dispose();
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() {
+      State = RecordingState.None;
+      this.stream?.Dispose();
+      this.videoProvider?.Dispose();
       GC.Collect();
     }
   }

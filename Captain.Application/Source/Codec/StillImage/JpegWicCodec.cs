@@ -78,5 +78,12 @@ namespace Captain.Application {
         return result;
       }
     }
+
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Releases resources.
+    /// </summary>
+    public void Dispose() { }
   }
 }

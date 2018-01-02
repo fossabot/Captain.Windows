@@ -14,25 +14,25 @@ namespace Captain.Application {
     /// <summary>
     ///   Value for the TranscodeContainertype media attribute.
     /// </summary>
-    public override Guid ContainerType => TranscodeContainerTypeGuids.Mpeg4;
+    protected override Guid ContainerType => TranscodeContainerTypeGuids.Mpeg4;
 
     /// <inheritdoc />
     /// <summary>
     ///   Video format GUID.
     /// </summary>
-    public override Guid VideoFormat => VideoFormatGuids.FromFourCC(new FourCC("H264"));
+    protected override Guid VideoFormat => VideoFormatGuids.FromFourCC(new FourCC("H264"));
 
     /// <inheritdoc />
     /// <summary>
     ///   Frame rate, in frames per second.
     /// </summary>
-    public override int FrameRate => 60;
+    public override int FrameRate => 30;
 
     /// <inheritdoc />
     /// <summary>
     ///   Frame rate, in frames per second.
     /// </summary>
-    public override int BitRate => 8_000_000;
+    public override int BitRate => 4_000_000;
 
     /// <inheritdoc />
     /// <summary>

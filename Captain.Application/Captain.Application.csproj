@@ -127,6 +127,8 @@
     <None Include="UI\Common\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\SnackBarResume.png" />
+    <None Include="Resources\SnackBarPause.png" />
     <None Include="Resources\SnackBarGrip.png" />
     <None Include="Resources\NeutralResultOverlay.png" />
     <None Include="Resources\UnsuccessfulResultOverlay.png" />
@@ -191,7 +193,6 @@
     <Compile Include="Source\Recording\RecordingSession.cs" />
     <Compile Include="Source\Recording\RecordingState.cs" />
     <Compile Include="Source\VideoProvider\DxVideoProvider.cs" />
-    <Compile Include="Source\VideoProvider\TestVideoProvider.cs" />
     <Compile Include="Source\VideoProvider\VideoProviderFactory.cs" />
     <Compile Include="Source\VideoProvider\DxgiVideoProvider.cs" />
     <Compile Include="Source\Helper\MouseHook\IMouseHookProvider.cs" />
