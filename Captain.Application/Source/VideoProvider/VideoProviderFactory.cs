@@ -10,13 +10,12 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="bounds">Capture bounds</param>
     /// <param name="windowHandle">Attached window handle</param>
-    /// <param name="createSharedTexture">True to let specific video providers create a single texture for the capture.</param>
     /// <returns>An instance of <see cref="VideoProvider"/></returns>
-    internal static VideoProvider Create(Rectangle bounds, IntPtr? windowHandle = null, bool createSharedTexture = false) {
+    internal static VideoProvider Create(Rectangle bounds, IntPtr? windowHandle = null) {
       if (Environment.OSVersion.Version >= new Version(6, 2)) {
         try {
           // use DXGI desktop duplication on Windows 8 and greater
-          return new DxgiVideoProvider(bounds, windowHandle, createSharedTexture);
+          return new DxgiVideoProvider(bounds, windowHandle);
         } catch (NotSupportedException) { } catch (SharpDXException) { }
       }
 

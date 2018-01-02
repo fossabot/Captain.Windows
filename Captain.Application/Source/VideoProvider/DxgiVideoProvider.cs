@@ -74,7 +74,7 @@ namespace Captain.Application {
     /// </summary>
     /// <remarks>
     ///   This property is always <c>null</c> unless heterogeneous adapters are supported by
-    ///   the platform or if a single monitor has been captured.
+    ///   the platform or if there's only one display being captured.
     /// </remarks>
     internal Texture2D SharedTexture { get; }
 
@@ -89,10 +89,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="rect">Screen region</param>
     /// <param name="windowHandle">Attached window handle (unused)</param>
-    /// <param name="createSharedTexture">True to create a shared texture for accelerated encoding.</param>
     /// <exception cref="NotSupportedException">Thrown when no video adapters were found</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the capture region is empty</exception>
-    internal DxgiVideoProvider(Rectangle rect, IntPtr? windowHandle = null, bool createSharedTexture = false) : base(
+    internal DxgiVideoProvider(Rectangle rect, IntPtr? windowHandle = null) : base(
       rect,
       windowHandle) {
       Log.WriteLine(LogLevel.Debug, "creating DXGI video provider");
@@ -176,14 +175,12 @@ namespace Captain.Application {
 
       // let video encoders use the screen texture if a single monitor is being captured
       // TODO: implement D3D12 multi-adapter support
-      if (StagingTextures.Length == 1) {
-        SharedTexture = StagingTextures[0];
-      } else if (createSharedTexture) {
+      if (false) {
         // create full capture texture
         SharedTexture = new Texture2D(this.devices[0],
           new Texture2DDescription {
-            CpuAccessFlags = CpuAccessFlags.Write,
-            BindFlags = BindFlags.VideoEncoder,
+            CpuAccessFlags = CpuAccessFlags.Read | CpuAccessFlags.Write,
+            BindFlags = BindFlags.None,
             Format = Format.B8G8R8A8_UNorm,
             Width = CaptureBounds.Width,
             Height = CaptureBounds.Height,
@@ -193,15 +190,14 @@ namespace Captain.Application {
             SampleDescription = {Count = 1, Quality = 0},
             Usage = ResourceUsage.Staging
           });
-      }
+      } else if (StagingTextures.Length == 1) { SharedTexture = StagingTextures[0]; }
 
       // duplicate desktops
       this.duplications = this.outputs.Select((o, i) => {
           try {
             // attempt to use DuplicateOutput1 for improved performance and SRGB support
             Format[] formats = {Format.B8G8R8A8_UNorm};
-            return o.QueryInterface<Output6>()
-              .DuplicateOutput1(this.devices[i], 0, formats.Length, formats);
+            return o.QueryInterface<Output6>().DuplicateOutput1(this.devices[i], 0, formats.Length, formats);
           } catch (SharpDXException exception1) when (exception1.HResult ==
                                                       ResultCode.Unsupported.Result) {
             try { return o.QueryInterface<Output1>().DuplicateOutput(this.devices[i]); } catch (SharpDXException
@@ -236,12 +232,24 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="index">Index of the desktop duplication instance</param>
     private void AcquireFrame(int index) {
+      OutputDuplicateFrameInformation info;
+      Resource desktopResource = null;
       OutputDuplication duplication = this.duplications[index];
-      duplication.AcquireNextFrame(DuplicationFrameTimeout,
-        out OutputDuplicateFrameInformation info,
-        out Resource desktopResource);
-      LastPresentTime = info.LastPresentTime;
 
+      do {
+        // release previous frame if last capture attempt failed
+        if (desktopResource != null) {
+          desktopResource.Dispose();
+          duplication.ReleaseFrame();
+        }
+
+        // try to capture a frame
+        duplication.AcquireNextFrame(DuplicationFrameTimeout,
+          out info,
+          out desktopResource);
+      } while (info.TotalMetadataBufferSize == 0);
+
+      LastPresentTime = info.LastPresentTime;
       this.devices[index]
         .ImmediateContext.CopySubresourceRegion(desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>(),
           0,
@@ -254,38 +262,12 @@ namespace Captain.Application {
       duplication.ReleaseFrame();
     }
 
-    /// <summary>
-    ///   Copies textures from all devices to the shared surface.
-    /// </summary>
-    private void CopyFramesToSharedTexture() {
-      // create a raw bitmap for all textures in secondary adapters
-      BitmapData data = LockFrameBitmap();
-
-      // copy bitmap data to shared texture
-      DataBox box = SharedTexture.Device.ImmediateContext.MapSubresource(SharedTexture,
-        0,
-        MapMode.Write,
-        MapFlags.None,
-        out _);
-
-      for (int y = 0; y < data.Height; y++) {
-        Utilities.CopyMemory(IntPtr.Add(box.DataPointer, y * box.RowPitch),
-          IntPtr.Add(data.Scan0, y * data.Stride),
-          data.Stride);
-      }
-
-      // unmap texture and unlock frame bitmap
-      SharedTexture.Device.ImmediateContext.UnmapSubresource(SharedTexture, 0);
-      UnlockFrameBitmap(data);
-    }
-
     /// <inheritdoc />
     /// <summary>
     ///   Acquires a whole frame with the current bounds
     /// </summary>
     public override void AcquireFrame() {
       for (int i = 0; i < this.duplications?.Length; i++) { AcquireFrame(i); }
-      if (this.duplications?.Length != 1) { CopyFramesToSharedTexture(); }
     }
 
     /// <inheritdoc />
@@ -356,8 +338,7 @@ namespace Captain.Application {
     ///   Releases the bitmap created for the last frame
     /// </summary>
     /// <param name="data"></param>
-    public override void UnlockFrameBitmap(BitmapData data) =>
-      new BitmapLock(data.LockPointer).Dispose();
+    public override void UnlockFrameBitmap(BitmapData data) => new BitmapLock(data.LockPointer).Dispose();
 
     /// <inheritdoc />
     /// <summary>

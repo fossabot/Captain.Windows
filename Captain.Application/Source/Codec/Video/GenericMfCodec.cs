@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using Captain.Application.Native;
 using Captain.Common;
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -99,9 +98,9 @@ namespace Captain.Application {
       MediaFactory.Startup(MediaFactory.Version, NoSocket);
 
       using (var attrs = new MediaAttributes()) {
-        // enable hardware transforms
         attrs.Set(TranscodeAttributeKeys.TranscodeContainertype, ContainerType);
         attrs.Set(SinkWriterAttributeKeys.ReadwriteEnableHardwareTransforms, 1);
+        attrs.Set(SinkWriterAttributeKeys.DisableThrottling, 1);
         attrs.Set(SinkWriterAttributeKeys.LowLatency, true);
 
         if (SourceTexture != null) {
@@ -116,7 +115,6 @@ namespace Captain.Application {
         this.byteStream = new ByteStream(stream);
         this.sinkWriter = MediaFactory.CreateSinkWriterFromURL(null, this.byteStream.NativePointer, attrs);
 
-        // create media types
         using (var outMediaType = new MediaType()) {
           outMediaType.Set(MediaTypeAttributeKeys.MajorType, MediaTypeGuids.Video);
           outMediaType.Set(MediaTypeAttributeKeys.Subtype, VideoFormat);
@@ -145,18 +143,18 @@ namespace Captain.Application {
       }
 
       if (SourceTexture != null) {
-        // DXGI buffer
         MediaFactory.CreateDXGISurfaceBuffer(SourceTexture.GetType().GUID,
           SourceTexture,
           0,
           new RawBool(false),
           out this.buffer);
-
         this.buffer.CurrentLength = this.buffer.QueryInterface<Buffer2D>().ContiguousLength;
-        Evr.CreateVideoSampleFromSurface(SourceTexture, out this.sample);
+
+        this.sample = MediaFactory.CreateSample();
+        this.sample.AddBuffer(this.buffer);
       }
     }
-    
+
     /// <inheritdoc />
     /// <summary>
     ///   Encodes a video frame.
@@ -166,36 +164,33 @@ namespace Captain.Application {
     /// <param name="stream">Output stream.</param>
     public void Encode(BitmapData data, long time, Stream stream) {
       if (SourceTexture == null) {
-        this.sample?.Dispose();
         this.buffer?.Dispose();
+        this.sample?.Dispose();
 
-        MediaFactory.Create2DMediaBuffer(data.Width,
+        // create buffer
+        MediaFactory.Create2DMediaBuffer(
+          data.Width,
           data.Height,
-          new FourCC((int) Format.A8R8G8B8),
+          new FourCC((int)Format.X8R8G8B8),
           new RawBool(false),
           out this.buffer);
 
+        // calculate length
+        this.buffer.CurrentLength = data.Stride * data.Height;
         this.sample = MediaFactory.CreateSample();
-        this.sample.SampleTime = time;
-
-        int length = data.Stride * data.Height;
 
         // copy data
-        Utilities.CopyMemory(this.buffer.Lock(out _, out _), data.Scan0, length);
-
-        // buffer is full
-        this.buffer.CurrentLength = length;
+        Utilities.CopyMemory(this.buffer.Lock(out _, out _), data.Scan0, this.buffer.CurrentLength);
 
         // unlock bits
         this.buffer.Unlock();
 
         // add buffer to the sample
-        this.sample?.AddBuffer(this.buffer);
-      } else {
-        this.sample.SampleTime = time;
+        this.sample.AddBuffer(this.buffer);
       }
 
       // write the sample to the output stream
+      this.sample.SampleTime = time;
       this.sinkWriter.WriteSample(this.streamIdx, this.sample);
       this.frameIdx++;
     }
@@ -213,8 +208,12 @@ namespace Captain.Application {
       this.sinkWriter?.Dispose();
       this.dxgiManager?.Dispose();
       this.buffer?.Dispose();
-
       MediaFactory.Shutdown();
+
+      this.sinkWriter = null;
+      this.byteStream = null;
+      this.dxgiManager = null;
+      this.buffer = null;
     }
   }
 }

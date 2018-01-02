@@ -48,9 +48,9 @@ namespace Captain.Application {
     private Thread recordingThread;
 
     /// <summary>
-    ///   True if only textures are being used by the encoder.
+    ///   Whether the video provider needs its frames to be locked.
     /// </summary>
-    private bool dxgiEncoding;
+    private bool isAcceleratedEncoding;
 
     /// <summary>
     ///   Recording state.
@@ -63,8 +63,7 @@ namespace Captain.Application {
     /// <param name="task">Task associated with this recording session.</param>
     /// <param name="region">Effective region.</param>
     internal RecordingSession(Task task, Rectangle region) {
-      //this.region = region;
-      this.region = new Rectangle(0, 0, 1920, 1080);
+      this.region = region;
       this.task = task;
 
       try {
@@ -91,7 +90,7 @@ namespace Captain.Application {
     }
 
     internal void Start() {
-      this.videoProvider = VideoProviderFactory.Create(this.region, null, true);
+      this.videoProvider = VideoProviderFactory.Create(this.region, null);
       this.actions = this.task.Actions.Select(a => {
           try {
             // set options if needed
@@ -140,12 +139,11 @@ namespace Captain.Application {
 
       if (this.codec is GenericMfCodec mediaFoundationCodec &&
           this.videoProvider is DxgiVideoProvider dxgiProvider) {
-        // accelerate MediaFoundation encoding if we could get the whole screen in a single texture
+        // TODO: abstract accelerated video provider functionality
         mediaFoundationCodec.SourceTexture = dxgiProvider.SharedTexture;
-        this.dxgiEncoding = true;
+        this.isAcceleratedEncoding = true;
       }
-
-      this.dxgiEncoding = true;
+      
       this.codec?.Initialize(this.videoProvider.CaptureBounds.Size, this.stream);
 
       this.recordingThread = new Thread(Record) {Priority = ThreadPriority.Highest};
@@ -178,6 +176,7 @@ namespace Captain.Application {
         this.videoProvider.AcquireFrame();
 
         // query last desktop update time
+        // TODO: abstract timing functionality
         long presentTime = ((DxgiVideoProvider)this.videoProvider).LastPresentTime;
 
         if (startTime == 0) {
@@ -190,13 +189,13 @@ namespace Captain.Application {
           // TODO: query updated regions so we don't count on updates outside the selected screen region
 
           // lock bitmap memory so we can read from it, if hardware-assisted encoding is not available
-          if (!this.dxgiEncoding) { data = this.videoProvider.LockFrameBitmap(); }
+          if (!this.isAcceleratedEncoding) { data = this.videoProvider.LockFrameBitmap(); }
 
           // encode frame at the frame update time, in 100-nanosecond units
           this.codec.Encode(data, (long) ((presentTime - startTime) * 10e6 / freq), this.stream);
 
           // on non-hardware-assisted encoding, unlock de bitmap memory
-          if (!this.dxgiEncoding) { this.videoProvider.UnlockFrameBitmap(data); }
+          if (!this.isAcceleratedEncoding) { this.videoProvider.UnlockFrameBitmap(data); }
 
           // release resources used by the video provider
           this.videoProvider.ReleaseFrame();

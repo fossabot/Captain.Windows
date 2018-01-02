@@ -212,6 +212,7 @@ namespace Captain.Application {
       }
 
       Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+
       var updateManagerHandler = new Action<Task<Squirrel.UpdateManager>>(task => {
         if (task.IsFaulted) {
           Log.WriteLine(LogLevel.Warning, $"could not initialize underlying UpdateManager - {task.Exception}");
