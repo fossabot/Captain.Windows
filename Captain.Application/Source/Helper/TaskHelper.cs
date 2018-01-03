@@ -56,7 +56,6 @@ namespace Captain.Application {
 
             // create completion source for crop event and bind handler
             var completionSource = new TaskCompletionSource<Rectangle>();
-
             void OnScreenCrop(object sender, Rectangle bounds) { completionSource.SetResult(bounds); }
 
             Application.Hud.OnScreenCrop += OnScreenCrop;
@@ -95,7 +94,8 @@ namespace Captain.Application {
         }
       } catch (TaskException exception) {
         Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-        LegacyNotificationProvider.PushMessage(exception.ShortMessage,
+        Application.Hud.DisplayTidbit(TidbitStatus.Error, exception.ShortMessage);
+        /*LegacyNotificationProvider.PushMessage(exception.ShortMessage,
           exception.Message,
           ToolTipIcon.Error,
           null,
@@ -106,7 +106,7 @@ namespace Captain.Application {
               Log.WriteLine(LogLevel.Verbose, "user requested retry");
               StartTask(task, effectiveRegion);
             }
-          });
+          });*/
       }
     }
 
@@ -127,7 +127,9 @@ namespace Captain.Application {
       Buttons = {
         new TaskDialogButton(ButtonType.Close) {Default = true},
         new TaskDialogButton(ButtonType.Retry),
-        new TaskDialogButton("&Report…") {Enabled = false} // TODO: implement bug reporter helper
+        new TaskDialogButton(Resources.TaskHelper_DisplayTaskExceptionDialog_ReportButtonCaption) {
+          Enabled = false
+        } // TODO: implement bug reporter helper
       },
       MainInstruction = exception.ShortMessage,
       Content = exception.Message,

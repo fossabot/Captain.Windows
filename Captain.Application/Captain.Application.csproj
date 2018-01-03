@@ -48,9 +48,7 @@
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
-  </PropertyGroup>
+  <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\Debug\</OutputPath>
@@ -109,6 +107,9 @@
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="App.config">
@@ -127,6 +128,10 @@
     <None Include="UI\Common\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\TidbitWarning.png" />
+    <None Include="Resources\TidbitOk.png" />
+    <None Include="Resources\TidbitInfo.png" />
+    <None Include="Resources\TidbitError.png" />
     <None Include="Resources\SnackBarResume.png" />
     <None Include="Resources\SnackBarPause.png" />
     <None Include="Resources\SnackBarGrip.png" />
@@ -197,7 +202,6 @@
     <Compile Include="Source\VideoProvider\DxgiVideoProvider.cs" />
     <Compile Include="Source\Helper\MouseHook\IMouseHookProvider.cs" />
     <Compile Include="Source\Helper\MouseHook\SystemMouseHookProvider.cs" />
-    <Compile Include="Source\Helper\ShellLink.cs" />
     <Compile Include="Source\Native\UxTheme\MARGINS.cs" />
     <Compile Include="Source\Native\User32\MSLLHOOKSTRUCT.cs" />
     <Compile Include="UI\Action\ActionDialog.cs">
@@ -224,6 +228,11 @@
     <Compile Include="UI\HUD\SnackBar\SnackBarButton.cs" />
     <Compile Include="UI\HUD\SnackBar\SnackBarIntent.cs" />
     <Compile Include="UI\HUD\SnackBar\SnackBarWrapper.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\HUD\Tidbit\Tidbit.cs" />
+    <Compile Include="UI\HUD\Tidbit\TidbitStatus.cs" />
+    <Compile Include="UI\HUD\Tidbit\TidbitWrapper.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\Option\Action\ActionPropertiesDialog.cs">
@@ -329,9 +338,6 @@
     <Compile Include="UI\Common\LinkLabel2\LinkLabel2.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\NotificationProvider\INotificationProvider.cs" />
-    <Compile Include="UI\NotificationProvider\LegacyNotificationProvider.cs" />
-    <Compile Include="UI\NotificationProvider\ToastNotificationProvider.cs" />
     <Compile Include="UI\TrayIcon\Renderers\FluentIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\Renderers\IIndicatorRenderer.cs" />
     <Compile Include="UI\TrayIcon\TrayIcon.cs" />

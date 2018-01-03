@@ -43,7 +43,7 @@ namespace Captain.Application {
     /// <param name="codec">Codec instance.</param>
     public SaveToFileAction(ICodecBase codec) : base(codec) {
       // add substitution templates
-      this.templates[CommonVariable.Extension] = () => codec.FileExtension;
+      this.templates[CommonVariable.Extension] = () => codec?.FileExtension;
       this.templates[CommonVariable.Type] = () => codec is IStillImageCodec
         ? Resources.TemplateHelper_Type_Screenshot
         : Resources.TemplateHelper_Type_Recording;

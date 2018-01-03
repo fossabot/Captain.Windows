@@ -35,6 +35,18 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
+    ///   Whether to delegate the event to the original handler.
+    /// </summary>
+    public bool PassThrough { get; set; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Whether or not the mouse is being captured
+    /// </summary>
+    public bool Acquired => this.hookHandle != IntPtr.Zero;
+
+    /// <inheritdoc />
+    /// <summary>
     ///   Triggered when a mouse button is held
     /// </summary>
     public event MouseEventHandler OnMouseDown;
@@ -111,22 +123,22 @@ namespace Captain.Application {
           case (int)User32.WindowMessage.WM_LBUTTONDOWN:
             this.buttonState |= MouseButtons.Left;
             OnMouseDown?.Invoke(this, new MouseEventArgs(this.buttonState, 1, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return 1; // message processed
+            return PassThrough ? 0 : 1;
 
           case (int)User32.WindowMessage.WM_RBUTTONDOWN:
             this.buttonState |= MouseButtons.Right;
             OnMouseDown?.Invoke(this, new MouseEventArgs(this.buttonState, 1, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return 1; // message processed
+            return PassThrough ? 0 : 1; // message processed
 
           case (int)User32.WindowMessage.WM_LBUTTONUP:
             this.buttonState &= ~MouseButtons.Left;
             OnMouseUp?.Invoke(this, new MouseEventArgs(this.buttonState, 0, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return 1; // message processed
+            return PassThrough ? 0 : 1; // message processed
 
           case (int)User32.WindowMessage.WM_RBUTTONUP:
             this.buttonState &= ~MouseButtons.Right;
             OnMouseUp?.Invoke(this, new MouseEventArgs(this.buttonState, 0, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return 1; // message processed
+            return PassThrough ? 0 : 1; // message processed
         }
       }
 

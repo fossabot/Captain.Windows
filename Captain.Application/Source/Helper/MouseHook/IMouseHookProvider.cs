@@ -10,6 +10,16 @@ namespace Captain.Application {
   /// </summary>
   internal interface IMouseHookProvider : IDisposable {
     /// <summary>
+    ///   Whether or not the mouse is being captured
+    /// </summary>
+    bool Acquired { get; }
+
+    /// <summary>
+    ///   Whether to delegate the event to the original handler.
+    /// </summary>
+    bool PassThrough { get; set; }
+
+    /// <summary>
     ///   Triggered when a mouse button is held
     /// </summary>
     event MouseEventHandler OnMouseDown;

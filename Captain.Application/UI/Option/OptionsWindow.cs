@@ -137,38 +137,10 @@ namespace Captain.Application {
       this.displayTrayIconCheckBox.Enabled = false;
       this.displayTrayIconCheckBox.Checked = true;
 
-      // notification options
-      if (Application.Options.NotificationPolicy == NotificationPolicy.Never) {
-        this.showNotificationsCheckBox.Checked = this.notificationOptionsComboBox.Enabled = false;
-        this.notificationOptionsComboBox.Text = "";
-        this.notificationOptionsComboBox.SelectedIndex = -1;
-      } else {
-        this.showNotificationsCheckBox.Checked = true;
-        this.notificationOptionsComboBox.SelectedIndex = (int) Application.Options.NotificationPolicy - 1;
-
-        if (this.notificationOptionsComboBox.SelectedIndex == -1) {
-          this.notificationOptionsComboBox.SelectedIndex += (int) NotificationPolicy.Always;
-        }
-      }
-
-      this.notificationOptionsComboBox.SelectionChangeCommitted += (s, e) =>
-        Application.Options.NotificationPolicy =
-          (NotificationPolicy) (this.notificationOptionsComboBox.SelectedIndex + 1);
-
-      // only show legacy notifications check box if this platform supports any other kind of notification provider
-      this.legacyNotificationsCheckBox.Visible = AreToastNotificationsSupported;
-      this.legacyNotificationsCheckBox.Checked = Application.Options.UseLegacyNotificationProvider;
-      this.legacyNotificationsCheckBox.CheckedChanged += (s, e) => {
-        Application.Options.UseLegacyNotificationProvider = this.legacyNotificationsCheckBox.Checked;
-
-        if (Application.Options.UseLegacyNotificationProvider && NotificationProvider is ToastNotificationProvider) {
-          Log.WriteLine(LogLevel.Informational, "downgrading toast provider to legacy notification provider");
-          NotificationProvider = new LegacyNotificationProvider();
-        } else {
-          Log.WriteLine(LogLevel.Informational, "upgrading legacy notification provider to toast provider");
-          NotificationProvider = new ToastNotificationProvider();
-        }
-      };
+      // status reporting options
+      this.enableStatusPopupsCheckBox.Checked = Application.Options.EnableStatusPopups;
+      this.enableStatusPopupsCheckBox.CheckStateChanged += (s, e) =>
+        Application.Options.EnableStatusPopups = this.enableStatusPopupsCheckBox.Checked;
 
       // application update options
       if (Application.UpdateManager.Availability == UpdaterAvailability.NotSupported) {

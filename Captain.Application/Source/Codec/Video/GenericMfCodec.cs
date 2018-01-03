@@ -197,13 +197,8 @@ namespace Captain.Application {
 
       // add buffer to sample
       sample.AddBuffer(buffer);
-
-      // write the sample to the output stream
-      if (this.lastSampleTime == 0) { sample.SampleDuration = (long) (10e6 / FrameRate); } else {
-        sample.SampleDuration = time - this.lastSampleTime;
-      }
-
       sample.SampleTime = this.lastSampleTime = time;
+
       try { this.sinkWriter.WriteSample(this.streamIdx, sample); } catch (SharpDXException) { } finally {
         buffer.Dispose();
         sample.Dispose();

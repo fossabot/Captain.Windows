@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Captain.Application.Native;
@@ -46,44 +45,6 @@ namespace Captain.Application {
       thread.Start();
 
       await new Task(() => thread.Join());
-    }
-
-    /// <summary>
-    ///   Creates an app shortcut in the user's start menu directory
-    /// </summary>
-    internal static void InstallAppShortcut() {
-      string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs),
-        System.Windows.Forms.Application.ProductName + ".lnk");
-      string appPath = Assembly.GetExecutingAssembly().Location;
-
-      using (var shellLink = new ShellLink()) {
-        if (File.Exists(shortcutPath)) {
-          // shortcut already created - make sure it points to the same application version
-          shellLink.Load(shortcutPath);
-
-          if (shellLink.TargetPath != appPath || shellLink.AppUserModelID != Application.Guid) {
-            try {
-              Log.WriteLine(LogLevel.Warning, "shortcut data mismatch - correcting");
-              shellLink.TargetPath = appPath;
-              shellLink.AppUserModelID = Application.Guid;
-              shellLink.Save();
-            } catch (COMException) {
-              Log.WriteLine(LogLevel.Warning, "shortcut correction failed - deleting shortcut");
-              File.Delete(shortcutPath);
-              InstallAppShortcut();
-            }
-          }
-        } else {
-          // create new shortcut
-          shellLink.TargetPath = appPath;
-          shellLink.AppUserModelID = Application.Guid;
-          shellLink.Arguments = "/task:default";
-          shellLink.Description =
-            Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
-          shellLink.Save(shortcutPath);
-          Log.WriteLine(LogLevel.Informational, "application shortcut created successfully");
-        }
-      }
     }
   }
 }

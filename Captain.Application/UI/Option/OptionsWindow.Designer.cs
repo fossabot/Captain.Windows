@@ -47,9 +47,7 @@ namespace Captain.Application {
       this.performInstallNoticeLabel = new System.Windows.Forms.Label();
       this.updateManagerUnavailableLabel = new System.Windows.Forms.Label();
       this.updatesTitleLabel = new System.Windows.Forms.Label();
-      this.legacyNotificationsCheckBox = new System.Windows.Forms.CheckBox();
-      this.notificationOptionsComboBox = new System.Windows.Forms.ComboBox();
-      this.showNotificationsCheckBox = new System.Windows.Forms.CheckBox();
+      this.enableStatusPopupsCheckBox = new System.Windows.Forms.CheckBox();
       this.displayTrayIconCheckBox = new System.Windows.Forms.CheckBox();
       this.autoStartCheckBox = new System.Windows.Forms.CheckBox();
       this.updateOptionsPanel = new System.Windows.Forms.Panel();
@@ -207,9 +205,9 @@ namespace Captain.Application {
       this.notificationsTitleLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
       this.notificationsTitleLabel.Location = new System.Drawing.Point(73, 115);
       this.notificationsTitleLabel.Name = "notificationsTitleLabel";
-      this.notificationsTitleLabel.Size = new System.Drawing.Size(78, 15);
+      this.notificationsTitleLabel.Size = new System.Drawing.Size(98, 15);
       this.notificationsTitleLabel.TabIndex = 3;
-      this.notificationsTitleLabel.Text = "Notifications";
+      this.notificationsTitleLabel.Text = "Status reporting";
       // 
       // toolBar
       // 
@@ -240,9 +238,7 @@ namespace Captain.Application {
       this.generalPage.Controls.Add(this.updateManagerUnavailableLabel);
       this.generalPage.Controls.Add(this.updatesTitleLabel);
       this.generalPage.Controls.Add(_separator2);
-      this.generalPage.Controls.Add(this.legacyNotificationsCheckBox);
-      this.generalPage.Controls.Add(this.notificationOptionsComboBox);
-      this.generalPage.Controls.Add(this.showNotificationsCheckBox);
+      this.generalPage.Controls.Add(this.enableStatusPopupsCheckBox);
       this.generalPage.Controls.Add(this.notificationsTitleLabel);
       this.generalPage.Controls.Add(this.displayTrayIconCheckBox);
       this.generalPage.Controls.Add(this.startupTitleLabel);
@@ -298,48 +294,16 @@ namespace Captain.Application {
       this.updatesTitleLabel.TabIndex = 7;
       this.updatesTitleLabel.Text = "Application updates";
       // 
-      // legacyNotificationsCheckBox
+      // enableStatusPopupsCheckBox
       // 
-      this.legacyNotificationsCheckBox.AutoSize = true;
-      this.legacyNotificationsCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.legacyNotificationsCheckBox.Location = new System.Drawing.Point(76, 168);
-      this.legacyNotificationsCheckBox.Name = "legacyNotificationsCheckBox";
-      this.legacyNotificationsCheckBox.Size = new System.Drawing.Size(199, 20);
-      this.legacyNotificationsCheckBox.TabIndex = 4;
-      this.legacyNotificationsCheckBox.Text = "Use legacy notification p&rovider";
-      this.helpTip.SetToolTip(this.legacyNotificationsCheckBox, "On Windows 8 and later, adaptive toasts display richer notifications.\r\nWhen this " +
-        "option is enabled, the application will fall back to traditional notification ti" +
-        "ps.");
-      this.legacyNotificationsCheckBox.UseVisualStyleBackColor = true;
-      this.legacyNotificationsCheckBox.Visible = false;
-      // 
-      // notificationOptionsComboBox
-      // 
-      this.notificationOptionsComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.notificationOptionsComboBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.notificationOptionsComboBox.FormattingEnabled = true;
-      this.notificationOptionsComboBox.IntegralHeight = false;
-      this.notificationOptionsComboBox.ItemHeight = 15;
-      this.notificationOptionsComboBox.Items.AddRange(new object[] {
-            "on success",
-            "on failure",
-            "except for progress",
-            "always"});
-      this.notificationOptionsComboBox.Location = new System.Drawing.Point(244, 141);
-      this.notificationOptionsComboBox.Name = "notificationOptionsComboBox";
-      this.notificationOptionsComboBox.Size = new System.Drawing.Size(136, 23);
-      this.notificationOptionsComboBox.TabIndex = 3;
-      // 
-      // showNotificationsCheckBox
-      // 
-      this.showNotificationsCheckBox.AutoSize = true;
-      this.showNotificationsCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
-      this.showNotificationsCheckBox.Location = new System.Drawing.Point(76, 142);
-      this.showNotificationsCheckBox.Name = "showNotificationsCheckBox";
-      this.showNotificationsCheckBox.Size = new System.Drawing.Size(175, 20);
-      this.showNotificationsCheckBox.TabIndex = 2;
-      this.showNotificationsCheckBox.Text = "Show desktop &notifications";
-      this.showNotificationsCheckBox.UseVisualStyleBackColor = true;
+      this.enableStatusPopupsCheckBox.AutoSize = true;
+      this.enableStatusPopupsCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
+      this.enableStatusPopupsCheckBox.Location = new System.Drawing.Point(76, 142);
+      this.enableStatusPopupsCheckBox.Name = "enableStatusPopupsCheckBox";
+      this.enableStatusPopupsCheckBox.Size = new System.Drawing.Size(231, 20);
+      this.enableStatusPopupsCheckBox.TabIndex = 2;
+      this.enableStatusPopupsCheckBox.Text = "Show status tidbits around the mouse";
+      this.enableStatusPopupsCheckBox.UseVisualStyleBackColor = true;
       // 
       // displayTrayIconCheckBox
       // 
@@ -618,11 +582,9 @@ namespace Captain.Application {
     private CheckBox autoStartCheckBox;
     private ToolTip helpTip;
     private CheckBox displayTrayIconCheckBox;
-    private ComboBox notificationOptionsComboBox;
-    private CheckBox showNotificationsCheckBox;
+    private CheckBox enableStatusPopupsCheckBox;
     private Label startupTitleLabel;
     private Label notificationsTitleLabel;
-    private CheckBox legacyNotificationsCheckBox;
     private Label updatesTitleLabel;
     private Label updateManagerUnavailableLabel;
     private Panel updateOptionsPanel;

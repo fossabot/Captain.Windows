@@ -42,7 +42,6 @@ namespace Captain.Application {
 
       this.taskNameTextBox.Text = Task.Name;
       this.taskTypeComboBox.SelectedIndex = (int) Task.TaskType;
-      this.notificationPolicyComboBox.SelectedIndex = (int) Task.NotificationPolicy;
       this.regionTypeComboBox.SelectedIndex = (int) Task.RegionType;
       this.hotkeyTextBox.Text = Task.Hotkey.ToString();
 
@@ -126,14 +125,6 @@ namespace Captain.Application {
 
       UpdateValidationStatus();
     }
-
-    /// <summary>
-    ///   Triggered when the notification policy changes
-    /// </summary>
-    /// <param name="sender">Sender object</param>
-    /// <param name="eventArgs">Event arguments</param>
-    private void OnNotificationPolicyChanged(object sender, EventArgs eventArgs) =>
-      Task.NotificationPolicy = (NotificationPolicy) this.notificationPolicyComboBox.SelectedIndex;
 
     /// <summary>
     ///   Triggered when the region type changes

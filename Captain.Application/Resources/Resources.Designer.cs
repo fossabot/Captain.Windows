@@ -196,6 +196,42 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All actions failed.
+        /// </summary>
+        public static string ActionStatus_Tidbit_AllFailed {
+            get {
+                return ResourceManager.GetString("ActionStatus_Tidbit_AllFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recording saved.
+        /// </summary>
+        public static string ActionStatus_Tidbit_AllSucceeded_Recording {
+            get {
+                return ResourceManager.GetString("ActionStatus_Tidbit_AllSucceeded_Recording", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Screenshot taken.
+        /// </summary>
+        public static string ActionStatus_Tidbit_AllSucceeded_Screenshot {
+            get {
+                return ResourceManager.GetString("ActionStatus_Tidbit_AllSucceeded_Screenshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Done – Some actions failed.
+        /// </summary>
+        public static string ActionStatus_Tidbit_SomeFailed {
+            get {
+                return ResourceManager.GetString("ActionStatus_Tidbit_SomeFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap AeroIndicatorStrip {
@@ -425,6 +461,15 @@ namespace Captain.Application {
         public static string HUD_CropRectangleHint {
             get {
                 return ResourceManager.GetString("HUD_CropRectangleHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you want to save this recording?.
+        /// </summary>
+        public static string Hud_SnackBar_ClosePromptInstruction {
+            get {
+                return ResourceManager.GetString("Hud_SnackBar_ClosePromptInstruction", resourceCulture);
             }
         }
         
@@ -871,6 +916,15 @@ namespace Captain.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Report….
+        /// </summary>
+        public static string TaskHelper_DisplayTaskExceptionDialog_ReportButtonCaption {
+            get {
+                return ResourceManager.GetString("TaskHelper_DisplayTaskExceptionDialog_ReportButtonCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encoding failed.
         /// </summary>
         public static string TaskHelper_EncodingFailedCaption {
@@ -1007,6 +1061,46 @@ namespace Captain.Application {
         public static string TemplateHelper_Type_Screenshot {
             get {
                 return ResourceManager.GetString("TemplateHelper_Type_Screenshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap TidbitError {
+            get {
+                object obj = ResourceManager.GetObject("TidbitError", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap TidbitInfo {
+            get {
+                object obj = ResourceManager.GetObject("TidbitInfo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap TidbitOk {
+            get {
+                object obj = ResourceManager.GetObject("TidbitOk", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap TidbitWarning {
+            get {
+                object obj = ResourceManager.GetObject("TidbitWarning", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

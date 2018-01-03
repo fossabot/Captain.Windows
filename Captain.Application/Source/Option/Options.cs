@@ -41,14 +41,9 @@ namespace Captain.Application {
     public bool AdvancedTaskOptionsEnabled { get; set; }
 
     /// <summary>
-    ///   Notification display options
+    ///   Display status popups
     /// </summary>
-    public NotificationPolicy NotificationPolicy { get; set; } = NotificationPolicy.ExceptProgress;
-
-    /// <summary>
-    ///   Use legacy notification provider
-    /// </summary>
-    public bool UseLegacyNotificationProvider { get; set; }
+    public bool EnableStatusPopups { get; set; } = true;
 
     /// <summary>
     ///   Adjusts the behavior of the update manager

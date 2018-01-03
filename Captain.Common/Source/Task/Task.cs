@@ -47,10 +47,5 @@ namespace Captain.Common {
     ///   Task type (recording, screenshot...)
     /// </summary>
     public TaskType TaskType { get; set; } = TaskType.StillImage;
-
-    /// <summary>
-    ///   Notification policy for this task (defaults to the inherited application options.)
-    /// </summary>
-    public NotificationPolicy NotificationPolicy { get; set; } = NotificationPolicy.Inherit;
   }
 }

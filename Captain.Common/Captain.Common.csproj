@@ -82,7 +82,6 @@
     <Compile Include="Source\Logger\Logger.cs" />
     <Compile Include="Source\Logger\LogLevel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Source\NotificationPolicy.cs" />
     <Compile Include="Source\Task\RegionType.cs" />
     <Compile Include="Source\Task\Task.cs" />
     <Compile Include="Source\Task\TaskException.cs" />

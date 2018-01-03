@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using Captain.Common;
 using Ookii.Dialogs.Wpf;
@@ -90,6 +91,11 @@ namespace Captain.Application {
     private InstructionOverlay InstructionOverlay { get; set; }
 
     /// <summary>
+    ///   Tidbit.
+    /// </summary>
+    private Tidbit Tidbit { get; set; }
+
+    /// <summary>
     ///   Snack bar wrapper window
     /// </summary>
     private SnackBarWrapper snackBarWrapper;
@@ -98,6 +104,11 @@ namespace Captain.Application {
     ///   Instruction overlay wrapper window.
     /// </summary>
     private InstructionOverlayWrapper instructionOverlayWrapper;
+
+    /// <summary>
+    ///   Tidbit wrapper window.
+    /// </summary>
+    private TidbitWrapper tidbitWrapper;
 
     /// <summary>
     ///   Crop rectangle wrapper window
@@ -121,7 +132,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Whether or not the user is currently handpicking a screen region.
     /// </summary>
-    internal bool IsCropUiVisible => this.cropRectangleWrapper?.Visible == true;
+    internal bool IsCropUiVisible =>
+      this.cropRectangleWrapper?.Visible == true || this.instructionOverlayWrapper?.Visible == true;
 
     /// <summary>
     ///   Determines whether the specified region is valid.
@@ -139,12 +151,14 @@ namespace Captain.Application {
     /// <param name="sender">Sender object</param>
     /// <param name="mouseEventArgs">Event arguments</param>
     private void OnMouseDown(object sender, MouseEventArgs mouseEventArgs) {
-      if (mouseEventArgs.Button == MouseButtons.Left) {
-        Log.WriteLine(LogLevel.Debug, $"mouse down at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
-        this.initialMouseLocation = new Point(mouseEventArgs.X, mouseEventArgs.Y);
-        this.instructionOverlayWrapper.Close();
-        this.cropRectangleWrapper.Show();
-      } else if (this.initialMouseLocation.HasValue) { OnMouseUp(this, mouseEventArgs); }
+      if (IsCropUiVisible) {
+        if (mouseEventArgs.Button == MouseButtons.Left) {
+          Log.WriteLine(LogLevel.Debug, $"mouse down at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
+          this.initialMouseLocation = new Point(mouseEventArgs.X, mouseEventArgs.Y);
+          this.instructionOverlayWrapper?.Close();
+          this.cropRectangleWrapper?.Show();
+        } else if (this.initialMouseLocation.HasValue) { OnMouseUp(this, mouseEventArgs); }
+      }
     }
 
     /// <summary>
@@ -153,6 +167,10 @@ namespace Captain.Application {
     /// <param name="sender">Sender object</param>
     /// <param name="mouseEventArgs">Event arguments</param>
     private void OnMouseMove(object sender, MouseEventArgs mouseEventArgs) {
+      if (this.tidbitWrapper != null && this.tidbitWrapper.Visible) {
+        this.tidbitWrapper.Location = new Point(mouseEventArgs.X + 24, mouseEventArgs.Y);
+      }
+
       if (this.initialMouseLocation.HasValue) {
         if (this.initialMouseLocation.Value.X < mouseEventArgs.X) {
           this.selectedRegion.X = this.initialMouseLocation.Value.X;
@@ -180,23 +198,29 @@ namespace Captain.Application {
     /// <param name="sender">Sender object</param>
     /// <param name="mouseEventArgs">Event arguments</param>
     private void OnMouseUp(object sender, MouseEventArgs mouseEventArgs) {
-      // release mouse hook
-      Log.WriteLine(LogLevel.Debug, $"mouse up at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
-      this.mouseHook.Release();
+      if (IsCropUiVisible) {
+        // release mouse hook
+        Log.WriteLine(LogLevel.Debug, $"mouse up at ({mouseEventArgs.X}, {mouseEventArgs.Y})");
 
-      if (IsValidRegion(this.selectedRegion)) {
-        // trigger event handlers
-        this.cropRectangleWrapper?.Hide();
-        OnScreenCrop?.Invoke(this, this.selectedRegion);
-      } else {
-        Log.WriteLine(LogLevel.Debug, "invalid screen region selected");
-        this.cropRectangleWrapper?.Close();
+        if (this.tidbitWrapper?.Visible == true) {
+          this.releaseHookAfterTidbit = true;
+          this.mouseHook.PassThrough = true;
+        } else { this.mouseHook.Release(); }
+
+        if (IsValidRegion(this.selectedRegion)) {
+          // trigger event handlers
+          this.cropRectangleWrapper?.Hide();
+          OnScreenCrop?.Invoke(this, this.selectedRegion);
+        } else {
+          Log.WriteLine(LogLevel.Debug, "invalid screen region selected");
+          this.cropRectangleWrapper?.Close();
+        }
+
+        this.instructionOverlayWrapper?.Close();
+
+        // reset values
+        this.initialMouseLocation = null;
       }
-
-      this.instructionOverlayWrapper?.Close();
-
-      // reset values
-      this.initialMouseLocation = null;
     }
 
     #endregion
@@ -223,8 +247,40 @@ namespace Captain.Application {
 
         this.instructionOverlayWrapper.Show();
         this.snackBarWrapper?.Show();
-        this.mouseHook?.Acquire();
+
+        if (this.mouseHook != null) {
+          this.mouseHook.Acquire();
+          this.mouseHook.PassThrough = false;
+        }
       } else { Dispose(); }
+    }
+
+    private bool releaseHookAfterTidbit = true;
+
+    /// <summary>
+    ///   Displays a tidbit.
+    /// </summary>
+    /// <param name="status">Tidbit status type.</param>
+    /// <param name="text">Tidbit text.</param>
+    /// <param name="progress">Tidbit progress value.</param>
+    internal void DisplayTidbit(TidbitStatus status, string text, double? progress = null) {
+      if (this.tidbitWrapper == null) { this.tidbitWrapper = new TidbitWrapper(); }
+      if (Tidbit == null) { Tidbit = new Tidbit(this.tidbitWrapper, status, text, progress); }
+
+      this.releaseHookAfterTidbit = this.mouseHook?.Acquired ?? false;
+      if (this.mouseHook != null) {
+        this.mouseHook.PassThrough = !this.releaseHookAfterTidbit;
+        this.mouseHook.Acquire();
+      }
+      
+      this.tidbitWrapper.Show();
+
+      new Thread(() => {
+        Thread.Sleep(2500);
+
+        this.tidbitWrapper.Invoke(new MethodInvoker(() => this.tidbitWrapper.Hide()));
+        if (this.releaseHookAfterTidbit && (this.mouseHook?.Acquired ?? false)) { this.mouseHook?.Release(); }
+      }).Start();
     }
 
     /// <summary>
@@ -268,7 +324,8 @@ namespace Captain.Application {
             this.recordingSession?.Pause();
 
             var dialog = new TaskDialog {
-              MainInstruction = "Do you want to save this recording?",
+              WindowTitle = System.Windows.Forms.Application.ProductName,
+              MainInstruction = Resources.Hud_SnackBar_ClosePromptInstruction,
               Buttons = {
                 new TaskDialogButton(ButtonType.Yes),
                 new TaskDialogButton(ButtonType.No),
@@ -287,8 +344,10 @@ namespace Captain.Application {
                 this.recordingSession?.Dispose();
                 break;
             }
+          } else {
+            Display(false);
           }
-          
+
           break;
 
         case SnackBarIntent.Options:

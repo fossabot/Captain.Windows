@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 using Captain.Common;
@@ -97,7 +98,7 @@ namespace Captain.Application {
         try {
           Log.WriteLine(LogLevel.Verbose, $"displaying configuration interface for stream \"{pluginObject.Type}\"");
 
-          if (Activator.CreateInstance(pluginObject.Type) is IHasOptions configurableObject) {
+          if (Activator.CreateInstance(pluginObject.Type, BindingFlags.CreateInstance, null, new object[] {null}, null) is IHasOptions configurableObject) {
             if (Actions[this.streamListView.SelectedIndices[0]].Options is Dictionary<string, object> userOptions) {
               foreach (KeyValuePair<string, object> pair in userOptions) {
                 configurableObject.Options[pair.Key] = pair.Value;

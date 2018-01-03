@@ -451,4 +451,34 @@ Tap here to see details.</value>
   <data name="SnackBarResume" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>SnackBarResume.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="TidbitError" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>TidbitError.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TidbitInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>TidbitInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TidbitOk" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>TidbitOk.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TidbitWarning" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>TidbitWarning.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ActionStatus_Tidbit_AllFailed" xml:space="preserve">
+    <value>All actions failed</value>
+  </data>
+  <data name="ActionStatus_Tidbit_SomeFailed" xml:space="preserve">
+    <value>Done – Some actions failed</value>
+  </data>
+  <data name="ActionStatus_Tidbit_AllSucceeded_Screenshot" xml:space="preserve">
+    <value>Screenshot taken</value>
+  </data>
+  <data name="ActionStatus_Tidbit_AllSucceeded_Recording" xml:space="preserve">
+    <value>Recording saved</value>
+  </data>
+  <data name="Hud_SnackBar_ClosePromptInstruction" xml:space="preserve">
+    <value>Do you want to save this recording?</value>
+  </data>
+  <data name="TaskHelper_DisplayTaskExceptionDialog_ReportButtonCaption" xml:space="preserve">
+    <value>&amp;Report…</value>
+  </data>
 </root>

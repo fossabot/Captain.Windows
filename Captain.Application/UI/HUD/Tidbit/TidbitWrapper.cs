@@ -7,9 +7,9 @@ using Captain.Application.Native;
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
-  ///   Wraps the HUD instruction overlay in a desktop window
+  ///   Wraps the HUD tidbit in a desktop window
   /// </summary>
-  internal sealed class InstructionOverlayWrapper : Form {
+  internal sealed class TidbitWrapper : Form {
     /// <inheritdoc />
     /// <summary>Gets the required creation parameters when the control handle is created.</summary>
     /// <returns>
@@ -34,8 +34,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Class constructor.
     /// </summary>
-    internal InstructionOverlayWrapper() {
-      ClientSize = new Size(384, 48);
+    internal TidbitWrapper() {
+      ClientSize = new Size(128, 24);
       ShowInTaskbar = false;
       ShowIcon = false;
       MinimizeBox = false;
@@ -46,10 +46,7 @@ namespace Captain.Application {
       FormBorderStyle = FormBorderStyle.None;
       BackColor = Color.Black;
       AllowTransparency = false;
-
-      var screen = Screen.FromPoint(MousePosition);
-      Location = new Point(screen.Bounds.X + (screen.Bounds.Width - Width) / 2,
-        screen.Bounds.Y + (screen.Bounds.Height - Height) / 2);
+      Location = new Point(MousePosition.X + 32, MousePosition.Y + 8);
     }
 
     /// <inheritdoc />
@@ -58,7 +55,7 @@ namespace Captain.Application {
     protected override void OnHandleCreated(EventArgs eventArgs) {
       // make the window actually borderless and set transparency attributes so we can use alpha blending when
       // doing the Direct2D rendering
-      var margins = new MARGINS {bottomWidth = 1, leftWidth = 1, rightWidth = 1, topWidth = 2};
+      var margins = new MARGINS {bottomWidth = 0, leftWidth = 0, rightWidth = 0, topWidth = 01};
       DwmApi.DwmExtendFrameIntoClientArea(Handle, ref margins);
 
       var attrValue = new IntPtr((int) DwmApi.DwmNcRenderingPolicy.DWMNCRP_DISABLED);

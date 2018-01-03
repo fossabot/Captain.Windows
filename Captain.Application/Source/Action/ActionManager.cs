@@ -52,40 +52,19 @@ namespace Captain.Application {
               // all failed
               Log.WriteLine(LogLevel.Error, "all actions have failed");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-
-              LegacyNotificationProvider.PushMessage("Everything went wrong!",
-                action.Codec is IStillImageCodec
-                  ? "All actions failed to handle your screenshot. Tap to see error details."
-                  : "All actions failed to handle your recording. Tap to see error details.",
-                ToolTipIcon.Error,
-                null,
-                (s, e) => DisplayActionDialog());
+              Application.Hud.DisplayTidbit(TidbitStatus.Error, Resources.ActionStatus_Tidbit_AllFailed);
             } else if (failedCount > 0) {
               // some failed
               Log.WriteLine(LogLevel.Warning, "some actions have failed");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-
-              NotificationProvider.PushObject(action.Codec is IStillImageCodec
-                  ? "Screenshot taken!"
-                  : "Recording made!",
-                "Your screen was captured, but some actions did not succeed.",
-                "Tap to see the results.",
-                null,
-                action.Thumbnail,
-                handler: (s, e) => DisplayActionDialog());
+              Application.Hud.DisplayTidbit(TidbitStatus.Warning, Resources.ActionStatus_Tidbit_SomeFailed);
             } else {
               // all succeeded
               Log.WriteLine(LogLevel.Informational, "all actions have succeeded");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
-
-              NotificationProvider.PushObject(action.Codec is IStillImageCodec
-                  ? "Screenshot taken!"
-                  : "Recording made!",
-                "Your screen was captured and all actions succeeded.",
-                "Tap to see the results.",
-                null,
-                action.Thumbnail,
-                handler: (s, e) => DisplayActionDialog());
+              Application.Hud.DisplayTidbit(TidbitStatus.Success, action.Codec is IStillImageCodec 
+                ? Resources.ActionStatus_Tidbit_AllSucceeded_Screenshot
+                : Resources.ActionStatus_Tidbit_AllSucceeded_Recording);
             }
 
             this.actionHistory.AddRange(this.currentActions);

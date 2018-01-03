@@ -8,8 +8,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using Captain.Common;
+#if DEBUG
 using SharpDX;
 using SharpDX.Diagnostics;
+#endif
 using Rectangle = System.Drawing.Rectangle;
 
 namespace Captain.Application {
@@ -32,8 +34,8 @@ namespace Captain.Application {
     /// <summary>
     ///   Single instance mutex name
     /// </summary>
-    private static string SingleInstanceMutexName
-      => $"{System.Windows.Forms.Application.ProductName} Instance Mutex ({Guid})";
+    private static string SingleInstanceMutexName =>
+      $"{System.Windows.Forms.Application.ProductName} Instance Mutex ({Guid})";
 
     #endregion
 
@@ -127,7 +129,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Assembly GUID
     /// </summary>
-    internal static string Guid =>
+    private static string Guid =>
       Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>().Value;
 
     /// <summary>
@@ -160,11 +162,6 @@ namespace Captain.Application {
     internal static TrayIcon TrayIcon { get; private set; }
 
     /// <summary>
-    ///   Notification provider
-    /// </summary>
-    internal static INotificationProvider NotificationProvider { get; set; }
-
-    /// <summary>
     ///   Application <see cref="Options" /> instance
     /// </summary>
     internal static Options Options { get; private set; }
@@ -175,7 +172,6 @@ namespace Captain.Application {
     internal static Hud Hud {
       get {
         if (hud == null || hud.IsDisposed) { hud = new Hud(); }
-
         return hud;
       }
     }
@@ -251,7 +247,6 @@ namespace Captain.Application {
             },
             TaskType = TaskType.StillImage,
             Name = Resources.Task_DefaultScreenshotTaskName,
-            NotificationPolicy = NotificationPolicy.Inherit,
             Region = Rectangle.Empty,
             RegionType = RegionType.UserSelected
           });
@@ -270,36 +265,10 @@ namespace Captain.Application {
             },
             TaskType = TaskType.Video,
             Name = Resources.Task_DefaultRecordingTaskName,
-            NotificationPolicy = NotificationPolicy.Inherit,
             Region = Rectangle.Empty,
             RegionType = RegionType.UserSelected
           });
         Options.Save();
-      }
-
-      try {
-        // create application shortcut
-        // since Windows 10 1709 (Fall Update) an application **requires** an AppID to be registered within a start menu
-        // entry in order to use toast notifications
-        ShellHelper.InstallAppShortcut();
-
-        // we may now display toast notifications on supported platforms
-        try {
-          NotificationProvider = new ToastNotificationProvider();
-          AreToastNotificationsSupported = true;
-          Log.WriteLine(LogLevel.Debug, "toast notifications are supported");
-        } catch (Exception exception) {
-          // it's likely the type ToastNotificationManager could not be found
-          Log.WriteLine(LogLevel.Debug, $"toast notifications are not supported by this platform: {exception}");
-        } finally {
-          if (!AreToastNotificationsSupported || Options.UseLegacyNotificationProvider) {
-            NotificationProvider = new LegacyNotificationProvider();
-          }
-        }
-      } catch (Exception exception) {
-        Log.WriteLine(LogLevel.Warning, $"could not install app shortcut: {exception}");
-        AreToastNotificationsSupported = false;
-        NotificationProvider = new LegacyNotificationProvider();
       }
     }
 
@@ -309,8 +278,7 @@ namespace Captain.Application {
     /// <param name="args">Command-line arguments passed to the program</param>
     [STAThread]
     private static void Main(string[] args) {
-#if DEBUG
-      // black magic - tracks unmanaged D2D/D3D objects and prints out unreleased resources at exit
+#if DEBUG // black magic - tracks unmanaged D2D/D3D objects and prints out unreleased resources at exit
       Configuration.EnableObjectTracking = true;
 #endif
 
