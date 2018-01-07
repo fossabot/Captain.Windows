@@ -1,7 +1,6 @@
 ﻿using System;
 
-namespace Captain.Common
-{
+namespace Captain.Common {
   /// <summary>
   ///   Contains information about a raw bitmap
   /// </summary>

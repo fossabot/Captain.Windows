@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 
@@ -33,5 +34,12 @@ namespace Captain.Application.Native {
     ///   The y-coordinate of the lower-right corner of the rectangle.
     /// </summary>
     internal int bottom;
+
+    /// <summary>
+    ///   Converts a native <see cref="RECT"/> structure to a Framework <see cref="Rectangle"/> type
+    /// </summary>
+    /// <returns></returns>
+    internal Rectangle ToRectangle() =>
+      Rectangle.FromLTRB(this.left, this.top, this.right, this.bottom);
   }
 }

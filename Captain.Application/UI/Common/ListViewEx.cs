@@ -25,23 +25,22 @@ namespace Captain.Application {
 
         // remove focus cues
         User32.SendMessage(Handle,
-                           (uint)User32.WindowMessage.WM_CHANGEUISTATE,
-                           new IntPtr(BitHelper.MakeLong((int)User32.UIStateFlags.UIS_SET,
-                                                         (int)User32.UIStateFlags.UISF_HIDEFOCUS)),
-                           IntPtr.Zero);
+          (uint) User32.WindowMessage.WM_CHANGEUISTATE,
+          new IntPtr(BitHelper.MakeLong((int) User32.UIStateFlags.UIS_SET,
+            (int) User32.UIStateFlags.UISF_HIDEFOCUS)),
+          IntPtr.Zero);
 
         // enable double buffer to reduce flicker and display a traslucent selection box
         User32.SendMessage(Handle,
-                           (uint)User32.WindowMessage.LVM_SETEXTENDEDLISTVIEWSTYLE,
-                           new IntPtr((int)User32.WindowStylesEx.LVS_EX_DOUBLEBUFFER),
-                           new IntPtr((int)User32.WindowStylesEx.LVS_EX_DOUBLEBUFFER));
+          (uint) User32.WindowMessage.LVM_SETEXTENDEDLISTVIEWSTYLE,
+          new IntPtr((int) User32.WindowStylesEx.LVS_EX_DOUBLEBUFFER),
+          new IntPtr((int) User32.WindowStylesEx.LVS_EX_DOUBLEBUFFER));
 
         // reset hot cursor
         User32.SendMessage(Handle,
-                           (uint)User32.WindowMessage.LVM_SETHOTCURSOR,
-                           IntPtr.Zero,
-                           Cursors.Arrow.Handle);
-
+          (uint) User32.WindowMessage.LVM_SETHOTCURSOR,
+          IntPtr.Zero,
+          Cursors.Arrow.Handle);
       }
 
       base.OnCreateControl();

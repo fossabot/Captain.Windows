@@ -1,6 +1,6 @@
 ﻿namespace Captain.Common {
   /// <summary>
-  ///   Implemented by an <see cref="Action"/> that, during progress, reports a specific byte rate.
+  ///   Implemented by an <see cref="Action" /> that, during progress, reports a specific byte rate.
   /// </summary>
   public interface IReportsRate {
     /// <summary>
@@ -13,7 +13,7 @@
     ///   The capture handling speed in bytes per second.
     /// </returns>
     /// <remarks>
-    ///   For performing this calculations, use the <see cref="Action.Length"/> value.
+    ///   For performing this calculations, use the <see cref="Action.Length" /> value.
     /// </remarks>
     uint GetRate();
   }

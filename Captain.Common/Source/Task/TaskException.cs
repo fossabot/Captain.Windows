@@ -9,7 +9,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Gets or sets the short message for this exception.
     /// </summary>
-    public string ShortMessage { get; set; }
+    public string ShortMessage { get; }
 
     /// <inheritdoc />
     /// <summary>
@@ -19,6 +19,8 @@ namespace Captain.Common {
     /// <param name="message">Long description for this exception.</param>
     /// <param name="innerException">Inner exception that is the cause of this exception.</param>
     public TaskException(string shortMessage, string message, Exception innerException) :
-      base(message, innerException) => ShortMessage = shortMessage;
+      base(message, innerException) {
+      ShortMessage = shortMessage;
+    }
   }
 }

@@ -30,14 +30,6 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
-    ///   Extra data associated with this object that is to be saved to the user settings
-    /// </summary>
-    public Dictionary<string, object> Options { get; set; } = new Dictionary<string, object> {
-      {"PathTemplate", Resources.SaveToFile_DefaultNameTemplate}
-    };
-
-    /// <inheritdoc />
-    /// <summary>
     ///   Creates a new instance of this action.
     /// </summary>
     /// <param name="codec">Codec instance.</param>
@@ -70,13 +62,40 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
+    ///   Extra data associated with this object that is to be saved to the user settings
+    /// </summary>
+    public Dictionary<string, object> Options { get; set; } = new Dictionary<string, object> {
+      { "PathTemplate", Resources.SaveToFile_DefaultNameTemplate }
+    };
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) => throw new NotImplementedException();
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Retrieves the Universal Resource Identifier (URI) for the processed capture.
+    /// </summary>
+    /// <remarks>
+    ///   This method is called by Captain if and only if the <see cref="P:Captain.Common.Action.Status" /> property has
+    ///   been set to <see cref="F:Captain.Common.ActionStatus.Success" />.
+    /// </remarks>
+    /// <returns>An instance of <see cref="T:System.Uri" />, representing the capture.</returns>
+    public Uri GetUri() => new Uri(this.path);
+
+    /// <inheritdoc />
+    /// <summary>
     ///   Sets the position within the current stream.
     /// </summary>
     /// <param name="offset">A byte offset relative to the <paramref name="origin" /> parameter.</param>
     /// <param name="origin">A value indicating the reference point used to obtain the new position.</param>
     /// <returns>The new position within the current stream.</returns>
-    public override long Seek(long offset, SeekOrigin origin) =>
-      Position = this.fileStream.Seek(offset, origin);
+    public override long Seek(long offset, SeekOrigin origin) {
+      return Position = this.fileStream.Seek(offset, origin);
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -109,23 +128,5 @@ namespace Captain.Application {
       SetStatus(ActionStatus.Success);
       base.Dispose(disposing);
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Retrieves the Universal Resource Identifier (URI) for the processed capture.
-    /// </summary>
-    /// <remarks>
-    ///   This method is called by Captain if and only if the <see cref="P:Captain.Common.Action.Status" /> property has
-    ///   been set to <see cref="F:Captain.Common.ActionStatus.Success" />.
-    /// </remarks>
-    /// <returns>An instance of <see cref="T:System.Uri" />, representing the capture.</returns>
-    public Uri GetUri() => new Uri(this.path);
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Displays an interface for letting the user configure this object
-    /// </summary>
-    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
-    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) => throw new NotImplementedException();
   }
 }

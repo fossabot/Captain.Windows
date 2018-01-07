@@ -44,31 +44,35 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnQualityTrackBarValueChanged(object sender, EventArgs eventArgs) =>
+    private void OnQualityTrackBarValueChanged(object sender, EventArgs eventArgs) {
       Options["Quality"] = this.qualityTrackBar.Value / 100.0;
+    }
 
     /// <summary>
     ///   Triggered when the bitmap transform option has changed.
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnTransformOptionChanged(object sender, EventArgs eventArgs) =>
+    private void OnTransformOptionChanged(object sender, EventArgs eventArgs) {
       Options["Transform"] = this.transformComboBox.SelectedIndex;
+    }
 
     /// <summary>
     ///   Triggered when the Y'CrCb subsampling option has changed.
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnSubsamplingOptionChanged(object sender, EventArgs eventArgs) =>
+    private void OnSubsamplingOptionChanged(object sender, EventArgs eventArgs) {
       Options["ChromaSubsampling"] = (JpegYCrCbSubsamplingOption) this.subsamplingOptionComboBox.SelectedIndex;
+    }
 
     /// <summary>
     ///   Triggered when the App0 suppression option has changed.
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnApp0OptionChanged(object sender, EventArgs eventArgs) =>
+    private void OnApp0OptionChanged(object sender, EventArgs eventArgs) {
       Options["NoApp0"] = this.suppressApp0ComboBox.Checked;
+    }
   }
 }

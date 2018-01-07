@@ -7,11 +7,11 @@ using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
-  /// <inheritdoc />
+  /// <inheritdoc cref="Behaviour" />
   /// <summary>
   ///   Provides keyboard hooking logic for system UI
   /// </summary>
-  internal sealed class SystemKeyboardHookProvider : IKeyboardHookProvider {
+  internal sealed class DesktopKeyboardHook : Behaviour, IKeyboardHookProvider {
     // ReSharper disable once InconsistentNaming
     /// <summary>
     ///   The wParam and lParam parameters contain information about a keyboard message.
@@ -19,24 +19,24 @@ namespace Captain.Application {
     private const int HC_ACTION = 0;
 
     /// <summary>
-    ///   Low-level keyboard hook procedure reference so it it does not get garbage collected
-    /// </summary>
-    private User32.WindowsHookDelegate lowLevelKeyboardHook;
-
-    /// <summary>
     ///   Handle for the system keyboard hook
     /// </summary>
     private IntPtr hookHandle;
 
     /// <summary>
-    ///   Modifier keys.
-    /// </summary>
-    private Keys modifiers;
-
-    /// <summary>
     ///   Current keyboard state
     /// </summary>
     private Keys keys;
+
+    /// <summary>
+    ///   Low-level keyboard hook procedure reference so it it does not get garbage collected
+    /// </summary>
+    private User32.WindowsHookDelegate lowLevelKeyboardHook;
+
+    /// <summary>
+    ///   Modifier keys.
+    /// </summary>
+    private Keys modifiers;
 
     /// <inheritdoc />
     /// <summary>
@@ -52,9 +52,17 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() {
+      Unlock();
+    }
+
+    /// <inheritdoc />
+    /// <summary>
     ///   Starts capturing keyboard events
     /// </summary>
-    public void Acquire() {
+    protected override void Lock() {
       if (this.hookHandle != IntPtr.Zero) {
         throw new InvalidOperationException("The previous hook must be released before capturing the keyboard again.");
       }
@@ -74,7 +82,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Releases the keyboard hook
     /// </summary>
-    public void Release() {
+    protected override void Unlock() {
       if (this.hookHandle != IntPtr.Zero) {
         if (!User32.UnhookWindowsHookEx(this.hookHandle)) {
           Log.WriteLine(LogLevel.Warning, $"UnhookWindowsHookEx() failed (LE 0x{Marshal.GetLastWin32Error():x8}");
@@ -84,12 +92,6 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Debug, "low-level mouse hook has been uninstalled");
       }
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() => Release();
 
     /// <summary>
     ///   Keyboard hook procedure
@@ -107,26 +109,23 @@ namespace Captain.Application {
 
         switch (wParam.ToInt32()) {
           // a key is held
+          case (int) User32.WindowMessage.WM_SYSKEYDOWN:
           case (int) User32.WindowMessage.WM_KEYDOWN:
-            if (eventInfo.vkCode == (int)Keys.LShiftKey || eventInfo.vkCode == (int)Keys.RShiftKey) {
+            /*if (eventInfo.vkCode == (int) Keys.LShiftKey || eventInfo.vkCode == (int) Keys.RShiftKey) {
               this.modifiers |= Keys.Shift;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LMenu || eventInfo.vkCode == (int)Keys.RMenu) {
+            if ((eventInfo.flags & KeyFlags.KF_ALTDOWN) != 0 || eventInfo.vkCode == (int) Keys.LMenu || eventInfo.vkCode == (int) Keys.RMenu) {
               this.modifiers |= Keys.Alt;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LControlKey || eventInfo.vkCode == (int)Keys.RControlKey) {
+            if (eventInfo.vkCode == (int) Keys.LControlKey || eventInfo.vkCode == (int) Keys.RControlKey) {
               this.modifiers |= Keys.Control;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LWin || eventInfo.vkCode == (int)Keys.RWin) {
+            if (eventInfo.vkCode == (int) Keys.LWin || eventInfo.vkCode == (int) Keys.RWin) {
               this.modifiers |= Keys.LWin;
-              break;
-            }
+            }*/
 
             this.keys = (Keys) eventInfo.vkCode;
 
@@ -137,6 +136,7 @@ namespace Captain.Application {
             break;
 
           // a key is released
+          case (int) User32.WindowMessage.WM_SYSKEYUP:
           case (int) User32.WindowMessage.WM_KEYUP:
             var keyUpEventArgs = new KeyEventArgs(this.keys | this.modifiers);
             OnKeyUp?.Invoke(this, keyUpEventArgs);
@@ -144,24 +144,21 @@ namespace Captain.Application {
 
             this.keys = Keys.None;
 
-            if (eventInfo.vkCode == (int)Keys.LShiftKey || eventInfo.vkCode == (int)Keys.RShiftKey) {
+            /*if (eventInfo.vkCode == (int) Keys.LShiftKey || eventInfo.vkCode == (int) Keys.RShiftKey) {
               this.modifiers &= ~Keys.Shift;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LMenu || eventInfo.vkCode == (int)Keys.RMenu) {
+            if ((eventInfo.flags & KeyFlags.KF_ALTDOWN) != 0 || eventInfo.vkCode == (int) Keys.LMenu || eventInfo.vkCode == (int) Keys.RMenu) {
               this.modifiers &= ~Keys.Alt;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LControlKey || eventInfo.vkCode == (int)Keys.RControlKey) {
+            if (eventInfo.vkCode == (int) Keys.LControlKey || eventInfo.vkCode == (int) Keys.RControlKey) {
               this.modifiers &= ~Keys.Control;
-              break;
             }
 
-            if (eventInfo.vkCode == (int)Keys.LWin || eventInfo.vkCode == (int)Keys.RWin) {
+            if (eventInfo.vkCode == (int) Keys.LWin || eventInfo.vkCode == (int) Keys.RWin) {
               this.modifiers &= ~Keys.LWin;
-            }
+            }*/
 
             break;
         }

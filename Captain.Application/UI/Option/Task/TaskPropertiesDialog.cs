@@ -13,11 +13,6 @@ namespace Captain.Application {
   /// </summary>
   internal sealed partial class TaskPropertiesDialog : Window {
     /// <summary>
-    ///   Keyboard hook for getting the hotkey for this task.
-    /// </summary>
-    private readonly IKeyboardHookProvider keyboardHook;
-
-    /// <summary>
     ///   Underlying task
     /// </summary>
     internal Task Task { get; }
@@ -32,9 +27,6 @@ namespace Captain.Application {
 
       // dialog result will be set to "OK" once the data has been validated
       DialogResult = DialogResult.Cancel;
-
-      this.keyboardHook = new SystemKeyboardHookProvider();
-      this.keyboardHook.OnKeyUp += OnHotkeyKeyUp;
 
       this.encoderOptionsLinkButton.Image = Resources.EncoderOptions;
 
@@ -66,11 +58,13 @@ namespace Captain.Application {
     /// <summary>
     ///   Updates actions preview label text
     /// </summary>
-    private void UpdateActionsPreview() => this.actionsPreviewLabel.Text = Task.Actions.Count == 1
-      ? Resources.TaskPropertiesDialog_SingleAction
-      : Task.Actions.Count > 1
-        ? String.Format(Resources.TaskPropertiesDialog_MultipleActions, Task.Actions.Count)
-        : Resources.TaskPropertiesDialog_NoActions;
+    private void UpdateActionsPreview() {
+      this.actionsPreviewLabel.Text = Task.Actions.Count == 1
+        ? Resources.TaskPropertiesDialog_SingleAction
+        : Task.Actions.Count > 1
+          ? String.Format(Resources.TaskPropertiesDialog_MultipleActions, Task.Actions.Count)
+          : Resources.TaskPropertiesDialog_NoActions;
+    }
 
     /// <summary>
     ///   Validates the task.
@@ -152,7 +146,7 @@ namespace Captain.Application {
         UpdateValidationStatus();
       }
 
-      this.encoderOptionsLinkButton.Enabled = ((PluginObject)this.encoderComboBox.SelectedItem).Configurable;
+      this.encoderOptionsLinkButton.Enabled = ((PluginObject) this.encoderComboBox.SelectedItem).Configurable;
     }
 
     /// <summary>
@@ -203,7 +197,7 @@ namespace Captain.Application {
           Width = 200,
           ExpandedInformation = $@"{exception.GetType()}: {exception.Message}",
           ExpandFooterArea = true,
-          Buttons = {new TaskDialogButton(ButtonType.Ok)},
+          Buttons = { new TaskDialogButton(ButtonType.Ok) },
           MainIcon = TaskDialogIcon.Error,
           WindowTitle = this.encoderComboBox.Text
         }.ShowDialog();
@@ -216,8 +210,7 @@ namespace Captain.Application {
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
     private void OnHotkeyTextBoxEnter(object sender, EventArgs eventArgs) {
-      DesktopKeyboardHook.Release();
-      this.keyboardHook.Acquire();
+      Application.DesktopKeyboardHook.OnKeyUp += OnHotkeyKeyUp;
     }
 
     /// <summary>
@@ -226,8 +219,7 @@ namespace Captain.Application {
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
     private void OnHotkeyTextBoxLeave(object sender, EventArgs eventArgs) {
-      this.keyboardHook.Release();
-      DesktopKeyboardHook.Acquire();
+      Application.DesktopKeyboardHook.OnKeyUp -= OnHotkeyKeyUp;
     }
   }
 }

@@ -28,11 +28,12 @@ namespace Captain.Application {
 
           // release used resources
           if (nativeFolder != default) { Marshal.FreeCoTaskMem(nativeFolder); }
+
           return;
         }
 
         // open the file explorer window
-        if ((hr = Shell32.SHOpenFolderAndSelectItems(nativeFolder, 1, new[] {nativeFile}, 0)) != 0) {
+        if ((hr = Shell32.SHOpenFolderAndSelectItems(nativeFolder, 1, new[] { nativeFile }, 0)) != 0) {
           Log.WriteLine(LogLevel.Warning, $"SHOpenFolderAndSelectItems() failed: HRESULT 0x{hr:x8}");
         }
 

@@ -40,13 +40,14 @@ namespace Captain.Application {
     /// <summary>
     ///   Class constructor.
     /// </summary>
-    public LinkButton() =>
+    public LinkButton() {
       SetStyle(ControlStyles.SupportsTransparentBackColor |
                ControlStyles.UserPaint |
                ControlStyles.AllPaintingInWmPaint |
                ControlStyles.DoubleBuffer |
                ControlStyles.StandardClick,
         true);
+    }
 
     /// <inheritdoc />
     /// <summary>Processes Windows messages.</summary>
@@ -175,11 +176,11 @@ namespace Captain.Application {
         float bb = cb * 0.6666f;
 
         attrs.SetColorMatrix(new ColorMatrix(new[] {
-          new[] {cr, cg, cb, 0f, 0f},
-          new[] {cb, cr, cg, 0f, 0f},
-          new[] {cg, cb, cr, 0f, 0f},
-          new[] {0f, 0f, 0f, ca, 0f},
-          new[] {br, bg, bb, 0f, 1f}
+          new[] { cr, cg, cb, 0f, 0f },
+          new[] { cb, cr, cg, 0f, 0f },
+          new[] { cg, cb, cr, 0f, 0f },
+          new[] { 0f, 0f, 0f, ca, 0f },
+          new[] { br, bg, bb, 0f, 1f }
         }));
 
         eventArgs.Graphics.DrawImage(Image,

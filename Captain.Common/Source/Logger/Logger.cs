@@ -24,7 +24,7 @@ namespace Captain.Common {
     ///   Provides a list of streams where each log message is to be forwarded
     /// </summary>
     public List<Stream> Streams { get; } = new List<Stream>();
-    
+
     /// <summary>
     ///   Writes a message to the logger
     /// </summary>
@@ -46,22 +46,21 @@ namespace Captain.Common {
       long ticks = DateTime.Now.Ticks;
 
       // get calling method
-      MethodBase method = new StackFrame((int)SkipFrames).GetMethod();
+      MethodBase method = new StackFrame((int) SkipFrames).GetMethod();
       string methodName;
 
       // format method as "<enclosing type>::<method name>"
-      if (method is null || method.DeclaringType is null) {
-        methodName = "????";
-      } else {
+      if (method is null || method.DeclaringType is null) { methodName = "????"; } else {
         methodName = $"{method.DeclaringType.Name}.{method.Name}";
       }
 
       // format message as "[<milliseconds diff> <level> <method>] <message>"
       // ReSharper disable once UseStringInterpolation
       string msg = String.Format("{0:00.0000} {1} {2}",
-                                 TimeSpan.FromTicks(this.previousTicks == -1 ? 0 : ticks - this.previousTicks).TotalSeconds,  // zero if no previous tick count is set, otherwise the difference of ticks
-                                 level.ToShortString(),
-                                 methodName);
+        TimeSpan.FromTicks(this.previousTicks == -1 ? 0 : ticks - this.previousTicks)
+          .TotalSeconds, // zero if no previous tick count is set, otherwise the difference of ticks
+        level.ToShortString(),
+        methodName);
       string body = String.Format(format?.ToString() ?? "<null>", args) + Environment.NewLine;
       Console.ForegroundColor = level.GetAssociatedConsoleColor();
       Console.Write(msg = $"[{msg}] {body}");

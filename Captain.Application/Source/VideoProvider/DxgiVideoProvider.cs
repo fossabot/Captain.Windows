@@ -9,11 +9,8 @@ using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using SharpDX.WIC;
 using static Captain.Application.Application;
-using Bitmap = SharpDX.WIC.Bitmap;
-using BitmapData = Captain.Common.BitmapData;
 using Device = SharpDX.Direct3D11.Device;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
-using PixelFormat = SharpDX.WIC.PixelFormat;
 using Rectangle = System.Drawing.Rectangle;
 using Resource = SharpDX.DXGI.Resource;
 using ResultCode = SharpDX.DXGI.ResultCode;
@@ -80,24 +77,6 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
-    ///   Rectangle to be captured.
-    /// </summary>
-    public Rectangle CaptureBounds { get; }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Last time the desktop surface was updated, in 100-nanosecond units.
-    /// </summary>
-    public long LastPresentTime { get; private set; }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Pointer to the shared Direct3D 11 surface.
-    /// </summary>
-    public IntPtr SurfacePointer => SharedTexture?.NativePointer ?? IntPtr.Zero;
-
-    /// <inheritdoc />
-    /// <summary>
     ///   Class constructor
     /// </summary>
     /// <param name="rect">Screen region</param>
@@ -111,6 +90,7 @@ namespace Captain.Application {
 
       // enumerate outputs
       if (factory.GetAdapterCount1() == 0) { throw new NotSupportedException("No suitable video adapters found"); }
+
       foreach (Adapter adapter in factory.Adapters) {
         intersections.AddRange(from output in adapter.Outputs
           let outputRect = new Rectangle(output.Description.DesktopBounds.Left,
@@ -152,7 +132,7 @@ namespace Captain.Application {
 
       // create devices for each adapter
       this.devices = this.adapters.Select((a, i) => {
-          DeviceCreationFlags flags = DeviceCreationFlags.VideoSupport;
+          var flags = DeviceCreationFlags.VideoSupport;
 #if DEBUG
           flags |= DeviceCreationFlags.Debug;
 #endif
@@ -178,14 +158,14 @@ namespace Captain.Application {
             OptionFlags = ResourceOptionFlags.None,
             MipLevels = 1,
             ArraySize = 1,
-            SampleDescription = {Count = 1, Quality = 0},
+            SampleDescription = { Count = 1, Quality = 0 },
             Usage = ResourceUsage.Staging
           }))
         .ToArray();
 
       // let video encoders use the screen texture if a single monitor is being captured
       // TODO: implement D3D12 multi-adapter support
-      if (false) {
+      /*if (...) {
         // create full capture texture
         SharedTexture = new Texture2D(this.devices[0],
           new Texture2DDescription {
@@ -200,13 +180,14 @@ namespace Captain.Application {
             SampleDescription = {Count = 1, Quality = 0},
             Usage = ResourceUsage.Staging
           });
-      } else if (StagingTextures.Length == 1) { SharedTexture = StagingTextures[0]; }
+      } else*/
+      if (StagingTextures.Length == 1) { SharedTexture = StagingTextures[0]; }
 
       // duplicate desktops
       this.duplications = this.outputs.Select((o, i) => {
           try {
             // attempt to use DuplicateOutput1 for improved performance and SRGB support
-            Format[] formats = {Format.B8G8R8A8_UNorm};
+            Format[] formats = { Format.B8G8R8A8_UNorm };
             return o.QueryInterface<Output6>().DuplicateOutput1(this.devices[i], 0, formats.Length, formats);
           } catch (SharpDXException exception1) when (exception1.HResult ==
                                                       ResultCode.Unsupported.Result) {
@@ -223,6 +204,24 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
+    ///   Rectangle to be captured.
+    /// </summary>
+    public Rectangle CaptureBounds { get; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Last time the desktop surface was updated, in 100-nanosecond units.
+    /// </summary>
+    public long LastPresentTime { get; private set; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Pointer to the shared Direct3D 11 surface.
+    /// </summary>
+    public IntPtr SurfacePointer => SharedTexture?.NativePointer ?? IntPtr.Zero;
+
+    /// <inheritdoc />
+    /// <summary>
     ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
     public void Dispose() {
@@ -234,47 +233,15 @@ namespace Captain.Application {
 
       SharedTexture?.Dispose();
       if (StagingTextures != null) { foreach (Texture2D texture in StagingTextures) { texture.Dispose(); } }
+
       if (this.devices != null) { foreach (Device dev in this.devices) { dev?.Dispose(); } }
+
       if (this.outputs != null) { foreach (Output output in this.outputs) { output?.Dispose(); } }
+
       if (this.adapters != null) { foreach (Adapter adapter in this.adapters) { adapter?.Dispose(); } }
 
       GC.Collect();
       GC.WaitForPendingFinalizers();
-    }
-
-    /// <summary>
-    ///   Acquires a frame from the desktop duplication instance with the specified index
-    /// </summary>
-    /// <param name="index">Index of the desktop duplication instance</param>
-    private void AcquireFrame(int index) {
-      OutputDuplicateFrameInformation info;
-      Resource desktopResource = null;
-      OutputDuplication duplication = this.duplications[index];
-
-      do {
-        // release previous frame if last capture attempt failed
-        if (desktopResource != null) {
-          desktopResource.Dispose();
-          duplication.ReleaseFrame();
-        }
-
-        // try to capture a frame
-        duplication.AcquireNextFrame(DuplicationFrameTimeout,
-          out info,
-          out desktopResource);
-      } while (info.TotalMetadataBufferSize == 0);
-
-      LastPresentTime = info.LastPresentTime;
-      this.devices[index]
-        .ImmediateContext.CopySubresourceRegion(desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>(),
-          0,
-          this.regions[index],
-          StagingTextures[index],
-          0);
-
-      // release resources
-      desktopResource.Dispose();
-      duplication.ReleaseFrame();
     }
 
     /// <inheritdoc />
@@ -353,6 +320,43 @@ namespace Captain.Application {
     ///   Releases the bitmap created for the last frame
     /// </summary>
     /// <param name="data"></param>
-    public void UnlockFrameBitmap(BitmapData data) => new BitmapLock(data.LockPointer).Dispose();
+    public void UnlockFrameBitmap(BitmapData data) {
+      new BitmapLock(data.LockPointer).Dispose();
+    }
+
+    /// <summary>
+    ///   Acquires a frame from the desktop duplication instance with the specified index
+    /// </summary>
+    /// <param name="index">Index of the desktop duplication instance</param>
+    private void AcquireFrame(int index) {
+      OutputDuplicateFrameInformation info;
+      Resource desktopResource = null;
+      OutputDuplication duplication = this.duplications[index];
+
+      do {
+        // release previous frame if last capture attempt failed
+        if (desktopResource != null) {
+          desktopResource.Dispose();
+          duplication.ReleaseFrame();
+        }
+
+        // try to capture a frame
+        duplication.AcquireNextFrame(DuplicationFrameTimeout,
+          out info,
+          out desktopResource);
+      } while (info.TotalMetadataBufferSize == 0);
+
+      LastPresentTime = info.LastPresentTime;
+      this.devices[index]
+        .ImmediateContext.CopySubresourceRegion(desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>(),
+          0,
+          this.regions[index],
+          StagingTextures[index],
+          0);
+
+      // release resources
+      desktopResource.Dispose();
+      duplication.ReleaseFrame();
+    }
   }
 }

@@ -30,8 +30,10 @@ namespace Captain.Application {
 
       try {
         iconSize = User32.GetSystemMetricsForDpi((int) User32.SystemMetrics.SM_CYSMICON,
-                                                     (uint) User32.GetDpiForWindow(handle));
-      } catch { /* not supported on this platform */ }
+          (uint) User32.GetDpiForWindow(handle));
+      } catch {
+        /* not supported on this platform */
+      }
 
       using (Bitmap indicatorStrip = Resources.FluentIndicatorStrip) {
         int iconCount = indicatorStrip.Width / iconSize;
@@ -45,23 +47,22 @@ namespace Captain.Application {
             iconSize = 16; // use 16x16 variant
             yOffset += 32 + 24; // skip 32x32 and 24x24 rows
           }
-        } else {
-          iconSize = 32;
-        }
+        } else { iconSize = 32; }
 
         var iconBounds = new Rectangle(0, 0, iconSize, iconSize);
         this.indicators = new Icon[iconCount];
 
-        using (var currentIcon = new Bitmap(iconSize, iconSize))  // current icon bitmap
-        using (var iconGraphics = Graphics.FromImage(currentIcon)) {  // create graphics for current icon
+        using (var currentIcon = new Bitmap(iconSize, iconSize)) // current icon bitmap
+        using (Graphics iconGraphics = Graphics.FromImage(currentIcon)) {
+          // create graphics for current icon
           for (int i = 0; i < iconCount; i++) {
             iconGraphics.Clear(Color.Transparent);
 
             // copy frame from the indicator strip to the current icon bitmap
             iconGraphics.DrawImage(indicatorStrip,
-                                   iconBounds,
-                                   new Rectangle(i * iconSize, yOffset, iconSize, iconSize),
-                                   GraphicsUnit.Pixel);
+              iconBounds,
+              new Rectangle(i * iconSize, yOffset, iconSize, iconSize),
+              GraphicsUnit.Pixel);
 
             // create and store the icon from the current bitmap
             this.indicators[i] = Icon.FromHandle(currentIcon.GetHicon());
@@ -82,7 +83,7 @@ namespace Captain.Application {
           return this.indicators[0];
 
         case IndicatorStatus.Recording: // frame 1 - toggle recording badge and return the icon
-          return this.indicators[this.counter = (byte)(++this.counter % 2)];
+          return this.indicators[this.counter = (byte) (++this.counter % 2)];
 
         case IndicatorStatus.Warning: // frame 2 - return application icon with a warning badge
           return this.indicators[2];
@@ -91,7 +92,7 @@ namespace Captain.Application {
           return this.indicators[3];
 
         case IndicatorStatus.Progress: // frames [4..9] (6 frames) - increment the animation frame and return the icon
-          return this.indicators[4 + (this.counter = (byte)(++this.counter % 6))];
+          return this.indicators[4 + (this.counter = (byte) (++this.counter % 6))];
 
         default: // unrecognized icon status
           throw new ArgumentOutOfRangeException(nameof(status), status, null);

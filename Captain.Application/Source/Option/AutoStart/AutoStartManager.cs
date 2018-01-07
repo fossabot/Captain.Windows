@@ -40,7 +40,9 @@ namespace Captain.Application {
     /// <summary>
     ///   Constructs an instance of this class
     /// </summary>
-    internal AutoStartManager() => OpenStartupRegistryKey();
+    internal AutoStartManager() {
+      OpenStartupRegistryKey();
+    }
 
     /// <summary>
     ///   Opens the Startup registry key
@@ -69,13 +71,11 @@ namespace Captain.Application {
       // executable path
       try {
         if (!String.Equals(Path.GetFullPath(this.startupRegistryKey.GetValue(
-          System.Windows.Forms.Application.ProductName,
-          null).ToString()),
+              System.Windows.Forms.Application.ProductName,
+              null)
+            .ToString()),
           Path.GetFullPath(Assembly.GetExecutingAssembly().Location),
-          StringComparison.InvariantCultureIgnoreCase)) {
-          // application executables do not match
-          return AutoStartPolicy.Disapproved;
-        }
+          StringComparison.InvariantCultureIgnoreCase)) { return AutoStartPolicy.Disapproved; }
       } catch (NullReferenceException) {
         // startup path is null (no auto-start entry found)
         return AutoStartPolicy.Disapproved;
@@ -84,7 +84,6 @@ namespace Captain.Application {
       try {
         if (this.approvedStartupRegistryKey != null &&
             this.approvedStartupRegistryKey.GetValue(System.Windows.Forms.Application.ProductName) is byte[] data) {
-          // sanity check: make sure the application startup is approved!
           return (AutoStartPolicy) BitConverter.ToInt32(data, 0);
         }
       } catch (Exception exception) when (exception is SecurityException ||
@@ -118,13 +117,13 @@ namespace Captain.Application {
             this.approvedStartupRegistryKey.DeleteValue(System.Windows.Forms.Application.ProductName);
           } else if (!hard) {
             Log.WriteLine(LogLevel.Verbose, $"updating automatic startup policy: {policy}");
-            this.approvedStartupRegistryKey.SetValue(System.Windows.Forms.Application.ProductName, BitConverter.GetBytes((int) policy));
+            this.approvedStartupRegistryKey.SetValue(System.Windows.Forms.Application.ProductName,
+              BitConverter.GetBytes((int) policy));
             return policy.Value;
           }
         }
 
         if (!policy.HasValue) {
-          // no value provided and no approved startup key whatsoever - get and invert the current policy
           policy = GetAutoStartPolicy() == AutoStartPolicy.Approved
             ? AutoStartPolicy.Disapproved
             : AutoStartPolicy.Approved;

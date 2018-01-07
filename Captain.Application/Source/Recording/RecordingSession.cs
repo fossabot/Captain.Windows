@@ -18,24 +18,14 @@ namespace Captain.Application {
     private readonly IVideoCodec codec;
 
     /// <summary>
-    ///   Underlying task.
-    /// </summary>
-    private readonly Task task;
-
-    /// <summary>
     ///   Effective region.
     /// </summary>
     private readonly Rectangle region;
 
     /// <summary>
-    ///   Video provider.
+    ///   Underlying task.
     /// </summary>
-    private IBitmapVideoProvider videoProvider;
-
-    /// <summary>
-    ///   Multi-stream that contains all the action streams.
-    /// </summary>
-    private MultiStream stream;
+    private readonly Task task;
 
     /// <summary>
     ///   Actions to be performed.
@@ -43,14 +33,24 @@ namespace Captain.Application {
     private List<Action> actions;
 
     /// <summary>
+    ///   Whether the video provider needs its frames to be locked.
+    /// </summary>
+    private bool isAcceleratedEncoding;
+
+    /// <summary>
     ///   Recording thread.
     /// </summary>
     private Thread recordingThread;
 
     /// <summary>
-    ///   Whether the video provider needs its frames to be locked.
+    ///   Multi-stream that contains all the action streams.
     /// </summary>
-    private bool isAcceleratedEncoding;
+    private MultiStream stream;
+
+    /// <summary>
+    ///   Video provider.
+    /// </summary>
+    private IBitmapVideoProvider videoProvider;
 
     /// <summary>
     ///   Recording state.
@@ -89,6 +89,17 @@ namespace Captain.Application {
       }
     }
 
+    /// <inheritdoc />
+    /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() {
+      State = RecordingState.None;
+      this.stream?.Dispose();
+      this.videoProvider?.Dispose();
+      GC.Collect();
+    }
+
     internal void Start() {
       this.videoProvider = VideoProviderFactory.Create(this.region);
       this.actions = this.task.Actions.Select(a => {
@@ -111,7 +122,7 @@ namespace Captain.Application {
                   null,
                   Type.EmptyTypes,
                   null)
-                ?.Invoke(action, new object[] {this.codec});
+                ?.Invoke(action, new object[] { this.codec });
             }
 
             return Activator.CreateInstance(Type.GetType(a.ActionType) ??
@@ -147,13 +158,12 @@ namespace Captain.Application {
 
       this.codec?.Initialize(this.videoProvider.CaptureBounds.Size, this.stream);
 
-      this.recordingThread = new Thread(Record) {Priority = ThreadPriority.Highest};
+      this.recordingThread = new Thread(Record) { Priority = ThreadPriority.Highest };
       this.recordingThread.SetApartmentState(ApartmentState.MTA);
       this.recordingThread.Start();
 
       State = RecordingState.Recording;
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording, 500);
-      Application.Hud.SnackBar.MorphRecordButton(State);
     }
 
     /// <summary>
@@ -184,10 +194,7 @@ namespace Captain.Application {
             // recording resumed
           }
         } else {
-          if (startTime == 0) {
-            // begin counting time at the first frame
-            startTime = presentTime;
-          }
+          if (startTime == 0) { startTime = presentTime; }
 
           // desktop has been updated
           // TODO: query updated regions so we don't count on updates outside the selected screen region
@@ -215,9 +222,9 @@ namespace Captain.Application {
     /// </remarks>
     internal void Pause() {
       if (State != RecordingState.Recording) { return; }
+
       State = RecordingState.Paused;
       this.recordingThread.Priority = ThreadPriority.Lowest;
-      Application.Hud.SnackBar.MorphRecordButton(State);
       Application.TrayIcon.SetIndicator(IndicatorStatus.Idle);
       GC.Collect();
     }
@@ -227,10 +234,10 @@ namespace Captain.Application {
     /// </summary>
     internal void Resume() {
       if (State != RecordingState.Paused) { return; }
+
       State = RecordingState.Recording;
       this.recordingThread.Interrupt();
       this.recordingThread.Priority = ThreadPriority.Highest;
-      Application.Hud.SnackBar.MorphRecordButton(State);
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Recording);
     }
 
@@ -244,21 +251,9 @@ namespace Captain.Application {
       State = RecordingState.None;
       this.recordingThread.Interrupt();
       this.recordingThread.Join();
-      Application.Hud.SnackBar?.MorphRecordButton(State);
       Application.TrayIcon.AnimateIndicator(IndicatorStatus.Progress);
       this.codec?.Finalize(this.stream);
       Dispose();
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() {
-      State = RecordingState.None;
-      this.stream?.Dispose();
-      this.videoProvider?.Dispose();
-      GC.Collect();
     }
   }
 }

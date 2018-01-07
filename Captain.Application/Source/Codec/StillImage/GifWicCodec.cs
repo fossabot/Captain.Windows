@@ -2,8 +2,7 @@
 using Captain.Common;
 using SharpDX.WIC;
 
-namespace Captain.Application
-{
+namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
   ///   PNG image encoder
@@ -15,7 +14,7 @@ namespace Captain.Application
     ///   Container format GUID
     /// </summary>
     protected override Guid ContainerFormat => ContainerFormatGuids.Gif;
-    
+
     /// <inheritdoc />
     /// <summary>
     ///   File extension for this codec

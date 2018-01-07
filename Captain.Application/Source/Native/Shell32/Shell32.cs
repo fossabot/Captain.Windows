@@ -17,10 +17,10 @@ namespace Captain.Application.Native {
     ///   The address of a pointer to a variable of type <c>ITEMIDLIST</c> that receives the item identifier list for
     ///   the object. If an error occurs, then this parameter is set to <c>null</c>.
     /// </param>
-    /// <param name="sfgaoIn">An <see cref="UInt64"/> value that specifies the attributes to query.</param>
+    /// <param name="sfgaoIn">An <see cref="UInt64" /> value that specifies the attributes to query.</param>
     /// <param name="psfgaoOut">
-    ///   A pointer to an <see cref="UInt64"/>. On return, those attributes that are true for the object and were
-    ///   requested in <paramref name="sfgaoIn"/> are set.
+    ///   A pointer to an <see cref="UInt64" />. On return, those attributes that are true for the object and were
+    ///   requested in <paramref name="sfgaoIn" /> are set.
     /// </param>
     /// <returns>
     ///   If the function succeeds, it returns <c>S_OK</c>. Otherwise, it returns an <c>HRESULT</c> error code.
@@ -28,8 +28,8 @@ namespace Captain.Application.Native {
     [DllImport(nameof(Shell32))]
     [return: MarshalAs(UnmanagedType.Error)]
     internal static extern int SHParseDisplayName(
-      [In, MarshalAs(UnmanagedType.LPWStr)] string pszName,
-      [In, Optional] IntPtr pbc,
+      [In] [MarshalAs(UnmanagedType.LPWStr)] string pszName,
+      [In] [Optional] IntPtr pbc,
       [Out] out IntPtr ppidl,
       [In] uint sfgaoIn,
       [Out] out uint psfgaoOut);
@@ -38,10 +38,10 @@ namespace Captain.Application.Native {
     ///   Opens a Windows Explorer window with specified items in a particular folder selected.
     /// </summary>
     /// <param name="pidlFolder">A pointer to a fully qualified item ID list that specifies the folder</param>
-    /// <param name="cidl">A count of items in the selection array, <paramref name="apidl"/>.</param>
+    /// <param name="cidl">A count of items in the selection array, <paramref name="apidl" />.</param>
     /// <param name="apidl">
     ///   A pointer to an array of PIDL structures, each of which is an item to select in the target folder referenced
-    ///   by <paramref name="pidlFolder"/>.
+    ///   by <paramref name="pidlFolder" />.
     /// </param>
     /// <param name="dwFlags">The optional flags.</param>
     /// <returns>If the function succeeds, it returns <c>S_OK</c>. Otherwise, it returns an HRESULT error code.</returns>
@@ -50,7 +50,7 @@ namespace Captain.Application.Native {
     internal static extern int SHOpenFolderAndSelectItems(
       [In] IntPtr pidlFolder,
       [In] uint cidl,
-      [In, Optional, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl,
+      [In] [Optional] [MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl,
       [In] int dwFlags);
   }
 }

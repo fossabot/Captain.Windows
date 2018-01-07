@@ -8,6 +8,35 @@ namespace Captain.Common {
   ///   A action handles captures.
   /// </summary>
   public class Action : Stream {
+    /// <inheritdoc />
+    /// <summary>
+    ///   Creates a new instance of this class.
+    /// </summary>
+    /// <param name="codec">Codec instance.</param>
+    public Action(ICodecBase codec) {
+      Codec = codec;
+    }
+
+    #region Events
+
+    /// <summary>
+    ///   Triggered when the action status changes.
+    /// </summary>
+    public event EventHandler<ActionStatus> OnStatusChanged;
+
+    #endregion
+
+    /// <summary>
+    ///   Sets task status.
+    /// </summary>
+    /// <param name="newStatus">New task status</param>
+    /// <param name="innerException">Optional exception for <see cref="ActionStatus.Failed" /></param>
+    public void SetStatus(ActionStatus newStatus, Exception innerException = null) {
+      Status = newStatus;
+      InnerException = innerException;
+      Flush();
+    }
+
     #region Fields
 
     /// <summary>
@@ -20,11 +49,6 @@ namespace Captain.Common {
     /// </summary>
     private ActionStatus status = ActionStatus.Ongoing;
 
-    /// <summary>
-    ///   Optional status message.
-    /// </summary>
-    private string statusMessage;
-
     #endregion
 
     #region Properties
@@ -32,27 +56,16 @@ namespace Captain.Common {
     /// <summary>
     ///   Codec instance.
     /// </summary>
-    public ICodecBase Codec { get; private set; }
+    public ICodecBase Codec { get; }
 
     /// <summary>
     ///   Current action status.
     /// </summary>
     public ActionStatus Status {
       get => this.status;
-      protected set {
+      private set {
         this.status = value;
         OnStatusChanged?.Invoke(this, value);
-      }
-    }
-
-    /// <summary>
-    ///   Optional status message.
-    /// </summary>
-    public string StatusMessage {
-      get => this.statusMessage;
-      set {
-        this.statusMessage = value;
-        OnStatusMessageChanged?.Invoke(this, value);
       }
     }
 
@@ -62,28 +75,14 @@ namespace Captain.Common {
     public Bitmap Thumbnail { get; set; }
 
     /// <summary>
-    ///   When the task fails, exception that caused this task to have the <see cref="ActionStatus.Failed"/> status.
+    ///   When the task fails, exception that caused this task to have the <see cref="ActionStatus.Failed" /> status.
     /// </summary>
-    public Exception InnerException { get; protected set; }
+    public Exception InnerException { get; private set; }
 
     /// <summary>
     ///   Buffer size.
     /// </summary>
-    public int BufferSize { get; protected set; } = 8192;
-
-    #endregion
-
-    #region Events
-
-    /// <summary>
-    ///   Triggered when the action status changes.
-    /// </summary>
-    public event EventHandler<ActionStatus> OnStatusChanged;
-
-    /// <summary>
-    ///   Triggered when the action status message changes.
-    /// </summary>
-    public event EventHandler<string> OnStatusMessageChanged;
+    public int BufferSize { get; } = 8192;
 
     #endregion
 
@@ -123,24 +122,6 @@ namespace Captain.Common {
 
     #endregion
 
-    /// <inheritdoc />
-    /// <summary>
-    ///   Creates a new instance of this class.
-    /// </summary>
-    /// <param name="codec">Codec instance.</param>
-    public Action(ICodecBase codec) => Codec = codec;
-
-    /// <summary>
-    ///   Sets task status.
-    /// </summary>
-    /// <param name="newStatus">New task status</param>
-    /// <param name="innerException">Optional exception for <see cref="ActionStatus.Failed"/></param>
-    public void SetStatus(ActionStatus newStatus, Exception innerException = null) {
-      Status = newStatus;
-      InnerException = innerException;
-      Flush();
-    }
-
     #region Overriden Stream methods
 
     /// <inheritdoc />
@@ -165,8 +146,9 @@ namespace Captain.Common {
     /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
     /// <returns>The number of bytes read into the buffer.</returns>
     /// <exception cref="T:System.NotSupportedException">Thrown when this method is called.</exception>
-    public sealed override int Read(byte[] buffer, int offset, int count) =>
+    public sealed override int Read(byte[] buffer, int offset, int count) {
       throw new NotSupportedException("Action streams are write-only");
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -194,7 +176,9 @@ namespace Captain.Common {
     ///   Sets the length of the current stream.
     /// </summary>
     /// <param name="value">The desired length of the current stream in bytes.</param>
-    public sealed override void SetLength(long value) => this.length = value;
+    public sealed override void SetLength(long value) {
+      this.length = value;
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -207,7 +191,7 @@ namespace Captain.Common {
     ///   stream.
     /// </param>
     /// <param name="count">The number of bytes to be written to the current stream.</param>
-    public override void Write(byte[] buffer, int offset, int count) {}
+    public override void Write(byte[] buffer, int offset, int count) { }
 
     #endregion
   }

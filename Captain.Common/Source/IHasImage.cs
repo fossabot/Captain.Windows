@@ -8,7 +8,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Retrieves a custom image to be displayed alongside this plugin
     /// </summary>
-    /// <returns>An <see cref="Image"/> instance</returns>
+    /// <returns>An <see cref="Image" /> instance</returns>
     Image GetImage();
   }
 }

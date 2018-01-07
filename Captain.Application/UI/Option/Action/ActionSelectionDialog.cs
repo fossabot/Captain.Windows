@@ -76,44 +76,39 @@ namespace Captain.Application {
 
       this.streamListView.View = View.Tile;
 
-      this.streamListView.Columns.Add(new ColumnHeader {Name = "streamName"});
-      this.streamListView.Columns.Add(new ColumnHeader {Name = "pluginName"});
-      this.streamListView.Columns.Add(new ColumnHeader {Name = "publisherName"});
+      this.streamListView.Columns.Add(new ColumnHeader { Name = "streamName" });
+      this.streamListView.Columns.Add(new ColumnHeader { Name = "pluginName" });
+      this.streamListView.Columns.Add(new ColumnHeader { Name = "publisherName" });
 
       this.streamListView.Items.AddRange(Application.PluginManager.Actions.Select((s, i) => {
-        try {
-          this.streamIconList.Images.Add(s.Type.GetInterface("IHasImage") != null
-            ? ((IHasImage) FormatterServices.GetUninitializedObject(s.Type)).GetImage()
-            : Resources.Placeholder);
-        } catch {
-          this.streamIconList.Images.Add(Resources.Placeholder);
-        }
+          try {
+            this.streamIconList.Images.Add(s.Type.GetInterface("IHasImage") != null
+              ? ((IHasImage) FormatterServices.GetUninitializedObject(s.Type)).GetImage()
+              : Resources.Placeholder);
+          } catch { this.streamIconList.Images.Add(Resources.Placeholder); }
 
-        var item = new ListViewItem(s.ToString()) {
-          ImageIndex = i,
-          UseItemStyleForSubItems = true,
-          Tag = s
-        };
+          var item = new ListViewItem(s.ToString()) {
+            ImageIndex = i,
+            UseItemStyleForSubItems = true,
+            Tag = s
+          };
 
-        Assembly pluginAssembly = s.Type.Assembly;
-        try {
-          string title =
-            ((AssemblyTitleAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyTitleAttribute))).Title;
-          item.SubItems.Add(new ListViewItem.ListViewSubItem(item, $"{title} ({pluginAssembly.GetName().Version})"));
-        } catch {
-          item.SubItems.Add(new ListViewItem.ListViewSubItem(item, pluginAssembly.GetName().Name));
-        }
+          Assembly pluginAssembly = s.Type.Assembly;
+          try {
+            string title =
+              ((AssemblyTitleAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyTitleAttribute))).Title;
+            item.SubItems.Add(new ListViewItem.ListViewSubItem(item, $"{title} ({pluginAssembly.GetName().Version})"));
+          } catch { item.SubItems.Add(new ListViewItem.ListViewSubItem(item, pluginAssembly.GetName().Name)); }
 
-        try {
-          string company =
-            ((AssemblyCompanyAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyCompanyAttribute))).Company;
-          item.SubItems.Add(new ListViewItem.ListViewSubItem(item, company));
-        } catch {
-          item.SubItems.Add(new ListViewItem.ListViewSubItem(item, Resources.Plugin_DefaultPublisherName));
-        }
+          try {
+            string company =
+              ((AssemblyCompanyAttribute) pluginAssembly.GetCustomAttribute(typeof(AssemblyCompanyAttribute))).Company;
+            item.SubItems.Add(new ListViewItem.ListViewSubItem(item, company));
+          } catch { item.SubItems.Add(new ListViewItem.ListViewSubItem(item, Resources.Plugin_DefaultPublisherName)); }
 
-        return item;
-      }).ToArray());
+          return item;
+        })
+        .ToArray());
     }
 
     /// <summary>
@@ -121,21 +116,26 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Arguments associated to this event</param>
-    private void OnStreamSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs eventArgs) =>
+    private void OnStreamSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs eventArgs) {
       this.okButton.Enabled = this.streamListView.SelectedItems.Count > 0;
+    }
 
     /// <summary>
     ///   Triggered when the Cancel or OK button are clicked
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnButtonClick(object sender, EventArgs eventArgs) => Close();
+    private void OnButtonClick(object sender, EventArgs eventArgs) {
+      Close();
+    }
 
     /// <summary>
     ///   Triggered when an item is activated
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnStreamItemActivated(object sender, EventArgs eventArgs) => this.okButton.PerformClick();
+    private void OnStreamItemActivated(object sender, EventArgs eventArgs) {
+      this.okButton.PerformClick();
+    }
   }
 }

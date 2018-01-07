@@ -138,7 +138,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Button object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnCloseButtonClick(object sender, EventArgs eventArgs) => Close();
+    private void OnCloseButtonClick(object sender, EventArgs eventArgs) {
+      Close();
+    }
 
     /// <summary>
     ///   Triggered when the support URI link label is clicked
@@ -148,14 +150,17 @@ namespace Captain.Application {
     /// <remarks>
     ///   XXX: I'm not saying this is wrong, but it certainly *feels* wrong... idk it works at least
     /// </remarks>
-    private void OnSupportLinkClick(object sender, EventArgs eventArgs) => Process.Start(this.supportUriLinkLabel.Text);
+    private void OnSupportLinkClick(object sender, EventArgs eventArgs) {
+      Process.Start(this.supportUriLinkLabel.Text);
+    }
 
     /// <summary>
     ///   Paints a top border on the bottom panel
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs"></param>
-    private void OnBottomPanelPaint(object sender, PaintEventArgs eventArgs) =>
+    private void OnBottomPanelPaint(object sender, PaintEventArgs eventArgs) {
       eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x10, 0, 0, 0)), 0, 0, Width, 0);
+    }
   }
 }

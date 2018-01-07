@@ -128,6 +128,9 @@
     <None Include="UI\Common\LinkLabel2\README.md" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\ClipperPickWindow.png" />
+    <None Include="Resources\ClipperPickRegion.png" />
+    <None Include="Resources\ClipperCorners.png" />
     <None Include="Resources\TidbitWarning.png" />
     <None Include="Resources\TidbitOk.png" />
     <None Include="Resources\TidbitInfo.png" />
@@ -172,6 +175,7 @@
     <Compile Include="Source\Action\ActionManager.cs" />
     <Compile Include="Source\Action\BuiltIn\CopyToClipboardAction.cs" />
     <Compile Include="Source\Action\BuiltIn\SaveToFileAction.cs" />
+    <Compile Include="Source\ExtendedEventArgs.cs" />
     <Compile Include="Source\Codec\StillImage\BmpWicCodec.cs" />
     <Compile Include="Source\Codec\StillImage\GenericWicCodec.cs" />
     <Compile Include="Source\Codec\StillImage\GifWicCodec.cs" />
@@ -180,28 +184,32 @@
     <Compile Include="Source\Codec\Video\GenericMfCodec.cs" />
     <Compile Include="Source\Codec\Video\H265MfCodec.cs" />
     <Compile Include="Source\Codec\Video\H264MfCodec.cs" />
-    <Compile Include="Source\Helper\CompatHelper.cs" />
     <Compile Include="Source\Helper\Injection\InjectionHelper.cs">
       <Generator>MSBuild:Compile</Generator>
     </Compile>
     <Compile Include="Source\Helper\Injection\InjectionState.cs" />
-    <Compile Include="Source\Helper\KeyboardHook\IKeyboardHookProvider.cs" />
-    <Compile Include="Source\Helper\KeyboardHook\SystemKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helper\Hook\IKeyboardHookProvider.cs" />
+    <Compile Include="Source\Helper\Hook\DesktopKeyboardHook.cs" />
     <Compile Include="Source\Helper\TaskHelper.cs" />
     <Compile Include="Source\Helper\Template\CommonVariable.cs" />
     <Compile Include="Source\Helper\Template\TemplateHelper.cs" />
+    <Compile Include="Source\Behaviour.cs" />
+    <Compile Include="Source\Helper\WindowHelper.cs" />
     <Compile Include="Source\MultiStream.cs" />
+    <Compile Include="Source\Native\DwmApi\DwmBbFlags.cs" />
     <Compile Include="Source\Native\DwmApi\DwmNcRenderingPolicy.cs" />
+    <Compile Include="Source\Native\DwmApi\DWM_BLURBEHIND.cs" />
     <Compile Include="Source\Native\Kernel32\Kernel32.cs" />
     <Compile Include="Source\Native\User32\KBDLLHOOKSTRUCT.cs" />
+    <Compile Include="Source\Native\User32\KeyFlags.cs" />
     <Compile Include="Source\Native\User32\MONITORINFO.cs" />
     <Compile Include="Source\Recording\RecordingSession.cs" />
     <Compile Include="Source\Recording\RecordingState.cs" />
     <Compile Include="Source\VideoProvider\DxVideoProvider.cs" />
     <Compile Include="Source\VideoProvider\VideoProviderFactory.cs" />
     <Compile Include="Source\VideoProvider\DxgiVideoProvider.cs" />
-    <Compile Include="Source\Helper\MouseHook\IMouseHookProvider.cs" />
-    <Compile Include="Source\Helper\MouseHook\SystemMouseHookProvider.cs" />
+    <Compile Include="Source\Helper\Hook\IMouseHookProvider.cs" />
+    <Compile Include="Source\Helper\Hook\DesktopMouseHook.cs" />
     <Compile Include="Source\Native\UxTheme\MARGINS.cs" />
     <Compile Include="Source\Native\User32\MSLLHOOKSTRUCT.cs" />
     <Compile Include="UI\Action\ActionDialog.cs">
@@ -216,25 +224,33 @@
     <Compile Include="UI\Action\ActionControl.Designer.cs">
       <DependentUpon>ActionControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\HUD\CropRectangleWrapper.cs">
+    <Compile Include="UI\Helper\BitmapExtensions.cs" />
+    <Compile Include="UI\Helper\DirectWriteFormatHelper.cs" />
+    <Compile Include="UI\Hud\Clipper\Clipper.cs" />
+    <Compile Include="UI\Hud\Clipper\ClippingMode.cs" />
+    <Compile Include="UI\Hud\Container\HudContainerType.cs" />
+    <Compile Include="UI\Hud\DesktopWrapper\HudBlurredWrapperWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\HUD\Hud.cs" />
-    <Compile Include="UI\HUD\InstructionOverlay\InstructionOverlay.cs" />
-    <Compile Include="UI\HUD\InstructionOverlay\InstructionOverlayWrapper.cs">
+    <Compile Include="UI\Hud\DesktopWrapper\HudCommonWrapperWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\HUD\SnackBar\SnackBar.cs" />
-    <Compile Include="UI\HUD\SnackBar\SnackBarButton.cs" />
-    <Compile Include="UI\HUD\SnackBar\SnackBarIntent.cs" />
-    <Compile Include="UI\HUD\SnackBar\SnackBarWrapper.cs">
+    <Compile Include="UI\Hud\DesktopWrapper\HudToolbarWrapperWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\HUD\Tidbit\Tidbit.cs" />
-    <Compile Include="UI\HUD\Tidbit\TidbitStatus.cs" />
-    <Compile Include="UI\HUD\Tidbit\TidbitWrapper.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="UI\Hud\HudComponent.cs" />
+    <Compile Include="UI\Hud\Container\HudContainerInfo.cs" />
+    <Compile Include="UI\Hud\HudManager.cs" />
+    <Compile Include="UI\Hud\Tidbit\Tidbit.cs" />
+    <Compile Include="UI\Hud\Tidbit\TidbitManager.cs" />
+    <Compile Include="UI\Hud\Tidbit\TidbitStatus.cs" />
+    <Compile Include="UI\Hud\Toolbar\Control\ToolbarButton.cs" />
+    <Compile Include="UI\Hud\Toolbar\Control\ToolbarControlState.cs" />
+    <Compile Include="UI\Hud\Toolbar\Control\ToolbarTextControl.cs" />
+    <Compile Include="UI\Hud\Toolbar\Toolbar.cs" />
+    <Compile Include="UI\Hud\Toolbar\Control\ToolbarControl.cs" />
+    <Compile Include="UI\Hud\Toolbar\Control\ToolbarControlGravity.cs" />
+    <Compile Include="UI\Hud\Toolbar\ToolbarPrimaryButton.cs" />
     <Compile Include="UI\Option\Action\ActionPropertiesDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -255,7 +271,6 @@
     <Compile Include="Source\Native\Gdi32\Gdi32.cs" />
     <Compile Include="Source\Native\Gdi32\TernaryRasterOperations.cs" />
     <Compile Include="Source\Helper\ShellHelper.cs" />
-    <Compile Include="Source\Native\Shell32\NOTIFYICONIDENTIFIER.cs" />
     <Compile Include="Source\Native\Shell32\Shell32.cs" />
     <Compile Include="Source\Native\UxTheme\UxTheme.cs" />
     <Compile Include="Source\Native\User32\POINT.cs" />
@@ -273,7 +288,6 @@
     <Compile Include="Source\Update\UpdateManager.cs" />
     <Compile Include="Source\Update\UpdaterAvailability.cs" />
     <Compile Include="Source\Update\UpdateStatus.cs" />
-    <Compile Include="Source\Helper\WindowHelper.cs" />
     <Compile Include="UI\Option\Codec\StillImage\PngWicCodecOptionsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -391,9 +405,6 @@
     <Reference Include="DeltaCompressionDotNet.PatchApi, Version=1.1.0.0, Culture=neutral, PublicKeyToken=3e8888ee913ed789, processorArchitecture=MSIL">
       <HintPath>..\packages\DeltaCompressionDotNet.1.1.0\lib\net20\DeltaCompressionDotNet.PatchApi.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Toolkit.Uwp.Notifications, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Toolkit.Uwp.Notifications.2.0.0\lib\dotnet\Microsoft.Toolkit.Uwp.Notifications.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -417,8 +428,8 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="SharpCompress, Version=0.18.2.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpCompress.0.18.2\lib\net45\SharpCompress.dll</HintPath>
+    <Reference Include="SharpCompress, Version=0.19.2.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpCompress.0.19.2\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.4.0.1\lib\net45\SharpDX.dll</HintPath>
@@ -452,6 +463,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -519,7 +531,9 @@
       <FileType>Assembly</FileType>
     </PublishFile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="UI\Behaviour\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <Deterministic>true</Deterministic>

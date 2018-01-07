@@ -19,7 +19,8 @@ namespace Captain.Common {
     ///   List of post-capture actions to be performed. The list contains tuples of the full type name of the
     ///   <see cref="Action" /> and a serializable object that may or not hold custom options for it.
     /// </summary>
-    public List<(string ActionType, Dictionary<string, object> Options)> Actions { get; set; } = new List<(string, Dictionary<string, object>)>();
+    public List<(string ActionType, Dictionary<string, object> Options)> Actions { get; set; } =
+      new List<(string, Dictionary<string, object>)>();
 
     /// <summary>
     ///   A pair made up of the full type name of the codec to be used and an optional object containing options and

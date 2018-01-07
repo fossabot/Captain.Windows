@@ -17,28 +17,6 @@ namespace Captain.Application {
   /// </summary>
   internal sealed class UpdateManager : IDisposable {
     /// <summary>
-    ///   Triggered when the update manager availability changes
-    /// </summary>
-    /// <param name="manager">Update manager instance</param>
-    /// <param name="availability">Updater status</param>
-    internal delegate void AvailabilityChangedHandler(UpdateManager manager, UpdaterAvailability availability);
-
-    /// <summary>
-    ///   Triggered when the update status changes
-    /// </summary>
-    /// <param name="manager">Update manager instance</param>
-    /// <param name="status">Status</param>
-    internal delegate void UpdateStatusChangedHandler(UpdateManager manager, UpdateStatus status);
-
-    /// <summary>
-    ///   Triggered when the progress of the underlying update operation changes
-    /// </summary>
-    /// <param name="manager">Update manager instance</param>
-    /// <param name="status">Status</param>
-    /// <param name="progress">Operation progress</param>
-    internal delegate void UpdateProgressChangedHandler(UpdateManager manager, UpdateStatus status, int progress);
-
-    /// <summary>
     ///   Underlying update manager instance
     /// </summary>
     private Squirrel.UpdateManager Manager { get; set; }
@@ -62,9 +40,7 @@ namespace Captain.Application {
         return;
       }
 
-      try {
-        InitializeUnderlyingManager();
-      } catch (FileNotFoundException) {
+      try { InitializeUnderlyingManager(); } catch (FileNotFoundException) {
         Log.WriteLine(LogLevel.Warning, "updates are not supported - aborting");
       }
     }
@@ -73,7 +49,31 @@ namespace Captain.Application {
     /// <summary>
     ///   Releases resources
     /// </summary>
-    public void Dispose() => Manager?.Dispose();
+    public void Dispose() {
+      Manager?.Dispose();
+    }
+
+    /// <summary>
+    ///   Triggered when the update manager availability changes
+    /// </summary>
+    /// <param name="manager">Update manager instance</param>
+    /// <param name="availability">Updater status</param>
+    internal delegate void AvailabilityChangedHandler(UpdateManager manager, UpdaterAvailability availability);
+
+    /// <summary>
+    ///   Triggered when the update status changes
+    /// </summary>
+    /// <param name="manager">Update manager instance</param>
+    /// <param name="status">Status</param>
+    internal delegate void UpdateStatusChangedHandler(UpdateManager manager, UpdateStatus status);
+
+    /// <summary>
+    ///   Triggered when the progress of the underlying update operation changes
+    /// </summary>
+    /// <param name="manager">Update manager instance</param>
+    /// <param name="status">Status</param>
+    /// <param name="progress">Operation progress</param>
+    internal delegate void UpdateProgressChangedHandler(UpdateManager manager, UpdateStatus status, int progress);
 
     /// <summary>
     ///   Triggered when the update manager availability changes
@@ -96,9 +96,7 @@ namespace Captain.Application {
     internal static void Restart() {
       Log.WriteLine(LogLevel.Warning, "restarting the application");
 
-      try {
-        RestartApp();
-      } catch {
+      try { RestartApp(); } catch {
         Log.WriteLine(LogLevel.Warning, "could not restart to latest version - surely in portable mode");
         Restart();
       }
@@ -114,30 +112,29 @@ namespace Captain.Application {
 
       Log.WriteLine(LogLevel.Verbose, "checking for updates");
       Manager.CheckForUpdate(progress: p => {
-        Log.WriteLine(LogLevel.Debug, $"checking for updates ({p}%)");
-        dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
-      }).ContinueWith(t => {
-        Status = UpdateStatus.Idle;
-        dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
+          Log.WriteLine(LogLevel.Debug, $"checking for updates ({p}%)");
+          dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
+        })
+        .ContinueWith(t => {
+          Status = UpdateStatus.Idle;
+          dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
 
-        if (t.IsFaulted || t.IsCanceled) {
-          Log.WriteLine(LogLevel.Warning, $"update checker task canceled or failed - {t.Exception}");
-          return;
-        }
-
-        if (t.Result.ReleasesToApply.Any()) {
-          Log.WriteLine(LogLevel.Verbose, $"found {t.Result.ReleasesToApply.Count} update(s)");
-
-          if (Application.Options.UpdatePolicy == UpdatePolicy.Automatic) {
-            DownloadUpdates(dispatcher, t.Result);
-          } else if (dispatcher.Invoke(() => UpdaterUiHelper.ShowPromptDialog(t.Result))) {
-            DownloadUpdates(dispatcher, t.Result);
-            dispatcher.Invoke(UpdaterUiHelper.ShowProgressDialog);
-          } else {
-            Log.WriteLine(LogLevel.Verbose, "operation cancelled by the user");
+          if (t.IsFaulted || t.IsCanceled) {
+            Log.WriteLine(LogLevel.Warning, $"update checker task canceled or failed - {t.Exception}");
+            return;
           }
-        }
-      });
+
+          if (t.Result.ReleasesToApply.Any()) {
+            Log.WriteLine(LogLevel.Verbose, $"found {t.Result.ReleasesToApply.Count} update(s)");
+
+            if (Application.Options.UpdatePolicy == UpdatePolicy.Automatic
+            ) { DownloadUpdates(dispatcher, t.Result); } else if (
+              dispatcher.Invoke(() => UpdaterUiHelper.ShowPromptDialog(t.Result))) {
+              DownloadUpdates(dispatcher, t.Result);
+              dispatcher.Invoke(UpdaterUiHelper.ShowProgressDialog);
+            } else { Log.WriteLine(LogLevel.Verbose, "operation cancelled by the user"); }
+          }
+        });
     }
 
     /// <summary>
@@ -151,10 +148,11 @@ namespace Captain.Application {
 
       Log.WriteLine(LogLevel.Verbose, "downloading updates");
       Manager.DownloadReleases(updates.ReleasesToApply,
-        p => {
-          Log.WriteLine(LogLevel.Debug, $"downloading updates ({p}%)");
-          dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
-        }).ContinueWith(t => {
+          p => {
+            Log.WriteLine(LogLevel.Debug, $"downloading updates ({p}%)");
+            dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
+          })
+        .ContinueWith(t => {
           Status = UpdateStatus.Idle;
           dispatcher.Invoke(() => OnUpdateStatusChanged?.Invoke(this, Status));
 
@@ -163,7 +161,8 @@ namespace Captain.Application {
             return;
           }
 
-          Log.WriteLine(LogLevel.Verbose, $"downloaded {updates.ReleasesToApply.Sum(r => r.Filesize) / 1024 / 1024}MiB");
+          Log.WriteLine(LogLevel.Verbose,
+            $"downloaded {updates.ReleasesToApply.Sum(r => r.Filesize) / 1024 / 1024}MiB");
           ApplyUpdates(dispatcher, updates);
         });
     }
@@ -174,10 +173,11 @@ namespace Captain.Application {
 
       Log.WriteLine(LogLevel.Verbose, "applying updates");
       Manager.ApplyReleases(updates,
-        p => {
-          Log.WriteLine(LogLevel.Debug, $"applying updates ({p}%)");
-          dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
-        }).ContinueWith(t => {
+          p => {
+            Log.WriteLine(LogLevel.Debug, $"applying updates ({p}%)");
+            dispatcher.Invoke(() => OnUpdateProgressChanged?.Invoke(this, Status, p));
+          })
+        .ContinueWith(t => {
           if (t.IsFaulted || t.IsCanceled) {
             Status = UpdateStatus.Idle;
             Log.WriteLine(LogLevel.Warning, $"update install task canceled or failed - {t.Exception}");
@@ -202,9 +202,7 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Warning, "operation is not supported - aborting");
         Availability = UpdaterAvailability.NotSupported;
         return;
-      } catch {
-        Availability = UpdaterAvailability.NotAvailable;
-      }
+      } catch { Availability = UpdaterAvailability.NotAvailable; }
 
       if (Application.Options.UpdatePolicy == UpdatePolicy.Disabled) {
         Log.WriteLine(LogLevel.Warning, "automatic updates are not allowed - aborting");
@@ -237,8 +235,8 @@ namespace Captain.Application {
 
       if (GetMetadataValue("githubRepo") is string githubUrl) {
         GitHubUpdateManager(githubUrl,
-          System.Windows.Forms.Application.ProductName,
-          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+            System.Windows.Forms.Application.ProductName,
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
           .ContinueWith(updateManagerHandler);
       } else if (GetMetadataValue("updateUrl") is string updateUrl) {
         Manager = new Squirrel.UpdateManager(updateUrl,
@@ -246,9 +244,7 @@ namespace Captain.Application {
           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         Availability = UpdaterAvailability.FullyAvailable;
         CheckForUpdates(dispatcher);
-      } else {
-        Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting");
-      }
+      } else { Log.WriteLine(LogLevel.Warning, "no update source was configured for this assembly - aborting"); }
     }
 
     /// <summary>
@@ -271,7 +267,7 @@ namespace Captain.Application {
     /// <param name="key">Metadata key</param>
     /// <returns>The requested value, or <c>null</c> if none was present.</returns>
     private static string GetMetadataValue(string key) {
-      var assembly = Assembly.GetExecutingAssembly();
+      Assembly assembly = Assembly.GetExecutingAssembly();
       AssemblyMetadataAttribute[] metadataAttributes = assembly
         .GetCustomAttributes(typeof(AssemblyMetadataAttribute))
         .Cast<AssemblyMetadataAttribute>()

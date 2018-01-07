@@ -8,16 +8,6 @@ namespace Captain.Common {
   /// </summary>
   public interface IVideoCodec : ICodecBase {
     /// <summary>
-    ///   Frame rate, in frames per second.
-    /// </summary>
-    int FrameRate { get; }
-
-    /// <summary>
-    ///   Bit rate, in bits per second.
-    /// </summary>
-    int BitRate { get; }
-
-    /// <summary>
     ///   Begins encoding the video.
     /// </summary>
     /// <param name="frameSize">Frame size.</param>

@@ -1,254 +1,319 @@
 ﻿using System;
-using System.Drawing.Imaging;
+using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using Captain.Common;
+using System.Windows.Threading;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DirectWrite;
-using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using Bitmap = SharpDX.Direct2D1.Bitmap;
-using BitmapData = System.Drawing.Imaging.BitmapData;
 using Brush = SharpDX.Direct2D1.Brush;
-using Factory = SharpDX.Direct2D1.Factory;
-using FactoryType = SharpDX.Direct2D1.FactoryType;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using Color = SharpDX.Color;
+using Factory = SharpDX.DirectWrite.Factory;
+using FontStyle = SharpDX.DirectWrite.FontStyle;
+using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
 
 namespace Captain.Application {
   /// <inheritdoc />
   /// <summary>
-  ///   Provides access to a minimal tooling when capturing screen recordings
+  ///   Displays a temporary informational tip beneath the mouse cursor
   /// </summary>
-  internal sealed class Tidbit : IDisposable {
+  internal class Tidbit : HudComponent<HudBlurredWrapperWindow> {
     /// <summary>
-    ///   GDI-compatible bitmap to be displayed alongside the button
+    ///   Global padding
     /// </summary>
-    internal System.Drawing.Bitmap Bitmap {
-      set {
-        BitmapData data = value.LockBits(new Rectangle(0, 0, value.Width, value.Height),
-          ImageLockMode.ReadOnly,
-          PixelFormat.Format32bppPArgb);
-
-        // copy GDI bitmap data to Direct2D one
-        var stream = new DataStream(data.Scan0, data.Stride * data.Height, true, false);
-        var format = new SharpDX.Direct2D1.PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied);
-        var props = new BitmapProperties(format);
-
-        // create Direct2D bitmap and release resources
-        this.bitmap = new Bitmap(this.renderTarget, new Size2(value.Width, value.Height), stream, data.Stride, props);
-        stream.Dispose();
-        value.UnlockBits(data);
-      }
-    }
+    private const int Padding = 6;
 
     /// <summary>
-    ///   Generic, common constructor
+    ///   Width of left border
     /// </summary>
-    private Tidbit() { }
+    private const int LeftBorderWidth = 2;
 
-    /// <inheritdoc />
     /// <summary>
-    ///   Creates a snack bar instance for an existing wrapper window
+    ///   Background color
     /// </summary>
-    /// <param name="wrapper">Wrapper instance</param>
-    /// <param name="status">Status level</param>
-    /// <param name="text">Instruction text</param>
-    /// <param name="progress">Progress value</param>
-    internal Tidbit(Control wrapper, TidbitStatus status, string text, double? progress = null) : this() {
-      this.status = status;
-      this.text = text;
-      this.progress = progress;
-
-      CreateResources();
-
-      this.wrapper = wrapper;
-      this.wrapper.Width = (int) this.textLayout.Metrics.Width + 46;
-      this.wrapper.Height = (int) this.textLayout.Metrics.Height + 12;
-
-      this.textLayout.MaxWidth = this.textLayout.Metrics.Width + 26;
-      this.textLayout.MaxHeight = this.textLayout.Metrics.Height + 12;
-
-      this.renderTarget = new WindowRenderTarget(
-        new Factory(FactoryType.MultiThreaded, DebugLevel.Information),
-        new RenderTargetProperties(new SharpDX.Direct2D1.PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Premultiplied)),
-        new HwndRenderTargetProperties {
-          PixelSize = new Size2(this.wrapper.Width, this.wrapper.Height),
-          Hwnd = this.wrapper.Handle
-        });
-
-      CreateBrushes();
-
-      // bind events
-      this.wrapper.Paint += OnWrapperOnPaint;
-    }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() {
-      // unbind wrapper events
-      this.wrapper.Paint -= OnWrapperOnPaint;
-
-      // release resources
-      this.dwFactory?.Dispose();
-      this.textLayout?.Dispose();
-      this.textFormat?.Dispose();
-      this.textBrush?.Dispose();
-
-      // release resources
-      this.renderTarget?.Dispose();
-    }
-
-    #region Wrapper events
+    private readonly RawColor4 backgroundColor = new Color(0, 0, 0, 192);
 
     /// <summary>
-    ///   Triggered when the wrapper window gets painted
-    /// </summary>
-    /// <param name="sender">Sender object</param>
-    /// <param name="eventArgs">Event arguments</param>
-    private void OnWrapperOnPaint(object sender, PaintEventArgs eventArgs) => Render();
-
-    #endregion
-
-    #region UI layout creation
-
-    /// <summary>
-    ///   Creates disposable resources.
-    /// </summary>
-    private void CreateResources() {
-      this.dwFactory = new SharpDX.DirectWrite.Factory();
-      this.textFormat = new TextFormat(this.dwFactory,
-        @"Segoe UI",
-        FontWeight.Normal,
-        FontStyle.Normal,
-        FontStretch.Normal,
-        12.0f) {
-        ParagraphAlignment = ParagraphAlignment.Center,
-        TextAlignment = TextAlignment.Center
-      };
-      this.textLayout = new TextLayout(this.dwFactory, this.text, this.textFormat, 128, 16.0f);
-    }
-
-    /// <summary>
-    ///   Creates brushes.
-    /// </summary>
-    private void CreateBrushes() {
-      this.textBrush = new SolidColorBrush(this.renderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 0.6666f));
-
-      switch (this.status) {
-        case TidbitStatus.Success:
-          this.accentBrush = new SolidColorBrush(this.renderTarget, new RawColor4(0.0f, 1.0f, 0.5f, 1.0f));
-          Bitmap = Resources.TidbitOk;
-          break;
-
-        case TidbitStatus.Information:
-          this.accentBrush = new SolidColorBrush(this.renderTarget, new RawColor4(0.0f, 0.5f, 1.0f, 1.0f));
-          Bitmap = Resources.TidbitInfo;
-          break;
-
-        case TidbitStatus.Warning:
-          this.accentBrush = new SolidColorBrush(this.renderTarget, new RawColor4(1.0f, 1.0f, 0.0f, 1.0f));
-          Bitmap = Resources.TidbitWarning;
-          break;
-
-        case TidbitStatus.Error:
-          this.accentBrush = new SolidColorBrush(this.renderTarget, new RawColor4(1.0f, 0.0f, 0.0f, 1.0f));
-          Bitmap = Resources.TidbitError;
-          break;
-      }
-    }
-
-    #endregion
-
-    #region Colors
-
-    /// <summary>
-    ///   Snack bar background color
-    /// </summary>
-    private readonly Color backgroundColor = new Color(0, 0, 0, 192);
-
-    #endregion
-
-    #region Disposable rendering resources
-
-    /// <summary>
-    ///   DirectWrite factory.
-    /// </summary>
-    private SharpDX.DirectWrite.Factory dwFactory;
-
-    /// <summary>
-    ///   Text layout instance.
-    /// </summary>
-    private TextLayout textLayout;
-
-    /// <summary>
-    ///   Text format instance.
-    /// </summary>
-    private TextFormat textFormat;
-
-    /// <summary>
-    ///   Text brush instance.
-    /// </summary>
-    private Brush textBrush;
-
-    /// <summary>
-    ///   Accent brush instance.
+    ///   Accent brush
     /// </summary>
     private Brush accentBrush;
 
     /// <summary>
-    ///   Tidbit bitmap.
+    ///   Text content
     /// </summary>
-    private Bitmap bitmap;
-
-    #endregion
-
-    #region Private members
+    private string content;
 
     /// <summary>
-    ///   Status level
+    ///   DirectWrite factory
     /// </summary>
-    private readonly TidbitStatus status;
+    private Factory directWriteFactory;
 
     /// <summary>
-    ///   Instruction text.
+    ///   Direct2D bitmap representing the acctual tidbit icon
     /// </summary>
-    private readonly string text;
+    private Bitmap iconBitmap;
 
     /// <summary>
-    ///   Progress value.
+    ///   Indicates whether to show an icon alongside the tidbit
     /// </summary>
-    private double? progress;
-
-    #endregion
-
-    #region Direct2D
+    private bool showIcon = true;
 
     /// <summary>
-    ///   Render target
+    ///   Text brush instance
     /// </summary>
-    private readonly RenderTarget renderTarget;
+    private Brush textBrush;
 
     /// <summary>
-    ///   Snack bar wrapper window
+    ///   Text format instance
     /// </summary>
-    private readonly Control wrapper;
+    private TextFormat textFormat;
 
     /// <summary>
-    ///   Renders the snack bar UI
+    ///   Text layout instance
     /// </summary>
-    private void Render() {
-      this.renderTarget.BeginDraw();
-      this.renderTarget.Clear(this.backgroundColor);
-      this.renderTarget.DrawRectangle(new RawRectangleF(0, 0, 2, this.wrapper.Height), this.accentBrush);
-      this.renderTarget.DrawBitmap(this.bitmap, new RawRectangleF(10, 6, 26, 22), 1.0f, BitmapInterpolationMode.Linear);
-      this.renderTarget.DrawTextLayout(new RawVector2(18, 0), this.textLayout, this.textBrush);
-      this.renderTarget.EndDraw();
+    private TextLayout textLayout;
+
+    /// <summary>
+    ///   Icon size, in device-independent pixels
+    /// </summary>
+    private Size2F IconSize => ShowIcon ? (this.iconBitmap?.Size ?? Size2F.Empty) : Size2F.Empty;
+
+    /// <summary>
+    ///   Gets or sets the current tidbit status
+    /// </summary>
+    internal TidbitStatus Status { get; set; } = TidbitStatus.Information;
+
+    /// <summary>
+    ///   Gets or sets the tidbit position in the HUD
+    /// </summary>
+    internal Point Location {
+      get => Bounds.Location;
+      set => Bounds = new Rectangle(value, Bounds.Size);
     }
 
-    #endregion
+    /// <summary>
+    ///   Gets the size of the tidbit
+    /// </summary>
+    internal Size Size => Bounds.Size;
+
+    /// <summary>
+    ///   When set to <c>false</c>, no icon is displayed on the tidbit
+    /// </summary>
+    internal bool ShowIcon {
+      get => this.showIcon && this.iconBitmap != null;
+      set {
+        this.showIcon = value;
+        RefreshIcon();
+      }
+    }
+
+    /// <summary>
+    ///   Specifies a custom icon for the tidbit
+    /// </summary>
+    internal System.Drawing.Bitmap CustomIcon {
+      set {
+        this.iconBitmap?.Dispose();
+        this.iconBitmap = value?.ToDirect2DBitmap(RenderTarget);
+        RefreshIcon();
+      }
+    }
+
+    /// <summary>
+    ///   Custom accent color for the tidbit
+    /// </summary>
+    internal System.Drawing.Color CustomAccent {
+      set {
+        this.accentBrush?.Dispose();
+        this.accentBrush = new SolidColorBrush(RenderTarget, new Color(value.R, value.G, value.B, value.A));
+      }
+    }
+
+    /// <summary>
+    ///   Text to be displayed with the tidbit
+    /// </summary>
+    internal string Content {
+      get => this.content;
+      set {
+        this.content = value;
+        RefreshTextLayout();
+      }
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Class constructor
+    /// </summary>
+    /// <param name="container">HUD container information</param>
+    /// <param name="timeout">Lifetime for this tidbit</param>
+    internal Tidbit(HudContainerInfo container, TimeSpan? timeout = null) : base(container) {
+      container.TidbitManager.RegisterTidbit(this);
+      Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+      Task.Delay(timeout ?? new TimeSpan(0, 0, 0, 2)).ContinueWith(t => dispatcher.Invoke(Dispose));
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Renders the tidbit
+    /// </summary>
+    protected override void Render() {
+      RenderTarget.Clear(this.backgroundColor);
+
+      // draw colored left border
+      RenderTarget.FillRectangle(new RawRectangleF(0, 0, LeftBorderWidth, Bounds.Height), this.accentBrush);
+
+      // draw icon
+      if (ShowIcon) {
+        RenderTarget.DrawBitmap(this.iconBitmap,
+          new RawRectangleF(
+            LeftBorderWidth + Padding,
+            (Bounds.Height - IconSize.Height) / 2,
+            IconSize.Width + Padding + LeftBorderWidth,
+            (Bounds.Height - IconSize.Height) / 2 + IconSize.Height),
+          1.0f,
+          BitmapInterpolationMode.NearestNeighbor);
+      }
+
+      // draw text
+      if (this.textLayout != null) {
+        RenderTarget.DrawTextLayout(
+          new RawVector2(LeftBorderWidth + IconSize.Width + 2 * Padding, Padding),
+          this.textLayout,
+          this.textBrush);
+      }
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Creates disposable rendering resources
+    /// </summary>
+    protected override void InitializeRenderingObjects() {
+      base.InitializeRenderingObjects();
+
+      // create text resources
+      this.directWriteFactory = new Factory();
+      this.textFormat = new TextFormat(this.directWriteFactory,
+        SystemFonts.MessageBoxFont.Name,
+        FontWeight.Normal,
+        FontStyle.Normal,
+        FontStretch.Normal,
+        12.0f) {
+        ParagraphAlignment = ParagraphAlignment.Near,
+        TextAlignment = TextAlignment.Leading
+      };
+
+      this.textBrush = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 0.75f));
+
+      RefreshIcon();
+      RefreshAccentBrush();
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Disposes all rendering resources
+    /// </summary>
+    protected override void DestroyRenderingObjects() {
+      // release icon bitmap
+      this.iconBitmap?.Dispose();
+
+      // release color brushes
+      this.accentBrush?.Dispose();
+
+      // release text facilities
+      this.textBrush.Dispose();
+      this.textLayout.Dispose();
+      this.textFormat.Dispose();
+      this.directWriteFactory.Dispose();
+
+      this.iconBitmap = null;
+      this.accentBrush = null;
+      this.textBrush = null;
+      this.textLayout = null;
+      this.textFormat = null;
+      this.directWriteFactory = null;
+
+      base.DestroyRenderingObjects();
+    }
+
+    /// <summary>
+    ///   Creates a new text layout so that the tidbit content gets updated.
+    /// </summary>
+    private void RefreshTextLayout() {
+      if (this.directWriteFactory != null && this.textFormat != null) {
+        // dispose existing layout
+        this.textLayout?.Dispose();
+
+        // create a new layout
+        (string strippedString, Action<TextLayout> formatter) = DirectWriteFormatHelper.CreateFormatter(this.content);
+
+        formatter(this.textLayout = new TextLayout(this.directWriteFactory,
+          strippedString,
+          this.textFormat,
+          256,
+          32));
+
+        // resize the wrapper
+        Bounds = new Rectangle(
+          Bounds.Location,
+          new Size(
+            (int) this.textLayout.Metrics.Width + 4 * Padding + LeftBorderWidth + (int) IconSize.Width,
+            (int) this.textLayout.Metrics.Height + 2 * Padding));
+      }
+    }
+
+    /// <summary>
+    ///   Refresh the tidbit icon
+    /// </summary>
+    private void RefreshIcon() {
+      if (this.showIcon && !(RenderTarget?.IsDisposed ?? true) && this.iconBitmap == null) {
+        switch (Status) {
+          case TidbitStatus.Error:
+            this.iconBitmap = Resources.TidbitError.ToDirect2DBitmap(RenderTarget);
+            break;
+          case TidbitStatus.Warning:
+            this.iconBitmap = Resources.TidbitWarning.ToDirect2DBitmap(RenderTarget);
+            break;
+          case TidbitStatus.Information:
+            this.iconBitmap = Resources.TidbitInfo.ToDirect2DBitmap(RenderTarget);
+            break;
+          case TidbitStatus.Success:
+            this.iconBitmap = Resources.TidbitOk.ToDirect2DBitmap(RenderTarget);
+            break;
+        }
+      }
+    }
+
+    /// <summary>
+    ///   Updates the accent brush
+    /// </summary>
+    private void RefreshAccentBrush() {
+      if (!(RenderTarget?.IsDisposed ?? true) && this.accentBrush == null) {
+        switch (Status) {
+          case TidbitStatus.Error:
+            this.accentBrush = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 0.0f, 0.0f, 1.0f));
+            break;
+          case TidbitStatus.Warning:
+            this.accentBrush = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 1.0f, 0.0f, 1.0f));
+            break;
+          case TidbitStatus.Information:
+            this.accentBrush = new SolidColorBrush(RenderTarget, new RawColor4(0.0f, 0.5f, 1.0f, 1.0f));
+            break;
+          case TidbitStatus.Success:
+            this.accentBrush = new SolidColorBrush(RenderTarget, new RawColor4(0.0f, 1.0f, 0.5f, 1.0f));
+            break;
+        }
+      }
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Releases resources
+    /// </summary>
+    public override void Dispose() {
+      Container.TidbitManager.UnregisterTidbit(this);
+      base.Dispose();
+    }
   }
 }

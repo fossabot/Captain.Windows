@@ -15,20 +15,21 @@ namespace Captain.Application {
     /// <param name="update">Update information</param>
     /// <returns>The result of the dialog.</returns>
     internal static bool ShowPromptDialog(UpdateInfo update) => new TaskDialog {
-      WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, System.Windows.Forms.Application.ProductName),
-      CustomMainIcon = Resources.UpdateIcon,
-      WindowIcon = Resources.AppIcon,
-      AllowDialogCancellation = true,
-      Width = 200,
-      Buttons = {
-        new TaskDialogButton(Resources.UpdaterUI_UpdateButton) {Default = true},
-        new TaskDialogButton(Resources.UpdaterUI_RemindLaterButton)
-      },
-      Content = String.Format(Resources.UpdaterUI_DialogText,
-        System.Windows.Forms.Application.ProductName,
-        update.ReleasesToApply.Last().Version,
-        Application.Version)
-    }.ShowDialog().Default;
+        WindowTitle = String.Format(Resources.UpdaterUI_DialogCaption, System.Windows.Forms.Application.ProductName),
+        CustomMainIcon = Resources.UpdateIcon,
+        WindowIcon = Resources.AppIcon,
+        AllowDialogCancellation = true,
+        Width = 200,
+        Buttons = {
+          new TaskDialogButton(Resources.UpdaterUI_UpdateButton) { Default = true },
+          new TaskDialogButton(Resources.UpdaterUI_RemindLaterButton)
+        },
+        Content = String.Format(Resources.UpdaterUI_DialogText,
+          System.Windows.Forms.Application.ProductName,
+          update.ReleasesToApply.Last().Version,
+          Application.Version)
+      }.ShowDialog()
+      .Default;
 
     /// <summary>
     ///   Displays a progress dialog for the update procedure
@@ -40,7 +41,7 @@ namespace Captain.Application {
         WindowIcon = Resources.AppIcon,
         AllowDialogCancellation = false,
         Width = 200,
-        Buttons = {new TaskDialogButton(ButtonType.Cancel) {Enabled = false}},
+        Buttons = { new TaskDialogButton(ButtonType.Cancel) { Enabled = false } },
         Content = Resources.UpdaterUI_DialogProgressText,
         ProgressBarStyle = ProgressBarStyle.ProgressBar,
         ProgressBarMinimum = 0,

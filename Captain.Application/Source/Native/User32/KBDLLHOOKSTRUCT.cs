@@ -17,12 +17,12 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   A hardware scan code for the key.
     /// </summary>
-    internal readonly int scanCode;
+    private readonly int scanCode;
 
     /// <summary>
     ///   The event-injected flags.
     /// </summary>
-    internal readonly int flags;
+    internal readonly KeyFlags flags;
 
     /// <summary>
     ///   The time stamp for this message.

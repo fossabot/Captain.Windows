@@ -1,4 +1,5 @@
 ﻿// ReSharper disable All
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -42,7 +43,7 @@ namespace Captain.Application.Native {
       internal int cy;
 
       /// <summary>
-      ///   The window position. 
+      ///   The window position.
       /// </summary>
       internal uint flags;
     }

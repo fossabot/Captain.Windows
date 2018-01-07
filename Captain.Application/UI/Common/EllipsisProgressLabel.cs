@@ -17,14 +17,14 @@ namespace Captain.Application {
     private readonly string[] frames = { "...", "·..", ".·.", "..·", "..." };
 
     /// <summary>
-    ///   Animation thread
-    /// </summary>
-    private Thread animationThread;
-
-    /// <summary>
     ///   Whether or not the label is animated
     /// </summary>
     private bool animated;
+
+    /// <summary>
+    ///   Animation thread
+    /// </summary>
+    private Thread animationThread;
 
     /// <summary>
     ///   Label prefix (actual text)
@@ -65,16 +65,14 @@ namespace Captain.Application {
     public bool Animated {
       get => this.animated;
       set {
-        if (DesignMode) {
-          this.animated = value;
-        } else if (value && !this.animated) {
+        if (DesignMode) { this.animated = value; } else if (value && !this.animated) {
           this.animationThread?.Join();
           this.animationThread = new Thread(() => {
             byte i = 0;
 
             while (this.animated) {
               if (IsHandleCreated && Visible && !IsDisposed) {
-                Invoke(new Action(() => Text = Prefix + this.frames[i = (byte)((i + 1) % this.frames.Length)]));
+                Invoke(new Action(() => Text = Prefix + this.frames[i = (byte) ((i + 1) % this.frames.Length)]));
               }
 
               Thread.Sleep(60);
@@ -110,10 +108,10 @@ namespace Captain.Application {
 
       // draw suffix
       TextRenderer.DrawText(eventArgs.Graphics,
-                            Suffix,
-                            Font,
-                            new Point(textWidth, 0),
-                            ForeColor.Blend(BackColor));
+        Suffix,
+        Font,
+        new Point(textWidth, 0),
+        ForeColor.Blend(BackColor));
     }
   }
 }

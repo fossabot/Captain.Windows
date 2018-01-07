@@ -18,9 +18,22 @@ namespace Captain.Application {
     ///   Extra data associated with this object that is to be saved to the user settings
     /// </summary>
     public Dictionary<string, object> Options { get; set; } = new Dictionary<string, object> {
-      {"Filter", PngFilterOption.Adaptive},
-      {"Interlaced", false}
+      { "Filter", PngFilterOption.Adaptive },
+      { "Interlaced", false }
     };
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) {
+      using (var optionsWindow = new PngWicCodecOptionsWindow(Options ?? new Dictionary<string, object>())) {
+        DialogResult result = optionsWindow.ShowDialog(ownerWindow);
+        Options = optionsWindow.Options;
+        return result;
+      }
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -59,20 +72,6 @@ namespace Captain.Application {
         }
       }
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Displays an interface for letting the user configure this object
-    /// </summary>
-    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
-    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) {
-      using (var optionsWindow = new PngWicCodecOptionsWindow(Options ?? new Dictionary<string, object>())) {
-        DialogResult result = optionsWindow.ShowDialog(ownerWindow);
-        Options = optionsWindow.Options;
-        return result;
-      }
-    }
-
 
     /// <inheritdoc />
     /// <summary>

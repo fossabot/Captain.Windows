@@ -37,8 +37,11 @@ namespace Captain.Application {
     /// <param name="onEdit">Action to execute on edit</param>
     /// <param name="onDelete">Action to execute on delete</param>
     public TaskEditControl(Task task = null, Action onEdit = null, Action onDelete = null) {
-      SetStyle(ControlStyles.SupportsTransparentBackColor | ControlStyles.CacheText | ControlStyles.UserMouse |
-               ControlStyles.StandardClick | ControlStyles.StandardDoubleClick,
+      SetStyle(ControlStyles.SupportsTransparentBackColor |
+               ControlStyles.CacheText |
+               ControlStyles.UserMouse |
+               ControlStyles.StandardClick |
+               ControlStyles.StandardDoubleClick,
         true);
       InitializeComponent();
 
@@ -66,7 +69,9 @@ namespace Captain.Application {
         this.taskRegionType.Image = Task.RegionType == RegionType.AllScreens ||
                                     Task.RegionType == RegionType.CurrentScreen
           ? Resources.TaskRegionFullScreen
-          : Task.RegionType == RegionType.Fixed ? Resources.TaskRegionFixed : Resources.TaskRegionGrab;
+          : Task.RegionType == RegionType.Fixed
+            ? Resources.TaskRegionFixed
+            : Resources.TaskRegionGrab;
         this.nameLabel.Text = Task.Name;
         this.hotKeyLabel.Text = Task.Hotkey.ToString();
       }
@@ -87,8 +92,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnControlMouseMove(object sender, MouseEventArgs eventArgs) =>
+    private void OnControlMouseMove(object sender, MouseEventArgs eventArgs) {
       BackColor = Color.FromArgb(234, 234, 234);
+    }
 
     /// <summary>
     ///   Triggered when the mouse leaves a control

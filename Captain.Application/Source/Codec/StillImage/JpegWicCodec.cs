@@ -18,11 +18,24 @@ namespace Captain.Application {
     ///   Extra data associated with this object that is to be saved to the user settings
     /// </summary>
     public Dictionary<string, object> Options { get; set; } = new Dictionary<string, object> {
-      {"Quality", 0.9},
-      {"Transform", 0},
-      {"ChromaSubsampling", JpegYCrCbSubsamplingOption.Default},
-      {"NoApp0", false}
+      { "Quality", 0.9 },
+      { "Transform", 0 },
+      { "ChromaSubsampling", JpegYCrCbSubsamplingOption.Default },
+      { "NoApp0", false }
     };
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Displays an interface for letting the user configure this object
+    /// </summary>
+    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
+    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) {
+      using (var optionsWindow = new JpegWicCodecOptionsWindow(Options ?? new Dictionary<string, object>())) {
+        DialogResult result = optionsWindow.ShowDialog(ownerWindow);
+        Options = optionsWindow.Options;
+        return result;
+      }
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -46,7 +59,8 @@ namespace Captain.Application {
             frame.Options.BitmapTransform =
               ((BitmapTransformOptions[]) Enum.GetValues(typeof(BitmapTransformOptions)))[
                 Convert.ToInt32(Options["Transform"])];
-            frame.Options.JpegYCrCbSubsampling = (JpegYCrCbSubsamplingOption) Convert.ToInt32(Options["ChromaSubsampling"]);
+            frame.Options.JpegYCrCbSubsampling =
+              (JpegYCrCbSubsamplingOption) Convert.ToInt32(Options["ChromaSubsampling"]);
             frame.Options.SuppressApp0 = (bool) Options["NoApp0"];
             frame.Initialize();
 
@@ -65,20 +79,6 @@ namespace Captain.Application {
         }
       }
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Displays an interface for letting the user configure this object
-    /// </summary>
-    /// <param name="ownerWindow">If the interface makes use of dialogs, an instance of the owner window</param>
-    public DialogResult DisplayOptionsInterface(IWin32Window ownerWindow) {
-      using (var optionsWindow = new JpegWicCodecOptionsWindow(Options ?? new Dictionary<string, object>())) {
-        DialogResult result = optionsWindow.ShowDialog(ownerWindow);
-        Options = optionsWindow.Options;
-        return result;
-      }
-    }
-
 
     /// <inheritdoc />
     /// <summary>

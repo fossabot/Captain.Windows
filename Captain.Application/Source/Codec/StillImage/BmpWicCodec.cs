@@ -14,7 +14,7 @@ namespace Captain.Application {
     ///   Container format GUID
     /// </summary>
     protected override Guid ContainerFormat => ContainerFormatGuids.Bmp;
-    
+
     /// <inheritdoc />
     /// <summary>
     ///   File extension for this codec

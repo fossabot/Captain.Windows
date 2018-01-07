@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Captain.Common;
 using Ookii.Dialogs.Wpf;
@@ -17,7 +16,6 @@ using Action = Captain.Common.Action;
 using BitmapData = Captain.Common.BitmapData;
 using Point = System.Drawing.Point;
 using Rectangle = System.Drawing.Rectangle;
-using Task = Captain.Common.Task;
 
 namespace Captain.Application {
   /// <summary>
@@ -30,8 +28,6 @@ namespace Captain.Application {
     /// <param name="task">The task instance to be started.</param>
     /// <param name="effectiveRegion">Optional reset region for this task</param>
     internal static async void StartTask(Task task, Rectangle? effectiveRegion = null) {
-      Application.Hud.Display(false);
-
       if (!effectiveRegion.HasValue) {
         switch (task.RegionType) {
           case RegionType.AllScreens:
@@ -50,26 +46,7 @@ namespace Captain.Application {
             effectiveRegion = task.Region;
             break;
 
-          case RegionType.UserSelected:
-            Log.WriteLine(LogLevel.Debug, "waiting for HUD to yield screen region");
-            Application.Hud.Display();
-
-            // create completion source for crop event and bind handler
-            var completionSource = new TaskCompletionSource<Rectangle>();
-            void OnScreenCrop(object sender, Rectangle bounds) { completionSource.SetResult(bounds); }
-
-            Application.Hud.OnScreenCrop += OnScreenCrop;
-
-            // wait for a screen region to be selected
-            effectiveRegion = await completionSource.Task;
-
-            // unbind event handler so it does not get called once again on next screenshot (remember the HUD is
-            // unlikely to be disposed!)
-            Application.Hud.OnScreenCrop -= OnScreenCrop;
-            Log.WriteLine(LogLevel.Debug,
-              $"got rectangle: {effectiveRegion.Value.Width}x{effectiveRegion.Value.Height} " +
-              $"at ({effectiveRegion.Value.X}, {effectiveRegion.Value.Y})");
-            break;
+          case RegionType.UserSelected: throw new NotImplementedException();
         }
       }
 
@@ -87,27 +64,9 @@ namespace Captain.Application {
             StartScreenshotTask(task, effectiveRegion.Value);
             break;
 
-          case TaskType.Video:
-            Application.Hud.BindRecordingSession(new RecordingSession(task, effectiveRegion.Value));
-            Application.Hud.DisplaySnackBar(location: Control.MousePosition);
-            break;
+          case TaskType.Video: throw new NotImplementedException();
         }
-      } catch (TaskException exception) {
-        Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-        Application.Hud.DisplayTidbit(TidbitStatus.Error, exception.ShortMessage);
-        /*LegacyNotificationProvider.PushMessage(exception.ShortMessage,
-          exception.Message,
-          ToolTipIcon.Error,
-          null,
-          (s, a) => {
-            TaskDialogButton button = DisplayTaskExceptionDialog(exception);
-
-            if (button.ButtonType == ButtonType.Retry) {
-              Log.WriteLine(LogLevel.Verbose, "user requested retry");
-              StartTask(task, effectiveRegion);
-            }
-          });*/
-      }
+      } catch (TaskException exception) { throw new NotImplementedException(); }
     }
 
     /// <summary>
@@ -116,8 +75,8 @@ namespace Captain.Application {
     /// <remarks>
     ///   TODO: consider moving this to a UI helper class
     /// </remarks>
-    /// <param name="exception">An instance of <see cref="TaskException"/>.</param>
-    /// <returns>The <see cref="TaskDialogButton"/> that had been activated.</returns>
+    /// <param name="exception">An instance of <see cref="TaskException" />.</param>
+    /// <returns>The <see cref="TaskDialogButton" /> that had been activated.</returns>
     private static TaskDialogButton DisplayTaskExceptionDialog(TaskException exception) => new TaskDialog {
       WindowTitle = System.Windows.Forms.Application.ProductName,
       MainIcon = TaskDialogIcon.Error,
@@ -125,7 +84,7 @@ namespace Captain.Application {
       AllowDialogCancellation = true,
       Width = 200,
       Buttons = {
-        new TaskDialogButton(ButtonType.Close) {Default = true},
+        new TaskDialogButton(ButtonType.Close) { Default = true },
         new TaskDialogButton(ButtonType.Retry),
         new TaskDialogButton(Resources.TaskHelper_DisplayTaskExceptionDialog_ReportButtonCaption) {
           Enabled = false
@@ -142,7 +101,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="task">Task to be run.</param>
     /// <param name="rect">Rectangle to be captured.</param>
-    /// <returns>An enumeration of the <see cref="Common.Action"/>s running.</returns>
+    /// <returns>An enumeration of the <see cref="Common.Action" />s running.</returns>
     private static void StartScreenshotTask(Task task, Rectangle rect) {
       IBitmapVideoProvider provider = null;
       BitmapData bmpData = default;
@@ -167,7 +126,7 @@ namespace Captain.Application {
 
         using (var tempBmp = new Bitmap(4 * (Resources.NeutralResultOverlay.Width - 48),
           4 * (Resources.NeutralResultOverlay.Height - 48))) {
-          using (var graphics = Graphics.FromImage(tempBmp)) {
+          using (Graphics graphics = Graphics.FromImage(tempBmp)) {
             graphics.DrawImage(thumbnail,
               new Rectangle(Point.Empty, tempBmp.Size),
               new Rectangle(Point.Empty, thumbnail.Size),
@@ -180,6 +139,7 @@ namespace Captain.Application {
       } catch (Exception exception) {
         Log.WriteLine(LogLevel.Error, $"video provider exception: ${exception}");
         if (bmpData.Scan0 == default) { provider?.UnlockFrameBitmap(bmpData); }
+
         provider?.ReleaseFrame();
         provider?.Dispose();
         throw new TaskException(Resources.TaskHelper_CaptureFailedCaption,
@@ -231,7 +191,7 @@ namespace Captain.Application {
           exception);
       }
 
-      var actions = task.Actions.Select(a => {
+      List<Action> actions = task.Actions.Select(a => {
           try {
             // set options if needed
             if (a.Options != null &&
@@ -251,7 +211,7 @@ namespace Captain.Application {
                   null,
                   Type.EmptyTypes,
                   null)
-                ?.Invoke(action, new object[] {codec});
+                ?.Invoke(action, new object[] { codec });
             }
 
             return Activator.CreateInstance(Type.GetType(a.ActionType) ??
@@ -293,7 +253,6 @@ namespace Captain.Application {
 
         try {
           if (a is IFiltered filteredAction) {
-            // action applies media type filters to captures
             if (!filteredAction.GetMediaAcceptance(task.TaskType, codec, task.Codec.Options as ICodecParameters)) {
               Log.WriteLine(LogLevel.Warning, "media filter did not accept this capture");
               throw new Exception(Resources.TaskHelper_UnsupportedMediaMessage);

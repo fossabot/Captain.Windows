@@ -1,5 +1,5 @@
 ﻿// TODO: refactor and comment this file
-// ReSharper disable all
+// ReSharper disable All
 
 using System;
 using System.ComponentModel;
@@ -15,28 +15,6 @@ namespace Captain.Application {
     private bool isHovered;
     private bool keyAlreadyProcessed;
     private Rectangle textRect;
-
-    public LinkLabel2() {
-      if (!DesignMode) {
-        SetStyle(ControlStyles.AllPaintingInWmPaint |
-                 ControlStyles.SupportsTransparentBackColor |
-                 ControlStyles.OptimizedDoubleBuffer |
-                 ControlStyles.ResizeRedraw |
-                 ControlStyles.UserPaint |
-                 ControlStyles.FixedHeight |
-                 ControlStyles.FixedWidth,
-                 true);
-
-        SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
-
-        this.hoverFont = new Font(Font, FontStyle.Underline);
-
-        ForeColor = SystemColors.HotTrack;
-
-        UseSystemColor = true;
-        HoverUnderline = true;
-      }
-    }
 
     [DefaultValue(true)]
     private bool HoverUnderline { get; }
@@ -56,10 +34,30 @@ namespace Captain.Application {
       }
     }
 
-    protected override void OnMouseDown(MouseEventArgs e) {
-      if (e.Button == MouseButtons.Left) {
-        Focus();
+    public LinkLabel2() {
+      if (!DesignMode) {
+        SetStyle(ControlStyles.AllPaintingInWmPaint |
+                 ControlStyles.SupportsTransparentBackColor |
+                 ControlStyles.OptimizedDoubleBuffer |
+                 ControlStyles.ResizeRedraw |
+                 ControlStyles.UserPaint |
+                 ControlStyles.FixedHeight |
+                 ControlStyles.FixedWidth,
+          true);
+
+        SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
+
+        this.hoverFont = new Font(Font, FontStyle.Underline);
+
+        ForeColor = SystemColors.HotTrack;
+
+        UseSystemColor = true;
+        HoverUnderline = true;
       }
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e) {
+      if (e.Button == MouseButtons.Left) { Focus(); }
 
       base.OnMouseDown(e);
     }
@@ -134,16 +132,14 @@ namespace Captain.Application {
 
       // text
       TextRenderer.DrawText(e.Graphics,
-                            Text,
-                            this.isHovered && HoverUnderline ? this.hoverFont : Font,
-                            this.textRect,
-                            UseSystemColor ? ForeColor : (this.isHovered ? HoverColor : RegularColor),
-                            TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
+        Text,
+        this.isHovered && HoverUnderline ? this.hoverFont : Font,
+        this.textRect,
+        UseSystemColor ? ForeColor : (this.isHovered ? HoverColor : RegularColor),
+        TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
 
       // draw the focus rectangle
-      if (Focused && ShowFocusCues) {
-        ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle);
-      }
+      if (Focused && ShowFocusCues) { ControlPaint.DrawFocusRectangle(e.Graphics, ClientRectangle); }
     }
 
     protected override void OnFontChanged(EventArgs e) {
@@ -155,13 +151,13 @@ namespace Captain.Application {
 
     private void RefreshTextRect() =>
       this.textRect = new Rectangle(Point.Empty,
-                                    Size = Size.Add(TextRenderer.MeasureText(Text, this.hoverFont, Size),
-                                                    new Size(1, 1)));
+        Size = Size.Add(TextRenderer.MeasureText(Text, this.hoverFont, Size),
+          new Size(1, 1)));
 
     protected override void WndProc(ref Message m) {
       if (!DesignMode) {
-        if (m.Msg == (int)User32.WindowMessage.WM_SETCURSOR) {
-          User32.SetCursor(User32.LoadCursor(IntPtr.Zero, new IntPtr((int)User32.SystemResources.IDC_HAND)));
+        if (m.Msg == (int) User32.WindowMessage.WM_SETCURSOR) {
+          User32.SetCursor(User32.LoadCursor(IntPtr.Zero, new IntPtr((int) User32.SystemResources.IDC_HAND)));
           m.Result = IntPtr.Zero;
           return;
         }

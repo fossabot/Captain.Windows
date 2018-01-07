@@ -55,7 +55,7 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   A  top-level window created with this style does not become the foreground window when the user clicks it.
       /// </summary>
-      WS_EX_NOACTIVATE = 0x08000000,
+      WS_EX_NOACTIVATE = 0x08000000
     }
 
     #endregion
@@ -101,14 +101,14 @@ namespace Captain.Application.Native {
 
       /// <summary>
       ///   Posted to the window with the keyboard focus when a nonsystem key is pressed.
-      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed. 
+      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed.
       /// </summary>
       WM_KEYDOWN = 0x0100,
 
       /// <summary>
       ///   Posted to the window with the keyboard focus when a nonsystem key is released.
-      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed, or a keyboard key that is pressed 
-      ///   when a window has the keyboard focus. 
+      ///   A nonsystem key is a key that is pressed when the ALT key is not pressed, or a keyboard key that is pressed
+      ///   when a window has the keyboard focus.
       /// </summary>
       WM_KEYUP = 0x0101,
 
@@ -117,13 +117,13 @@ namespace Captain.Application.Native {
       ///   bar) or holds down the ALT key and then presses another key. It also occurs when no window currently has
       ///   the keyboard focus.
       /// </summary>
-      WM_SYSKEYDOWN = 0x0104,
+      WM_SYSKEYDOWN = 0x104,
 
       /// <summary>
       ///   Posted to the window with the keyboard focus when the user releases a key that was pressed while the ALT
       ///   key was held down. 
       /// </summary>
-      WM_SYSKEYUP = 0x0105,
+      WM_SYSKEYUP = 0x105,
 
       /// <summary>
       ///   An application sends the WM_CHANGEUISTATE message to indicate that the UI state should be changed.
@@ -197,9 +197,49 @@ namespace Captain.Application.Native {
     /// </summary>
     internal enum HitTestValues {
       /// <summary>
-      ///   In a title bar.
+      ///   In a title bar
       /// </summary>
-      HTCAPTION = 0x02
+      HTCAPTION = 2,
+
+      /// <summary>
+      ///   In the left border of a resizable window
+      /// </summary>
+      HTLEFT = 10,
+
+      /// <summary>
+      ///   In the right border of a resizable window
+      /// </summary>
+      HTRIGHT = 11,
+
+      /// <summary>
+      ///   In the top border of a resizable window
+      /// </summary>
+      HTTOP = 12,
+
+      /// <summary>
+      ///   In the upper-left corner of a border of a resizable window 
+      /// </summary>
+      HTTOPLEFT = 13,
+
+      /// <summary>
+      ///   In the upper-resizable corner of a border of a resizable window 
+      /// </summary>
+      HTTOPRIGHT = 14,
+
+      /// <summary>
+      ///   In the bottom border of a resizable window
+      /// </summary>
+      HTBOTTOM = 15,
+
+      /// <summary>
+      ///   In the lower-left corner of a border of a resizable window 
+      /// </summary>
+      HTBOTTOMLEFT = 16,
+
+      /// <summary>
+      ///   In the lower-right corner of a border of a resizable window 
+      /// </summary>
+      HTBOTTOMRIGHT = 17
     }
 
     /// <summary>
@@ -235,8 +275,73 @@ namespace Captain.Application.Native {
 
     #endregion
 
+    #region GetWindowLong(Ptr)/SetWindowLong(Ptr)
+
+    internal enum WindowLongParam {
+      /// <summary>Sets a new window style.</summary>
+      GWL_STYLE = -16,
+
+      /// <summary>Sets a new extended window style.</summary>
+      GWL_EXSTYLE = -20
+    }
+
+    /// <summary>
+    ///   Retrieves information about the specified window. The function also retrieves the value at a specified offset
+    ///   into the extra window memory.
+    /// </summary>
+    /// <param name="hWnd">A handle to the window and, indirectly, the class to which the window belongs.</param>
+    /// <param name="nIndex">
+    ///   The zero-based offset to the value to be retrieved. Valid values are in the range zero
+    ///   through the number of bytes of extra window memory, minus the size of a LONG_PTR. To retrieve any other value,
+    ///   specify one of the following values.</param>
+    /// <returns>If the function succeeds, the return value is the requested value.</returns>
+#if WIN32
+    [DllImport(nameof(User32), EntryPoint = "GetWindowLong")]
+    internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, WindowLongParam nIndex);
+#elif WIN64
+    [DllImport(nameof(User32), EntryPoint = "GetWindowLongPtr")]
+    internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, WindowLongParam nIndex);
+#endif
+
+    /// <summary>
+    ///   Changes an attribute of the specified window. The function also sets a value at the specified offset in the
+    ///   extra window memory.
+    /// </summary>
+    /// <param name="hWnd">
+    /// A handle to the window and, indirectly, the class to which the window belongs.
+    ///   The SetWindowLongPtr function fails if the process that owns the window specified by the hWnd parameter is
+    ///   at a higher process privilege in the UIPI hierarchy than the process the calling thread resides in.
+    /// </param>
+    /// <param name="nIndex">
+    ///   The zero-based offset to the value to be set. Valid values are in the range zero through
+    ///   the number of bytes of extra window memory, minus the size of a LONG_PTR.
+    /// </param>
+    /// <param name="dwNewLong">The replacement value.</param>
+    /// <returns>If the function succeeds, the return value is the previous value of the specified offset.</returns>
+#if WIN32
+    [DllImport(nameof(User32), EntryPoint = "SetWindowLong")]
+    internal static extern int SetWindowLongPtr(IntPtr hWnd, WindowLongParam nIndex, int dwNewLong);
+#elif WIN64
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr SetWindowLongPtr(IntPtr hWnd, WindowLongParam nIndex, IntPtr dwNewLong);
+#endif
+
+    #endregion
+
     [DllImport(nameof(User32), SetLastError = true)]
     internal static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    /// <summary>
+    ///   Retrieves a handle to the window that contains the specified point.
+    /// </summary>
+    /// <param name="Point">The point to be checked.</param>
+    /// <returns>
+    ///   The return value is a handle to the window that contains the point. If no window exists at the given point,
+    ///   the return value is <see cref="IntPtr.Zero" />. If the point is over a static text control, the return value
+    ///   is a handle to the window under the static text control.
+    /// </returns>
+    [DllImport(nameof(User32))]
+    internal static extern IntPtr WindowFromPoint(POINT Point);
 
     /// <summary>
     ///   Retrieves a handle to the desktop window. The desktop window covers the entire screen. The desktop window is
@@ -245,50 +350,6 @@ namespace Captain.Application.Native {
     /// <returns>The return value is a handle to the desktop window.</returns>
     [DllImport(nameof(User32))]
     internal static extern IntPtr GetDesktopWindow();
-
-    /// <summary>
-    ///   Retrieves a handle to the top-level window whose class name and window name match the specified strings.
-    ///   This function does not search child windows. This function does not perform a case-sensitive search.
-    /// </summary>
-    /// <param name="lpClassName">
-    ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
-    /// </param>
-    /// <param name="lpWindowName">
-    ///   The window name (the window's title). If this parameter is NULL, all window names match.
-    /// </param>
-    /// <returns>
-    ///   If the function succeeds, the return value is a handle to the window that has the specified class name and
-    ///   window name.
-    /// </returns>
-    [DllImport(nameof(User32), CharSet = CharSet.Unicode)]
-    internal static extern IntPtr FindWindow([In, Optional] string lpClassName, [In, Optional] string lpWindowName);
-
-    /// <summary>
-    ///   Retrieves a handle to a window whose class name and window name match the specified strings.
-    ///   The function searches child windows, beginning with the one following the specified child window.
-    ///   This function does not perform a case-sensitive search.
-    /// </summary>
-    /// <param name="hwndParent">A handle to the parent window whose child windows are to be searched.</param>
-    /// <param name="hwndChildAfter">
-    ///   A handle to a child window. The search begins with the next child window in the Z order.
-    ///   The child window must be a direct child window of hwndParent, not just a descendant window.
-    /// </param>
-    /// <param name="lpszClass">
-    ///   The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function.
-    /// </param>
-    /// <param name="lpszWindow">
-    ///   The window name (the window's title). If this parameter is NULL, all window names match.
-    /// </param>
-    /// <returns>
-    ///   If the function succeeds, the return value is a handle to the window that has the specified class and window
-    ///   names.
-    /// </returns>
-    [DllImport(nameof(User32), CharSet = CharSet.Unicode)]
-    internal static extern IntPtr FindWindowEx(
-      [In, Optional] IntPtr hwndParent,
-      [In, Optional] IntPtr hwndChildAfter,
-      [In, Optional] string lpszClass,
-      [In, Optional] string lpszWindow);
 
     /// <summary>
     ///   Destroys the specified window. The function sends WM_DESTROY and WM_NCDESTROY messages to the window to
@@ -328,69 +389,10 @@ namespace Captain.Application.Native {
       /// <summary>
       ///   Use bAlpha to determine the opacity of the layered window.
       /// </summary>
-      LWA_ALPHA = 2,
-
-      /// <summary>
-      ///   Use crKey as the transparency color.
-      /// </summary>
-      LWA_COLORKEY = 1
+      LWA_ALPHA = 2
     }
 
     #endregion
-
-    #endregion
-
-    #region Monitors
-
-    /// <summary>
-    ///   The GetMonitorInfo function retrieves information about a display monitor.
-    /// </summary>
-    /// <param name="hMonitor">A handle to the display monitor of interest.</param>
-    /// <param name="lpmi">
-    ///   A pointer to a MONITORINFO or MONITORINFOEX structure that receives information about the
-    ///   specified display monitor.
-    /// </param>
-    /// <returns>If the function succeeds, the return value is nonzero.</returns>
-    [DllImport(nameof(User32), SetLastError = true)]
-    internal static extern bool GetMonitorInfo([In] IntPtr hMonitor, [In, Out] MONITORINFO lpmi);
-
-    #endregion
-
-    #region Drawing contexts
-
-    /// <summary>
-    ///   The ReleaseDC function releases a device context (DC), freeing it for use by other applications. The effect
-    ///   of the ReleaseDC function depends on the type of DC. It frees only common and window DCs. It has no effect on
-    ///   class or private DCs.
-    /// </summary>
-    /// <param name="hWnd">A handle to the window whose DC is to be released.</param>
-    /// <param name="hDC">A handle to the DC to be released.</param>
-    /// <returns>
-    ///   The return value indicates whether the DC was released. If the DC was released, the return value is 1.
-    ///   If the DC was not released, the return value is zero.
-    /// </returns>
-    [DllImport(nameof(User32))]
-    internal static extern bool ReleaseDC([In] IntPtr hWnd, [In] IntPtr hDC);
-
-    /// <summary>
-    ///   The GetWindowDC function retrieves the device context (DC) for the entire window, including title bar, menus,
-    ///   and scroll bars. A window device context permits painting anywhere in a window, because the origin of the
-    ///   device context is the upper-left corner of the window instead of the client area.
-    ///   GetWindowDC assigns default attributes to the window device context each time it retrieves the device
-    ///   context. Previous attributes are lost.
-    /// </summary>
-    /// <param name="hWnd">
-    ///   A handle to the window with a device context that is to be retrieved. If this value is NULL, GetWindowDC
-    ///   retrieves the device context for the entire screen.
-    ///   If this parameter is NULL, GetWindowDC retrieves the device context for the primary display monitor. To get
-    ///   the device context for other display monitors, use the EnumDisplayMonitors and CreateDC functions.
-    /// </param>
-    /// <returns>
-    ///   If the function succeeds, the return value is a handle to a device context for the specified window.
-    ///   If the function fails, the return value is NULL, indicating an error or an invalid hWnd parameter.
-    /// </returns>
-    [DllImport(nameof(User32))]
-    internal static extern IntPtr GetWindowDC([In] IntPtr hWnd);
 
     #endregion
 
@@ -448,7 +450,7 @@ namespace Captain.Application.Native {
     /// </param>
     /// <returns>If the function succeeds, the return value is the handle to the newly loaded cursor.</returns>
     [DllImport(nameof(User32))]
-    internal static extern IntPtr LoadCursor([In, Optional] IntPtr hInstance, [In] IntPtr lpCursorName);
+    internal static extern IntPtr LoadCursor([In] [Optional] IntPtr hInstance, [In] IntPtr lpCursorName);
 
     /// <summary>
     ///   Sets the cursor shape.
@@ -594,8 +596,8 @@ namespace Captain.Application.Native {
     internal static extern IntPtr SetWindowsHookEx(
       [In] WindowsHookType idHook,
       [In] WindowsHookDelegate lpfn,
-      [In, Optional] IntPtr hMod,
-      [In, Optional] int dwThreadId);
+      [In] [Optional] IntPtr hMod,
+      [In] [Optional] int dwThreadId);
 
     /// <summary>
     ///   Removes a hook procedure installed in a hook chain by the
@@ -659,15 +661,16 @@ namespace Captain.Application.Native {
     }
 
     internal enum AccentState {
-      ACCENT_ENABLE_BLURBEHIND = 3
+      ACCENT_ENABLE_BLURBEHIND = 3,
+      ACCENT_INVALID_STATE = 4
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct AccentPolicy {
       internal AccentState AccentState;
-      private readonly int AccentFlags;
-      private readonly int GradientColor;
-      private readonly int AnimationId;
+      internal int AccentFlags;
+      internal int GradientColor;
+      internal int AnimationId;
     }
 
     [DllImport(nameof(User32))]

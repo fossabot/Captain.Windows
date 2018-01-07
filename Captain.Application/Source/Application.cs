@@ -8,11 +8,12 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using Captain.Common;
+using Rectangle = System.Drawing.Rectangle;
 #if DEBUG
 using SharpDX;
 using SharpDX.Diagnostics;
+
 #endif
-using Rectangle = System.Drawing.Rectangle;
 
 namespace Captain.Application {
   /// <summary>
@@ -25,11 +26,6 @@ namespace Captain.Application {
     ///   Current logger file stream
     /// </summary>
     private static Stream loggerStream;
-
-    /// <summary>
-    ///   HUD instance
-    /// </summary>
-    private static Hud hud;
 
     /// <summary>
     ///   Single instance mutex name
@@ -51,8 +47,10 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Warning, $"exiting with code 0x{exitCode:x8}");
 
         DesktopKeyboardHook?.Dispose();
+        DesktopMouseHook?.Dispose();
         TrayIcon?.Hide();
         Options?.Save();
+        HudManager?.Dispose();
         UpdateManager?.Dispose();
 
 #if DEBUG
@@ -97,11 +95,11 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="hard">Removes everything under the application directory</param>
     internal static void Reset(bool hard = false) {
-      var nodes = new List<string> {Path.Combine(FsManager.GetSafePath(), Options.OptionsFileName)};
+      var nodes = new List<string> { Path.Combine(FsManager.GetSafePath(), Options.OptionsFileName) };
 
       if (hard) {
         Log.WriteLine(LogLevel.Warning, "performing hard reset!");
-        nodes.AddRange(new[] {FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath}
+        nodes.AddRange(new[] { FsManager.LogsPath, FsManager.PluginPath, FsManager.TemporaryPath }
           .Select(FsManager.GetSafePath));
       }
 
@@ -120,11 +118,6 @@ namespace Captain.Application {
     ///   Single instance mutex
     /// </summary>
     private static Mutex SingleInstanceMutex { get; set; }
-
-    /// <summary>
-    ///   Whether or not toast notifications are supported on this platform
-    /// </summary>
-    internal static bool AreToastNotificationsSupported { get; set; }
 
     /// <summary>
     ///   Assembly GUID
@@ -167,29 +160,29 @@ namespace Captain.Application {
     internal static Options Options { get; private set; }
 
     /// <summary>
-    ///   HUD instance
-    /// </summary>
-    internal static Hud Hud {
-      get {
-        if (hud == null || hud.IsDisposed) { hud = new Hud(); }
-        return hud;
-      }
-    }
-
-    /// <summary>
     ///   Application update manager
     /// </summary>
     internal static UpdateManager UpdateManager { get; private set; }
 
     /// <summary>
-    ///   Keyboard hook provider for system UI.
+    ///   Keyboard hook provider for system UI
     /// </summary>
-    internal static IKeyboardHookProvider DesktopKeyboardHook { get; private set; }
+    internal static DesktopKeyboardHook DesktopKeyboardHook { get; private set; }
 
     /// <summary>
-    ///   Handles actions globally.
+    ///   Mouse hook provider for system UI
+    /// </summary>
+    internal static DesktopMouseHook DesktopMouseHook { get; private set; }
+
+    /// <summary>
+    ///   Handles actions globally
     /// </summary>
     internal static ActionManager ActionManager { get; private set; }
+
+    /// <summary>
+    ///   Handles heads-up displays
+    /// </summary>
+    internal static HudManager HudManager { get; private set; }
 
     #endregion
 
@@ -328,7 +321,13 @@ namespace Captain.Application {
       UpdateManager = new UpdateManager();
       ActionManager = new ActionManager();
 
-      DesktopKeyboardHook = new SystemKeyboardHookProvider();
+      // global hook behaviours
+      DesktopKeyboardHook = new DesktopKeyboardHook();
+      DesktopMouseHook = new DesktopMouseHook();
+
+      // HUD manager depends on the hooks
+      HudManager = new HudManager();
+
       DesktopKeyboardHook.OnKeyDown += (s, e) => {
         // get the full key combination
         Keys keys = (Keys) e.KeyValue | (e.KeyData & Keys.Modifiers);
@@ -338,25 +337,24 @@ namespace Captain.Application {
               (keys & Keys.Alt) != 0 ||
               (keys & Keys.Control) != 0 ||
               (keys & Keys.LWin) != Keys.LWin ||
-              (keys & Keys.RWin) != Keys.RWin)) {
-          // don't process the key
-          return;
-        }
+              (keys & Keys.RWin) != Keys.RWin)) { return; }
 
         // retrieve the tasks matching the hotkey
         IEnumerable<Task> tasks = Options.Tasks.Where(t => t.Hotkey == keys);
         if (tasks.Any()) {
           Log.WriteLine(LogLevel.Verbose, $"launching tasks matching hotkey: {keys}");
           TaskHelper.StartTask(tasks.First());
-        } else if (Hud.IsCropUiVisible) { Hud.Display(false); }
+        }
       };
 
-      DesktopKeyboardHook.Acquire();
+      DesktopKeyboardHook.RequestLock();
 
       // release the mutex when the application is terminated
       System.Windows.Forms.Application.ApplicationExit += (s, e) => {
         lock (SingleInstanceMutex) { SingleInstanceMutex.ReleaseMutex(); }
       };
+
+      new Toolbar(HudManager.GetContainer());
 
       // start application event loop
       System.Windows.Forms.Application.Run();

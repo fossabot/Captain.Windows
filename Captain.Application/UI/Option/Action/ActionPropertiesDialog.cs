@@ -98,7 +98,11 @@ namespace Captain.Application {
         try {
           Log.WriteLine(LogLevel.Verbose, $"displaying configuration interface for stream \"{pluginObject.Type}\"");
 
-          if (Activator.CreateInstance(pluginObject.Type, BindingFlags.CreateInstance, null, new object[] {null}, null) is IHasOptions configurableObject) {
+          if (Activator.CreateInstance(pluginObject.Type,
+            BindingFlags.CreateInstance,
+            null,
+            new object[] { null },
+            null) is IHasOptions configurableObject) {
             if (Actions[this.streamListView.SelectedIndices[0]].Options is Dictionary<string, object> userOptions) {
               foreach (KeyValuePair<string, object> pair in userOptions) {
                 configurableObject.Options[pair.Key] = pair.Value;
@@ -118,7 +122,7 @@ namespace Captain.Application {
             Width = 200,
             ExpandedInformation = $@"{exception.GetType()}: {exception.Message}",
             ExpandFooterArea = true,
-            Buttons = {new TaskDialogButton(ButtonType.Ok)},
+            Buttons = { new TaskDialogButton(ButtonType.Ok) },
             MainIcon = TaskDialogIcon.Error,
             WindowTitle = pluginObject.ToString()
           }.ShowDialog();
@@ -146,8 +150,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnTaskOptionsClicked(object sender, EventArgs eventArgs) =>
+    private void OnTaskOptionsClicked(object sender, EventArgs eventArgs) {
       OnStreamListItemActivated(sender, eventArgs);
+    }
 
     /// <summary>
     ///   Triggered when the "Delete task" link button gets clicked
@@ -167,6 +172,8 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments</param>
-    private void OnButtonClick(object sender, EventArgs eventArgs) => Close();
+    private void OnButtonClick(object sender, EventArgs eventArgs) {
+      Close();
+    }
   }
 }

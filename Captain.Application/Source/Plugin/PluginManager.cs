@@ -36,16 +36,13 @@ namespace Captain.Application {
     /// </summary>
     internal PluginManager() {
       // get all Plugin assemblies
-      var assemblyLocations = Directory.EnumerateFiles(Application.FsManager.GetSafePath(FsManager.PluginPath))
+      List<String> assemblyLocations = Directory.EnumerateFiles(Application.FsManager.GetSafePath(FsManager.PluginPath))
         .ToList();
 
       // XXX: dead code?
       // TODO: investigate whether loading plugins from the local application path will work without hooking the
       //       AssemblyResolve event
       if (Assembly.GetExecutingAssembly().ExportedTypes.Any(type => type.Namespace == CommonAssemblyName)) {
-        // the executing assembly was merged with the Captain.Common.dll assembly which contains shared types for
-        // Plugins. Because it is unlikely that the DLL exists, hook the intent to load the DLL and resolve to the
-        // executing module instead
         AppDomain.CurrentDomain.AssemblyResolve += (sender, resolveEventArgs) => {
           if (assemblyLocations.Contains(resolveEventArgs.RequestingAssembly.Location) &&
               resolveEventArgs.Name.Split(',')[0].StartsWith(CommonAssemblyName, StringComparison.OrdinalIgnoreCase)) {

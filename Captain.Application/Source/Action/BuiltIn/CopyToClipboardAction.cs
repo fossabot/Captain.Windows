@@ -42,23 +42,6 @@ namespace Captain.Application {
 
     /// <inheritdoc />
     /// <summary>
-    ///   Writes a sequence of bytes to the current stream and advances the current position within this stream by the
-    ///   number of bytes written.
-    /// </summary>
-    /// <param name="buffer">An array of bytes to be copied.</param>
-    /// <param name="offset">
-    ///   The zero-based byte offset in <paramref name="buffer" /> at which to begin copying bytes to the current
-    ///   stream. This value is ignored and must be equal to <see cref="P:Captain.Common.Action.Position" />.
-    /// </param>
-    /// <param name="count">The number of bytes to be written to the current stream.</param>
-    /// <exception cref="System.NotSupportedException">
-    ///   Always thrown, as this action is meant to work only with still image captures which will be received via the
-    ///   <see cref="IPreBitmapEncodingAction.SetBitmapData(Common.BitmapData)"/> method.
-    /// </exception>
-    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-    /// <inheritdoc />
-    /// <summary>
     ///   Sets this action's bitmap data.
     /// </summary>
     /// <param name="orgData">An instance of <see cref="T:Captain.Common.BitmapData" /> containing capture information.</param>
@@ -77,6 +60,25 @@ namespace Captain.Application {
         Clipboard.SetImage(bmp);
         SetStatus(ActionStatus.Success);
       }
+    }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Writes a sequence of bytes to the current stream and advances the current position within this stream by the
+    ///   number of bytes written.
+    /// </summary>
+    /// <param name="buffer">An array of bytes to be copied.</param>
+    /// <param name="offset">
+    ///   The zero-based byte offset in <paramref name="buffer" /> at which to begin copying bytes to the current
+    ///   stream. This value is ignored and must be equal to <see cref="P:Captain.Common.Action.Position" />.
+    /// </param>
+    /// <param name="count">The number of bytes to be written to the current stream.</param>
+    /// <exception cref="System.NotSupportedException">
+    ///   Always thrown, as this action is meant to work only with still image captures which will be received via the
+    ///   <see cref="IPreBitmapEncodingAction.SetBitmapData(Common.BitmapData)" /> method.
+    /// </exception>
+    public override void Write(byte[] buffer, int offset, int count) {
+      throw new NotSupportedException();
     }
   }
 }

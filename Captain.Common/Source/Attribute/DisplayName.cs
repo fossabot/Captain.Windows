@@ -22,7 +22,9 @@ namespace Captain.Common {
     ///   Sets the neutral display name for this object
     /// </summary>
     /// <param name="name">Display name</param>
-    public DisplayName(string name) => Name = name;
+    public DisplayName(string name) {
+      Name = name;
+    }
 
     /// <inheritdoc />
     /// <summary>
@@ -30,6 +32,8 @@ namespace Captain.Common {
     /// </summary>
     /// <param name="languageCode">ISO language code (i.e. en-GB)</param>
     /// <param name="name">Display name</param>
-    public DisplayName(string languageCode, string name) => (LanguageCode, Name) = (languageCode, name);
+    public DisplayName(string languageCode, string name) {
+      (LanguageCode, Name) = (languageCode, name);
+    }
   }
 }

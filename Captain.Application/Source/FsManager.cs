@@ -54,9 +54,8 @@ namespace Captain.Application {
     ///   Cleanups filesystem
     /// </summary>
     ~FsManager() {
-      try {
-        Directory.Delete(Path.Combine(RootDirectoryPath, TemporaryPath), true);
-      } catch (DirectoryNotFoundException) { } catch (Exception exception) when (
+      try { Directory.Delete(Path.Combine(RootDirectoryPath, TemporaryPath), true); } catch (DirectoryNotFoundException
+      ) { } catch (Exception exception) when (
         !(exception is DirectoryNotFoundException)) {
         Log.WriteLine(LogLevel.Error, $"could not clean up filesystem: {exception}");
       }
@@ -69,9 +68,8 @@ namespace Captain.Application {
     /// <param name="name">Relative path name</param>
     /// <returns>The full path to the directory</returns>
     internal string GetSafePath(string name = "") {
-      try {
-        return Directory.CreateDirectory(Path.Combine(RootDirectoryPath, name)).FullName;
-      } catch (Exception exception) {
+      try { return Directory.CreateDirectory(Path.Combine(RootDirectoryPath, name)).FullName; } catch (Exception
+        exception) {
         Log.WriteLine(LogLevel.Error, $"requested path could not be created: {exception}");
         return Path.GetTempPath();
       }

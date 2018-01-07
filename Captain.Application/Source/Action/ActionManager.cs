@@ -31,7 +31,9 @@ namespace Captain.Application {
     ///   Binds application event handlers for an action.
     /// </summary>
     /// <param name="action">The action.</param>
-    private void BindEventHandlers(Action action) => action.OnStatusChanged += OnBoundActionStatusChanged;
+    private void BindEventHandlers(Action action) {
+      action.OnStatusChanged += OnBoundActionStatusChanged;
+    }
 
     /// <summary>
     ///   Triggered when the status of a bound action changes.
@@ -52,19 +54,19 @@ namespace Captain.Application {
               // all failed
               Log.WriteLine(LogLevel.Error, "all actions have failed");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-              Application.Hud.DisplayTidbit(TidbitStatus.Error, Resources.ActionStatus_Tidbit_AllFailed);
+              //Application.Hud.DisplayTidbit(TidbitStatus.Error, Resources.ActionStatus_Tidbit_AllFailed);
             } else if (failedCount > 0) {
               // some failed
               Log.WriteLine(LogLevel.Warning, "some actions have failed");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Warning);
-              Application.Hud.DisplayTidbit(TidbitStatus.Warning, Resources.ActionStatus_Tidbit_SomeFailed);
+              //Application.Hud.DisplayTidbit(TidbitStatus.Warning, Resources.ActionStatus_Tidbit_SomeFailed);
             } else {
               // all succeeded
               Log.WriteLine(LogLevel.Informational, "all actions have succeeded");
               Application.TrayIcon.SetTimedIndicator(IndicatorStatus.Success);
-              Application.Hud.DisplayTidbit(TidbitStatus.Success, action.Codec is IStillImageCodec 
+              /*Application.Hud.DisplayTidbit(TidbitStatus.Success, action.Codec is IStillImageCodec 
                 ? Resources.ActionStatus_Tidbit_AllSucceeded_Screenshot
-                : Resources.ActionStatus_Tidbit_AllSucceeded_Recording);
+                : Resources.ActionStatus_Tidbit_AllSucceeded_Recording);*/
             }
 
             this.actionHistory.AddRange(this.currentActions);
@@ -72,8 +74,8 @@ namespace Captain.Application {
 
             try {
               // update entries for the action dialog
-              var dialog = ((ActionDialog) System.Windows.Forms.Application.OpenForms.Cast<Form>()
-                .First(f => f is ActionDialog));
+              var dialog = (ActionDialog) System.Windows.Forms.Application.OpenForms.Cast<Form>()
+                .First(f => f is ActionDialog);
 
               dialog.ReplaceActions(this.actionHistory);
               dialog.Focus();

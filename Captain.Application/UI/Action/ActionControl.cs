@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -18,29 +17,19 @@ namespace Captain.Application {
   /// </summary>
   internal sealed partial class ActionControl : UserControl {
     /// <summary>
-    ///   Current progress value.
-    /// </summary>
-    private double progress = 1;
-
-    /// <summary>
-    ///   Holds a list of plot points for displaying speed changes.
-    /// </summary>
-    private List<uint> ratePlotPoints = new List<uint>();
-
-    /// <summary>
     ///   Dispatcher used for invoking methods from action event handlers.
     /// </summary>
-    private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+    private readonly Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+
+    /// <summary>
+    ///   Current progress value.
+    /// </summary>
+    private double currentProgress = 1;
 
     /// <summary>
     ///   Action associated with this control
     /// </summary>
-    internal Action Action { get; set; }
-
-    /// <summary>
-    ///   Exception associated with this control
-    /// </summary>
-    internal Exception Exception { get; set; }
+    private Action Action { get; }
 
     /// <inheritdoc />
     /// <summary>
@@ -69,11 +58,10 @@ namespace Captain.Application {
       UpdateThumbnail();
 
       // bind action events
-      Action.OnStatusMessageChanged += (s, e) => this.dispatcher.Invoke(UpdateAction);
       Action.OnStatusChanged += (s, e) => this.dispatcher.Invoke(UpdateAction);
 
       if (Action is IReportsProgress reportingProgressAction) {
-        this.progress = 0;
+        this.currentProgress = 0;
         reportingProgressAction.OnProgressChanged += OnActionProgressChanged;
       }
 
@@ -84,15 +72,16 @@ namespace Captain.Application {
     }
 
     /// <summary>
-    ///   Triggered when the underlying <see cref="Action"/> progress changes.
+    ///   Triggered when the underlying <see cref="Action" /> progress changes.
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="progress">The new progress value.</param>
     private void OnActionProgressChanged(object sender, double progress) {
-      this.progress = progress;
+      this.currentProgress = progress;
 
       // calculate rate and add plot point
-      if (Action is IReportsRate reportingRateAction) { this.ratePlotPoints.Add(reportingRateAction.GetRate()); }
+      // TODO: implement this
+      //if (Action is IReportsRate reportingRateAction) { this.ratePlotPoints.Add(reportingRateAction.GetRate()); }
       Invalidate();
     }
 
@@ -120,8 +109,8 @@ namespace Captain.Application {
           Color.Transparent,
           LinearGradientMode.Horizontal)) {
           gradientBrush.InterpolationColors = new ColorBlend(3) {
-            Colors = new[] {Color.Transparent, color, Color.Transparent},
-            Positions = new[] {0.0f, 0.5f, 1.0f}
+            Colors = new[] { Color.Transparent, color, Color.Transparent },
+            Positions = new[] { 0.0f, 0.5f, 1.0f }
           };
 
           eventArgs.Graphics.FillRectangle(gradientBrush, rect);
@@ -131,7 +120,7 @@ namespace Captain.Application {
       eventArgs.Graphics.DrawLine(new Pen(Color.FromArgb(0x10, Color.Black)),
         0,
         Height - 1,
-        (int) (Width * this.progress),
+        (int) (Width * this.currentProgress),
         Height - 1);
       base.OnPaint(eventArgs);
     }
@@ -166,7 +155,7 @@ namespace Captain.Application {
 
       int margin = 24 * (this.previewOverlay.Image.Width / this.previewOverlay.Width) / 2;
       using (var bmp = new Bitmap(this.previewOverlay.Width - margin, this.previewOverlay.Height - margin)) {
-        using (var graphics = Graphics.FromImage(bmp)) {
+        using (Graphics graphics = Graphics.FromImage(bmp)) {
           // draw thumbnail on the center of the preview overlay
           Image image = Action.Thumbnail ?? Resources.CapturePreviewUnavailable;
           graphics.DrawImage(image,
@@ -181,7 +170,7 @@ namespace Captain.Application {
     }
 
     /// <summary>
-    ///   Updates the control to reflect changes in the underlying <see cref="Action"/> instance.
+    ///   Updates the control to reflect changes in the underlying <see cref="Action" /> instance.
     /// </summary>
     private void UpdateAction() {
       // set preview overlay
@@ -201,8 +190,6 @@ namespace Captain.Application {
       }
 
       this.errorDetailsLinkButton.Click -= OnErrorDetailsLinkButtonClick;
-
-      this.statusLabel.Text = Action.StatusMessage;
 
       this.errorDetailsLinkButton.Image = Resources.CaptureResultErrorDetails;
       this.errorDetailsLinkButton.Visible = Action.Status == ActionStatus.Failed;
@@ -224,7 +211,7 @@ namespace Captain.Application {
             new MenuItem(Resources.ActionControl_ContextMenu_OpenInFolder,
               (s, e) => {
                 if (uri.IsFile) { ShellHelper.RevealInExplorerAsync(uri.LocalPath); }
-              }) {Enabled = uri.IsFile && !uri.IsUnc},
+              }) { Enabled = uri.IsFile && !uri.IsUnc },
             new MenuItem(@"-"),
             new MenuItem(Resources.ActionControl_ContextMenu_CopyUri, (s, e) => Clipboard.SetText(uri.ToString()))
           });
@@ -248,31 +235,35 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnErrorDetailsLinkButtonClick(object sender, EventArgs eventArgs) => new TaskDialog {
-      WindowTitle = this.actionNameLabel.Text,
-      MainIcon = TaskDialogIcon.Error,
-      WindowIcon = Resources.AppIcon,
-      AllowDialogCancellation = true,
-      Width = 200,
-      Buttons = {
-        new TaskDialogButton(ButtonType.Close) {Default = true},
-        new TaskDialogButton(Resources.TaskDialog_GenericReportButtonContent) {
-          Enabled = false
-        } // TODO: implement bug reporter helper
-      },
+    private void OnErrorDetailsLinkButtonClick(object sender, EventArgs eventArgs) {
+      new TaskDialog {
+        WindowTitle = this.actionNameLabel.Text,
+        MainIcon = TaskDialogIcon.Error,
+        WindowIcon = Resources.AppIcon,
+        AllowDialogCancellation = true,
+        Width = 200,
+        Buttons = {
+          new TaskDialogButton(ButtonType.Close) { Default = true },
+          new TaskDialogButton(Resources.TaskDialog_GenericReportButtonContent) {
+            Enabled = false
+          } // TODO: implement bug reporter helper
+        },
 
-      Content = Action.InnerException?.Message ?? Resources.ActionControl_ErrorDetailsDefaultContent,
-      ExpandFooterArea = true,
-      ExpandedInformation = Action.InnerException?.ToString()
-    }.ShowDialog();
+        Content = Action.InnerException?.Message ?? Resources.ActionControl_ErrorDetailsDefaultContent,
+        ExpandFooterArea = true,
+        ExpandedInformation = Action.InnerException?.ToString()
+      }.ShowDialog();
+    }
 
     /// <summary>
     ///   Updates the thumbnail size on preview overlay image size change.
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnPreviewOverlaySizeChanged(object sender, EventArgs eventArgs) => UpdateThumbnail();
+    private void OnPreviewOverlaySizeChanged(object sender, EventArgs eventArgs) {
+      UpdateThumbnail();
+    }
 
-    private void timer1_Tick(object sender, EventArgs e) => Invalidate();
+    private void timer1_Tick(object sender, EventArgs e) { Invalidate(); }
   }
 }

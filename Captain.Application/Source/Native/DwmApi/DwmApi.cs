@@ -42,11 +42,11 @@ namespace Captain.Application.Native {
     ///   A single <see cref="DwmWindowAttribute" /> flag to apply to the window
     /// </param>
     /// <param name="pvAttribute">
-    ///   A pointer to the value of the attribute specified in the <paramref name="dwAttribute"/>
+    ///   A pointer to the value of the attribute specified in the <paramref name="dwAttribute" />
     ///   parameter. Different <see cref="DwmWindowAttribute" /> flags require different value types.
     /// </param>
     /// <param name="cbAttribute">
-    ///   The size, in bytes, of the value type pointed to by the <paramref name="pvAttribute"/> parameter.
+    ///   The size, in bytes, of the value type pointed to by the <paramref name="pvAttribute" /> parameter.
     /// </param>
     /// <returns>
     ///   If this function succeeds, it returns <c>S_OK</c>. Otherwise, it returns an <c>HRESULT</c> error code.
@@ -56,7 +56,7 @@ namespace Captain.Application.Native {
     internal static extern int DwmSetWindowAttribute(
       [In] IntPtr hwnd,
       [In] DwmWindowAttribute dwAttribute,
-      [In, Out] ref IntPtr pvAttribute,
+      [In] [Out] ref IntPtr pvAttribute,
       [In] int cbAttribute);
 
     /// <summary>
@@ -76,14 +76,14 @@ namespace Captain.Application.Native {
     /// </summary>
     /// <param name="dp">Destination colorization parameters struct.</param>
     [DllImport(nameof(DwmApi), EntryPoint = "#127")]
-    internal static extern void DwmGetColorizationParameters([In, Out] ref DWMCOLORIZATIONPARAMS dp);
+    internal static extern void DwmGetColorizationParameters([In] [Out] ref DWMCOLORIZATIONPARAMS dp);
 
     /// <summary>
     ///   Extends the window frame into the client area.
     /// </summary>
     /// <param name="hWnd">The handle to the window in which the frame will be extended into the client area.</param>
     /// <param name="pMarInset">
-    ///   A pointer to a <see cref="MARGINS"/> structure that describes the margins to use when extending the frame
+    ///   A pointer to a <see cref="MARGINS" /> structure that describes the margins to use when extending the frame
     ///   into the client area.
     /// </param>
     /// <returns>If this function succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code.</returns>
@@ -93,6 +93,18 @@ namespace Captain.Application.Native {
     /// </remarks>
     [DllImport(nameof(DwmApi))]
     [return: MarshalAs(UnmanagedType.Error)]
-    internal static extern int DwmExtendFrameIntoClientArea([In] IntPtr hWnd, [In, Out] ref MARGINS pMarInset);
+    internal static extern int DwmExtendFrameIntoClientArea([In] IntPtr hWnd, [In] [Out] ref MARGINS pMarInset);
+
+    /// <summary>
+    ///   Enables the blur effect on a specified window
+    /// </summary>
+    /// <param name="hWnd">The handle to the window on which the blur behind data is applied</param>
+    /// <param name="pBlurBehind">
+    ///   A pointer to a <see cref="DWM_BLURBEHIND"/> structure that provides blur behind data
+    /// </param>
+    /// <returns>If this function succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code</returns>
+    [DllImport(nameof(DwmApi))]
+    [return: MarshalAs(UnmanagedType.Error)]
+    internal static extern int DwmEnableBlurBehindWindow([In] IntPtr hWnd, [In] ref DWM_BLURBEHIND pBlurBehind);
   }
 }

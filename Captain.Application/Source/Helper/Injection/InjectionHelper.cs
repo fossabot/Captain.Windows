@@ -102,7 +102,7 @@ namespace Captain.Application {
       Log.WriteLine(LogLevel.Debug, $"waiting for library load thread with ID {threadId} to terminate");
       Kernel32.WaitForSingleObject(threadHandle, unchecked((int) Kernel32.Infinite));
       Log.WriteLine(LogLevel.Debug, "library load thread terminated - retrieving module handle");
-      
+
       // on 64-bit platforms, handles do not fit in a DWORD value, so the module handle gets truncated. We'll use some
       // Toolhelp utilities to retrieve the list of loaded modules so we can release our library later in Eject()
       // TODO: debug this further?
@@ -111,9 +111,7 @@ namespace Captain.Application {
           .Modules.Cast<ProcessModule>()
           .First(m => m.FileName == path)
           .BaseAddress;
-      } catch {
-        Log.WriteLine(LogLevel.Warning, "could not retrieve remote module handle!");
-      }
+      } catch { Log.WriteLine(LogLevel.Warning, "could not retrieve remote module handle!"); }
 
       Log.WriteLine(LogLevel.Debug, "relasing resources");
       Kernel32.CloseHandle(threadHandle);

@@ -29,7 +29,8 @@ namespace Captain.Application {
     protected override CreateParams CreateParams {
       get {
         CreateParams createParams = base.CreateParams;
-        if (!DesignMode) { createParams.ExStyle |= (int)User32.WindowStylesEx.WS_EX_COMPOSITED; }
+        if (!DesignMode) { createParams.ExStyle |= (int) User32.WindowStylesEx.WS_EX_COMPOSITED; }
+
         return createParams;
       }
     }
@@ -43,7 +44,9 @@ namespace Captain.Application {
         // focus the existing instance of the form instead of creating yet another one
         System.Windows.Forms.Application.OpenForms.Cast<Form>().First(f => f.GetType() == GetType()).Focus();
         throw new ApplicationException("It is not allowed to create two simultaneous instances of this window.");
-      } catch (InvalidOperationException) { /* no form for us */ }
+      } catch (InvalidOperationException) {
+        /* no form for us */
+      }
 
       AutoScaleMode = AutoScaleMode.Font;
       StartPosition = FormStartPosition.CenterScreen;
@@ -82,10 +85,7 @@ namespace Captain.Application {
     /// <param name="eventArgs">Event arguments</param>
     protected override void OnLoad(EventArgs eventArgs) {
       if (!DesignMode) {
-        if (Environment.OSVersion.Version.Major >= 10) {
-          // update DPI for current display
-          UpdateDpi(DisplayHelper.GetScreenDpi(Handle));
-        }
+        if (Environment.OSVersion.Version.Major >= 10) { UpdateDpi(DisplayHelper.GetScreenDpi(Handle)); }
 
         // restore saved window position, if any
         if (Application.Options.WindowPositions.ContainsKey(Name)) {
@@ -133,9 +133,7 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="msg">Window message</param>
     protected override void WndProc(ref Message msg) {
-      if (msg.Msg == (int)User32.WindowMessage.WM_DPICHANGED) {
-        UpdateDpi(msg.WParam.ToInt64() >> 16 & 0xFFFF);
-      }
+      if (msg.Msg == (int) User32.WindowMessage.WM_DPICHANGED) { UpdateDpi((msg.WParam.ToInt64() >> 16) & 0xFFFF); }
 
       base.WndProc(ref msg);
     }

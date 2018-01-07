@@ -11,9 +11,9 @@ namespace Captain.Application {
   /// </summary>
   internal sealed class ToolBarControl : TabControl {
     /// <summary>
-    ///   Reference font size for 1x scale
+    ///   Index of the tab that is currently being pressed (-1 for none)
     /// </summary>
-    private float referenceFontSize;
+    private int downIndex = -1;
 
     /// <summary>
     ///   Whether to expand tabs to fill horizontal space
@@ -26,9 +26,9 @@ namespace Captain.Application {
     private int hoverIndex = -1;
 
     /// <summary>
-    ///   Index of the tab that is currently being pressed (-1 for none)
+    ///   Reference font size for 1x scale
     /// </summary>
-    private int downIndex = -1;
+    private float referenceFontSize;
 
     /// <summary>
     ///   Color for the tab header
@@ -93,7 +93,7 @@ namespace Captain.Application {
                ControlStyles.DoubleBuffer |
                ControlStyles.OptimizedDoubleBuffer |
                ControlStyles.ResizeRedraw,
-               true);
+        true);
       UpdateAccentColor();
       UpdateItemSize();
 
@@ -108,8 +108,8 @@ namespace Captain.Application {
     protected override void WndProc(ref Message m) {
       if (Disposing) { return; }
 
-      if (m.Msg == (int)User32.WindowMessage.TCM_ADJUSTRECT) {
-        var rect = (RECT)m.GetLParam(typeof(RECT));
+      if (m.Msg == (int) User32.WindowMessage.TCM_ADJUSTRECT) {
+        var rect = (RECT) m.GetLParam(typeof(RECT));
 
         rect.top -= 3;
         rect.right += 4;
@@ -129,9 +129,9 @@ namespace Captain.Application {
     /// <param name="eventArgs">Arguments passed to this event handler</param>
     protected override void OnFontChanged(EventArgs eventArgs) {
       if (!DesignMode) {
-        decimal scale = (decimal)Font.Size / (decimal)this.referenceFontSize;
+        decimal scale = (decimal) Font.Size / (decimal) this.referenceFontSize;
         this.referenceFontSize = Font.Size;
-        ItemSize = new Size((int)Math.Floor(ItemSize.Width * scale), (int)Math.Floor(ItemSize.Height * scale));
+        ItemSize = new Size((int) Math.Floor(ItemSize.Width * scale), (int) Math.Floor(ItemSize.Height * scale));
         UpdateItemSize();
       }
 
@@ -153,7 +153,7 @@ namespace Captain.Application {
     /// </summary>
     internal void UpdateItemSize() {
       if (ExtendTabs && Width > 0 && TabCount > 0) {
-        ItemSize = new Size(Width / TabCount - 1 , ItemSize.Height);
+        ItemSize = new Size(Width / TabCount - 1, ItemSize.Height);
         Invalidate(true);
       }
     }
@@ -166,10 +166,7 @@ namespace Captain.Application {
     private Rectangle GetTabBounds(int index) {
       var bounds = new Rectangle(ItemSize.Width * index, 0, ItemSize.Width, ItemSize.Height);
 
-      if (ExtendTabs && index == TabCount - 1) {
-        // HACK: adjust last tab
-        bounds.Width = Width - bounds.X;
-      }
+      if (ExtendTabs && index == TabCount - 1) { bounds.Width = Width - bounds.X; }
 
       return bounds;
     }
@@ -262,40 +259,35 @@ namespace Captain.Application {
           // get bounds for the tab being rendered
           Rectangle tabBounds = GetTabBounds(i);
 
-          if (this.downIndex == i) {
-            // this tab is pressed
-            eventArgs.Graphics.FillRectangle(PressedTabBrush, tabBounds);
-          } else if (this.hoverIndex == i) {
-            // this tab is hovered
+          if (this.downIndex == i
+          ) { eventArgs.Graphics.FillRectangle(PressedTabBrush, tabBounds); } else if (this.hoverIndex == i) {
             eventArgs.Graphics.FillRectangle(HoveredTabBrush, tabBounds);
           }
 
           if (i != TabCount - 1) {
-            // draw tab separator except for the last tab
             eventArgs.Graphics.DrawLine(BorderPen,
-                                        tabBounds.Right,
-                                        tabBounds.Top + 4,
-                                        tabBounds.Right,
-                                        tabBounds.Bottom - 4);
+              tabBounds.Right,
+              tabBounds.Top + 4,
+              tabBounds.Right,
+              tabBounds.Bottom - 4);
           }
 
           // render tab label
           TextRenderer.DrawText(eventArgs.Graphics,
-                                TabPages[i].Text,
-                                Font,
-                                new Rectangle(tabBounds.X, tabBounds.Y, tabBounds.Width, tabBounds.Height),
-                                SelectedIndex == i ? SelectedTabForeColor : LabelColor,
-                                TextFormatFlags.EndEllipsis |
-                                TextFormatFlags.HorizontalCenter |
-                                TextFormatFlags.VerticalCenter);
+            TabPages[i].Text,
+            Font,
+            new Rectangle(tabBounds.X, tabBounds.Y, tabBounds.Width, tabBounds.Height),
+            SelectedIndex == i ? SelectedTabForeColor : LabelColor,
+            TextFormatFlags.EndEllipsis |
+            TextFormatFlags.HorizontalCenter |
+            TextFormatFlags.VerticalCenter);
 
           if (SelectedIndex == i) {
-            // display a bottom border for selected tabs
             eventArgs.Graphics.DrawLine(SelectedTabBorderPen,
-                                        tabBounds.Left,
-                                        tabBounds.Bottom,
-                                        tabBounds.Right,
-                                        tabBounds.Bottom);
+              tabBounds.Left,
+              tabBounds.Bottom,
+              tabBounds.Right,
+              tabBounds.Bottom);
           }
         }
       } catch (ArgumentException) { }

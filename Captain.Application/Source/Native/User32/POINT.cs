@@ -11,11 +11,11 @@ namespace Captain.Application.Native {
     /// <summary>
     ///   The x-coordinate of the point.
     /// </summary>
-    internal readonly int x;
+    internal int x;
 
     /// <summary>
     ///   The x-coordinate of the point.
     /// </summary>
-    internal readonly int y;
+    internal int y;
   }
 }

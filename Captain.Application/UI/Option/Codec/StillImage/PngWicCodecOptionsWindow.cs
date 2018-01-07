@@ -42,15 +42,17 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnFilterOptionChanged(object sender, EventArgs eventArgs) =>
+    private void OnFilterOptionChanged(object sender, EventArgs eventArgs) {
       Options["Filter"] = (PngFilterOption) this.filterComboBox.SelectedIndex;
+    }
 
     /// <summary>
     ///   Triggered when the interlacing mode option has changed.
     /// </summary>
     /// <param name="sender">Sender object.</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnInterlaceOptionChanged(object sender, EventArgs eventArgs) =>
+    private void OnInterlaceOptionChanged(object sender, EventArgs eventArgs) {
       Options["Interlaced"] = this.interlaceOptionCheckBox.Checked;
+    }
   }
 }

@@ -11,7 +11,7 @@ namespace Captain.Application {
     ///   Tries to obtain the system accent color
     /// </summary>
     /// <returns>
-    ///   A <see cref="Color"/> representing the system accent tint. If the color could not be obtained,
+    ///   A <see cref="Color" /> representing the system accent tint. If the color could not be obtained,
     ///   <c>null</c> is returned
     /// </returns>
     /// <remarks>
@@ -25,7 +25,6 @@ namespace Captain.Application {
 
       // make sure DWM composition's enabled
       if (DwmApi.DwmIsCompositionEnabled(out bool composited) == 0 && composited) {
-        // try to obtain system accent color (see https://stackoverflow.com/a/33058136)
         try {
           var colorizationParams = new DwmApi.DWMCOLORIZATIONPARAMS();
 
@@ -33,9 +32,9 @@ namespace Captain.Application {
           DwmApi.DwmGetColorizationParameters(ref colorizationParams);
 
           // build color
-          return Color.FromArgb((byte)(colorizationParams.ColorizationColor >> 16),
-                                (byte)(colorizationParams.ColorizationColor >> 8),
-                                (byte)colorizationParams.ColorizationColor);
+          return Color.FromArgb((byte) (colorizationParams.ColorizationColor >> 16),
+            (byte) (colorizationParams.ColorizationColor >> 8),
+            (byte) colorizationParams.ColorizationColor);
         } catch (EntryPointNotFoundException) {
           // unsupported
         }

@@ -68,16 +68,13 @@ namespace Captain.Application {
             MainInstruction = Resources.OptionsWindow_RestoreDialogInstruction,
             Content = Resources.OptionsWindow_RestoreDialogContent,
             Buttons = {
-              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogOptionsButton) {Default = true},
+              new TaskDialogButton(Resources.OptionsWindow_RestoreDialogOptionsButton) { Default = true },
               new TaskDialogButton(Resources.OptionsWindow_RestoreDialogHardButton),
               new TaskDialogButton(ButtonType.Cancel)
             }
           }.ShowDialog();
 
-          if (button.ButtonType == ButtonType.Custom) {
-            // if the default button is pressed, only options will be reset
-            Reset(!button.Default);
-          }
+          if (button.ButtonType == ButtonType.Custom) { Reset(!button.Default); }
 
           eventArgs.SuppressKeyPress = true;
         }
@@ -112,10 +109,7 @@ namespace Captain.Application {
     /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
     /// <param name="eventArgs"></param>
     private void OnGeneralPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) {
-        // no need to initalize the page
-        return;
-      }
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.generalPage.Tag != null) { return; }
 
       this.generalPage.Tag = new object();
 
@@ -287,10 +281,7 @@ namespace Captain.Application {
     /// <param name="sender">If not the owner <see cref="ToolBarControl" />, the event is ignored.</param>
     /// <param name="eventArgs"></param>
     private void OnTasksPageLayout(object sender, LayoutEventArgs eventArgs) {
-      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.tasksPage.Tag != null) {
-        // no need to initalize the page
-        return;
-      }
+      if (eventArgs.AffectedProperty != PageInitTriggerProperty || this.tasksPage.Tag != null) { return; }
 
       // HACK: we are abusing the Tag property for keeping track of the Tasks options mode (true for advanced)
       this.tasksPage.Tag = Application.Options.AdvancedTaskOptionsEnabled;
@@ -326,8 +317,9 @@ namespace Captain.Application {
     /// </summary>
     /// <param name="sender">Sender object</param>
     /// <param name="eventArgs">Event arguments.</param>
-    private void OnTaskOptionSwitchLinkButtonClicked(object sender, EventArgs eventArgs) =>
+    private void OnTaskOptionSwitchLinkButtonClicked(object sender, EventArgs eventArgs) {
       SwitchTaskOptionsMode(!Convert.ToBoolean(this.tasksPage.Tag));
+    }
 
     #endregion
 
@@ -340,7 +332,7 @@ namespace Captain.Application {
     private void UpdateDefaultTasks() {
       Task defaultScreenshotTask = Application.Options.Tasks.First(t => t.TaskType == TaskType.StillImage);
       this.simpleScreenshotHotkeyTextBox.Text = defaultScreenshotTask.Hotkey.ToString();
-      
+
       this.simpleScreenshotFormatComboBox.Items.Clear();
       this.simpleScreenshotFormatComboBox.Items.AddRange(Application.PluginManager.StillImageCodecs.ToArray());
       this.simpleScreenshotFormatComboBox.SelectedItem =
@@ -352,7 +344,7 @@ namespace Captain.Application {
 
       Task defaultRecordingTask = Application.Options.Tasks.First(t => t.TaskType == TaskType.Video);
       this.simpleRecordingHotkeyTextBox.Text = defaultRecordingTask.Hotkey.ToString();
-      
+
       this.simpleRecordingCodecComboBox.Items.Clear();
       this.simpleRecordingCodecComboBox.Items.AddRange(Application.PluginManager.VideoCodecs.ToArray());
       this.simpleRecordingCodecComboBox.SelectedItem =

@@ -34,7 +34,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Exposes underlying NotifyIcon
     /// </summary>
-    internal NotifyIcon NotifyIcon { get; }
+    private NotifyIcon NotifyIcon { get; }
 
     /// <summary>
     ///   Instantiates a new TrayIcon
@@ -51,6 +51,7 @@ namespace Captain.Application {
 
       // add separator if at least one task has been added to the context menu
       if (contextMenu.MenuItems.Count > 0) { contextMenu.MenuItems.Add("-"); }
+
       contextMenu.MenuItems.AddRange(new[] {
         new MenuItem(Resources.AppMenu_Options,
           (s, e) => {
@@ -68,7 +69,7 @@ namespace Captain.Application {
         new MenuItem(Resources.AppMenu_Exit, (s, e) => Exit())
       });
 
-      NotifyIcon = new NotifyIcon {ContextMenu = contextMenu};
+      NotifyIcon = new NotifyIcon { ContextMenu = contextMenu };
       NotifyIcon.MouseClick += (s, e) => {
         int index = -1;
 
@@ -107,10 +108,10 @@ namespace Captain.Application {
       // get the platform-dependent indicator style variant
       if (Environment.OSVersion.Version.Major > 6
       ) { this.iconRenderer = new FluentIndicatorRenderer(GetIconHandle()); } else if (
-        Environment.OSVersion.Version.Minor > 2) {
-        // TODO: create assets for Windows 8/8.1
+        Environment.OSVersion.Version.Minor > 2
+      ) { this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle()); } else {
         this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle());
-      } else { this.iconRenderer = new AeroIndicatorRenderer(GetIconHandle()); }
+      }
 
       // set initial icon
       SetIndicator(IndicatorStatus.Idle);
@@ -138,12 +139,16 @@ namespace Captain.Application {
     /// <summary>
     ///   Displays the tray icon
     /// </summary>
-    private void Show() => NotifyIcon.Visible = true;
+    private void Show() {
+      NotifyIcon.Visible = true;
+    }
 
     /// <summary>
     ///   Hides the tray icon
     /// </summary>
-    internal void Hide() => NotifyIcon.Visible = false;
+    internal void Hide() {
+      NotifyIcon.Visible = false;
+    }
 
     /// <summary>
     ///   Updates the current indicator status/animation frame
@@ -151,6 +156,7 @@ namespace Captain.Application {
     /// <param name="status">Indicator status</param>
     internal void SetIndicator(IndicatorStatus status) {
       if (status != this.currentStatus && this.isIndicatorAnimated) { StopIndicatorAnimation(); }
+
       NotifyIcon.Icon = this.iconRenderer.RenderFrame(this.currentStatus = status);
     }
 

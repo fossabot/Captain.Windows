@@ -7,11 +7,11 @@ using Captain.Common;
 using static Captain.Application.Application;
 
 namespace Captain.Application {
-  /// <inheritdoc />
+  /// <inheritdoc cref="Behaviour" />
   /// <summary>
   ///   Provides mouse hooking logic for system UI
   /// </summary>
-  internal sealed class SystemMouseHookProvider : IMouseHookProvider {
+  internal sealed class DesktopMouseHook : Behaviour, IMouseHookProvider {
     // ReSharper disable once InconsistentNaming
     /// <summary>
     ///   The wParam and lParam parameters contain information about a mouse message.
@@ -19,9 +19,9 @@ namespace Captain.Application {
     private const int HC_ACTION = 0;
 
     /// <summary>
-    ///   Low-level mouse hook procedure reference so it it does not get garbage collected
+    ///   Current mouse button state
     /// </summary>
-    private User32.WindowsHookDelegate lowLevelMouseProc;
+    private MouseButtons buttonState;
 
     /// <summary>
     ///   Handle for the system mouse hook
@@ -29,45 +29,41 @@ namespace Captain.Application {
     private IntPtr hookHandle;
 
     /// <summary>
-    ///   Current mouse button state
+    ///   Low-level mouse hook procedure reference so it it does not get garbage collected
     /// </summary>
-    private MouseButtons buttonState;
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Whether to delegate the event to the original handler.
-    /// </summary>
-    public bool PassThrough { get; set; }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Whether or not the mouse is being captured
-    /// </summary>
-    public bool Acquired => this.hookHandle != IntPtr.Zero;
+    private User32.WindowsHookDelegate lowLevelMouseProc;
 
     /// <inheritdoc />
     /// <summary>
     ///   Triggered when a mouse button is held
     /// </summary>
-    public event MouseEventHandler OnMouseDown;
+    public event EventHandler<ExtendedEventArgs<MouseEventArgs, bool>> OnMouseDown;
 
     /// <inheritdoc />
     /// <summary>
     ///   Triggered when a mouse button is released
     /// </summary>
-    public event MouseEventHandler OnMouseUp;
+    public event EventHandler<ExtendedEventArgs<MouseEventArgs, bool>> OnMouseUp;
 
     /// <inheritdoc />
     /// <summary>
     ///   Triggered when the mouse moves
     /// </summary>
-    public event MouseEventHandler OnMouseMove;
+    public event EventHandler<ExtendedEventArgs<MouseEventArgs, bool>> OnMouseMove;
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose() {
+      Unlock();
+    }
 
     /// <inheritdoc />
     /// <summary>
     ///   Starts capturing mouse events
     /// </summary>
-    public void Acquire() {
+    protected override void Lock() {
       if (this.hookHandle != IntPtr.Zero) {
         throw new InvalidOperationException("The previous hook must be released before capturing the mouse again.");
       }
@@ -86,7 +82,7 @@ namespace Captain.Application {
     /// <summary>
     ///   Releases the mouse hook
     /// </summary>
-    public void Release() {
+    protected override void Unlock() {
       if (this.hookHandle != IntPtr.Zero) {
         if (!User32.UnhookWindowsHookEx(this.hookHandle)) {
           Log.WriteLine(LogLevel.Warning, $"UnhookWindowsHookEx() failed (LE 0x{Marshal.GetLastWin32Error():x8}");
@@ -96,12 +92,6 @@ namespace Captain.Application {
         Log.WriteLine(LogLevel.Debug, "low-level mouse hook has been uninstalled");
       }
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose() => Release();
 
     /// <summary>
     ///   Mouse hook procedure
@@ -114,31 +104,57 @@ namespace Captain.Application {
       if (code == HC_ACTION) {
         // this is a mouse event
         var eventInfo = (MSLLHOOKSTRUCT) Marshal.PtrToStructure(lParam, typeof(MSLLHOOKSTRUCT));
+        ExtendedEventArgs<MouseEventArgs, bool> eventArgs = null;
 
         switch (wParam.ToInt32()) {
-          case (int)User32.WindowMessage.WM_MOUSEMOVE:
-            OnMouseMove?.Invoke(this, new MouseEventArgs(this.buttonState, 0, eventInfo.pt.x, eventInfo.pt.y, 0));
-            break; // we want to let the mouse to be moved
+          case (int) User32.WindowMessage.WM_MOUSEMOVE:
+            OnMouseMove?.Invoke(this,
+              eventArgs = new ExtendedEventArgs<MouseEventArgs, bool>(new MouseEventArgs(this.buttonState,
+                0,
+                eventInfo.pt.x,
+                eventInfo.pt.y,
+                0)));
+            return eventArgs?.ExtendedData == true ? 1 : 0;
 
-          case (int)User32.WindowMessage.WM_LBUTTONDOWN:
+          case (int) User32.WindowMessage.WM_LBUTTONDOWN:
             this.buttonState |= MouseButtons.Left;
-            OnMouseDown?.Invoke(this, new MouseEventArgs(this.buttonState, 1, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return PassThrough ? 0 : 1;
+            OnMouseDown?.Invoke(this,
+              eventArgs = new ExtendedEventArgs<MouseEventArgs, bool>(new MouseEventArgs(this.buttonState,
+                1,
+                eventInfo.pt.x,
+                eventInfo.pt.y,
+                0)));
+            return eventArgs?.ExtendedData == true ? 1 : 0;
 
-          case (int)User32.WindowMessage.WM_RBUTTONDOWN:
+          case (int) User32.WindowMessage.WM_RBUTTONDOWN:
             this.buttonState |= MouseButtons.Right;
-            OnMouseDown?.Invoke(this, new MouseEventArgs(this.buttonState, 1, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return PassThrough ? 0 : 1; // message processed
+            OnMouseDown?.Invoke(this,
+              eventArgs = new ExtendedEventArgs<MouseEventArgs, bool>(new MouseEventArgs(this.buttonState,
+                1,
+                eventInfo.pt.x,
+                eventInfo.pt.y,
+                0)));
+            return eventArgs?.ExtendedData == true ? 1 : 0;
 
-          case (int)User32.WindowMessage.WM_LBUTTONUP:
+          case (int) User32.WindowMessage.WM_LBUTTONUP:
             this.buttonState &= ~MouseButtons.Left;
-            OnMouseUp?.Invoke(this, new MouseEventArgs(this.buttonState, 0, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return PassThrough ? 0 : 1; // message processed
+            OnMouseUp?.Invoke(this,
+              eventArgs = new ExtendedEventArgs<MouseEventArgs, bool>(new MouseEventArgs(this.buttonState,
+                0,
+                eventInfo.pt.x,
+                eventInfo.pt.y,
+                0)));
+            return eventArgs?.ExtendedData == true ? 1 : 0;
 
-          case (int)User32.WindowMessage.WM_RBUTTONUP:
+          case (int) User32.WindowMessage.WM_RBUTTONUP:
             this.buttonState &= ~MouseButtons.Right;
-            OnMouseUp?.Invoke(this, new MouseEventArgs(this.buttonState, 0, eventInfo.pt.x, eventInfo.pt.y, 0));
-            return PassThrough ? 0 : 1; // message processed
+            OnMouseUp?.Invoke(this,
+              eventArgs = new ExtendedEventArgs<MouseEventArgs, bool>(new MouseEventArgs(this.buttonState,
+                0,
+                eventInfo.pt.x,
+                eventInfo.pt.y,
+                0)));
+            return eventArgs?.ExtendedData == true ? 1 : 0;
         }
       }
 

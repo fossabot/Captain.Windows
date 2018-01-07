@@ -18,15 +18,5 @@ namespace Captain.Application {
     ///   Triggered when a key is released
     /// </summary>
     event KeyEventHandler OnKeyUp;
-
-    /// <summary>
-    ///   Starts capturing keyboard events
-    /// </summary>
-    void Acquire();
-
-    /// <summary>
-    ///   Releases the keyboard hook
-    /// </summary>
-    void Release();
   }
 }

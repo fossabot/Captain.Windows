@@ -30,13 +30,13 @@ namespace Captain.Common {
     /// <summary>
     ///   Creates a single bitmap from the captured frames and returns an object with its information
     /// </summary>
-    /// <returns>A <see cref="BitmapData"/> containing raw bitmap information</returns>
+    /// <returns>A <see cref="BitmapData" /> containing raw bitmap information</returns>
     BitmapData LockFrameBitmap();
 
     /// <summary>
     ///   Releases the bitmap created for this frame
     /// </summary>
-    /// <param name="data">Bitmap data returned by the <see cref="LockFrameBitmap"/> method</param>
+    /// <param name="data">Bitmap data returned by the <see cref="LockFrameBitmap" /> method</param>
     void UnlockFrameBitmap(BitmapData data);
   }
 }

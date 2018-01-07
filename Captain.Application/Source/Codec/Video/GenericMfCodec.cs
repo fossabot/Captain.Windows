@@ -8,8 +8,6 @@ using SharpDX.Direct3D9;
 using SharpDX.Mathematics.Interop;
 using SharpDX.MediaFoundation;
 using SharpDX.Multimedia;
-using static Captain.Application.Application;
-using Guid = System.Guid;
 
 namespace Captain.Application {
   /// <inheritdoc cref="IVideoCodec" />
@@ -28,6 +26,11 @@ namespace Captain.Application {
     private ByteStream byteStream;
 
     /// <summary>
+    ///   DXGI device manager instance.
+    /// </summary>
+    private DXGIDeviceManager dxgiManager;
+
+    /// <summary>
     ///   MF sink writer.
     /// </summary>
     private SinkWriter sinkWriter;
@@ -43,16 +46,6 @@ namespace Captain.Application {
     private Texture2D surface;
 
     /// <summary>
-    ///   DXGI device manager instance.
-    /// </summary>
-    private DXGIDeviceManager dxgiManager;
-
-    /// <summary>
-    ///   Media Foundation Transform.
-    /// </summary>
-    private Transform transform;
-
-    /// <summary>
     ///   Value for the TranscodeContainertype media attribute.
     /// </summary>
     protected abstract Guid ContainerType { get; }
@@ -61,12 +54,6 @@ namespace Captain.Application {
     ///   Video format GUID.
     /// </summary>
     protected abstract Guid VideoFormat { get; }
-
-    /// <inheritdoc />
-    /// <summary>
-    ///   File extension for this codec
-    /// </summary>
-    public abstract string FileExtension { get; }
 
     /// <inheritdoc />
     /// <summary>
@@ -85,6 +72,12 @@ namespace Captain.Application {
     ///   Gets or sets the Direct3D surface pointer to be passed to the underlying encoder.
     /// </summary>
     public IntPtr SurfacePointer { get; set; }
+
+    /// <inheritdoc />
+    /// <summary>
+    ///   File extension for this codec
+    /// </summary>
+    public abstract string FileExtension { get; }
 
     /// <inheritdoc />
     /// <summary>
@@ -142,17 +135,9 @@ namespace Captain.Application {
 
           this.sinkWriter.SetInputMediaType(this.streamIdx, inMediaType, null);
           this.sinkWriter.BeginWriting();
-
-          this.sinkWriter.GetServiceForStream(this.streamIdx,
-            Guid.Empty,
-            typeof(Transform).GUID,
-            out IntPtr nativePtr);
-          this.transform = new Transform(nativePtr);
         }
       }
     }
-
-    private long lastSampleTime;
 
     /// <inheritdoc />
     /// <summary>
@@ -197,7 +182,7 @@ namespace Captain.Application {
 
       // add buffer to sample
       sample.AddBuffer(buffer);
-      sample.SampleTime = this.lastSampleTime = time;
+      sample.SampleTime = time;
 
       try { this.sinkWriter.WriteSample(this.streamIdx, sample); } catch (SharpDXException) { } finally {
         buffer.Dispose();

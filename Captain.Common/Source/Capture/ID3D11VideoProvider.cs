@@ -10,7 +10,7 @@ namespace Captain.Common {
     /// <summary>
     ///   Creates a single bitmap from the captured frames and returns an object with its information
     /// </summary>
-    /// <returns>A <see cref="BitmapData"/> containing raw bitmap information</returns>
+    /// <returns>A <see cref="BitmapData" /> containing raw bitmap information</returns>
     IntPtr SurfacePointer { get; }
   }
 }
