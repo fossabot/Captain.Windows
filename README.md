@@ -1,7 +1,8 @@
-﻿<p align="center"><img src="https://i.imgur.com/Hg5XOIF.png" alt="About Dialog screenshot" /></p>
+<p align="center"><img src="https://i.imgur.com/Hg5XOIF.png" alt="About Dialog screenshot" /></p>
 
 # Captain
 ![version: 0.6](https://img.shields.io/badge/version-0.6-blue.svg)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCaptainApp%2FCaptain.Windows.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FCaptainApp%2FCaptain.Windows?ref=badge_shield)
 > The minimal, extensible screen capturer.
 
 🚧 **This is an ongoing project under active development, and is not yet meant to be usable.** 🚧
@@ -48,6 +49,9 @@ licensing.
 
 Major components are licensed under the [simplified BSD license](https://opensource.org/licenses/BSD-2-Clause)
 (a.k.a. BSD 2-Clause), with other smaller parts released [into the public domain](http://unlicense.org/).
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCaptainApp%2FCaptain.Windows.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FCaptainApp%2FCaptain.Windows?ref=badge_large)
 
 ## What's done?
 _(Note that most unchecked features are still work in progress, but have already been started.)_
